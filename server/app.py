@@ -37,7 +37,7 @@ class Signup(Resource):
     def post(self):
         json = request.get_json()
         user = User(
-            username = json['username']
+            email = json['email']
         )
         try:
             user.password_hash = json['password']
@@ -133,6 +133,12 @@ class BirdByID(Resource):
         db.session.commit()
 
         return make_response('', 204)
+
+
+api.add_resource(Signup, '/signup', endpoint='signup')
+api.add_resource(CheckSession, '/check_session', endpoint='check_session')
+api.add_resource(Login, '/login', endpoint='login')
+api.add_resource(Logout, '/logout', endpoint='logout')
 
 api.add_resource(BirdByID, '/birds/<int:id>')
 
