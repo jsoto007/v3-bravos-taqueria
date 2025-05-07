@@ -11,17 +11,6 @@ from sqlalchemy.exc import IntegrityError
 from config import db, bcrypt, app
 from models import User, Bird
 
-# app = Flask(
-#     __name__,
-#     static_url_path='',
-#     static_folder='../client/build',
-#     template_folder='../client/build'
-# )
-
-# app.config['SQLALCHEMY_DATABASE_URI'] = os.environ.get('DATABASE_URI')
-# app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
-# app.json.compact = False
-
 
 migrate = Migrate(app, db)
 db.init_app(app)
