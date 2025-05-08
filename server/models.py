@@ -20,11 +20,11 @@ class User(db.Model, SerializerMixin):
     updated_at = db.Column(db.DateTime, onupdate=db.func.now())
 
 
-    @validates("username")
-    def validate_username(self, key, username):
-        if not username:
-            raise ValueError("Username must not be empty")
-        return username
+    @validates("email")
+    def validate_username(self, key, email):
+        if not email:
+            raise ValueError("email must not be empty")
+        return email
     
     @hybrid_property
     def password_hash(self):
@@ -41,7 +41,7 @@ class User(db.Model, SerializerMixin):
             self._password_hash, password.encode('utf-8'))
     
     def __repr__(self):
-        return f'User {self.username}, ID: {self.id}'
+        return f'User {self.email}, ID: {self.id}'
 
 
 class Bird(db.Model, SerializerMixin):

@@ -1,3 +1,4 @@
+import React, {useState, useEffect} from "react";
 import { Routes, Route } from "react-router-dom";
 import Header from "./Header";
 import BirdPage from "./BirdPage";
@@ -6,7 +7,20 @@ import CarsList from "./CarsList";
 import LoginForm from "./LoginForm";
 import SignUpForm from "./SignUpForm";
 
+
 function App() {
+  const [user, setUser] = useState(null);
+
+  useEffect(() => {
+    // auto-login
+    fetch("/check_session").then((r) => {
+      if (r.ok) {
+        r.json().then((user) => setUser(user));
+      }
+    });
+  }, []);
+
+  if (!user) return <LoginForm onLogin={setUser} />;
 
 
     return (

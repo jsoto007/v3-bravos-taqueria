@@ -26,7 +26,7 @@ class Signup(Resource):
     def post(self):
         json = request.get_json()
         user = User(
-            email = json['email']
+            email = json['username']
         )
         try:
             user.password_hash = json['password']
@@ -48,10 +48,10 @@ class CheckSession(Resource):
 
 class Login(Resource):
     def post(self):
-        username = request.get_json()['username']
+        email = request.get_json()['username']
         password = request.get_json()['password']
 
-        user = User.query.filter(User.username == username).first()
+        user = User.query.filter(User.email == email).first()
 
         if user and user.authenticate(password):
             session['user_id'] = user.id
@@ -93,7 +93,7 @@ class Birds(Resource):
 
         return make_response(new_bird.to_dict(), 201)
 
-api.add_resource(Birds, '/birds')
+api.add_resource(Birds, '/birds', endpoint='birds')
 
 class BirdByID(Resource):
     
