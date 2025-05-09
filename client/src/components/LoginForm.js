@@ -52,6 +52,9 @@ function LoginForm({ onLogin }) {
         <button type="submit">
           {isLoading ? "Loading..." : "Login"}
         </button>
+        <li>
+            {errors ? "There is an error" : "no error"}
+        </li>
       </div>
     </form>
   );
