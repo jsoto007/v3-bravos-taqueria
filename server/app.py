@@ -13,7 +13,6 @@ from models import User, Bird
 
 
 migrate = Migrate(app, db)
-db.init_app(app)
 
 @app.errorhandler(404)
 def not_found(e):
