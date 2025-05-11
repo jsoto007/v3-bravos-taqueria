@@ -1,7 +1,6 @@
 from app import app
-from models import db, Bird
-
-db.init_app(app)
+from models import Bird
+from config import db
 
 with app.app_context():
 

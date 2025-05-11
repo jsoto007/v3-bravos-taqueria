@@ -11,6 +11,8 @@ from sqlalchemy.exc import IntegrityError
 from config import db, bcrypt, app
 from models import User, Bird
 
+from dotenv import load_dotenv
+load_dotenv()
 
 migrate = Migrate(app, db)
 
