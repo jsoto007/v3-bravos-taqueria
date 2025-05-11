@@ -11,6 +11,11 @@ from sqlalchemy.exc import IntegrityError
 from config import db, bcrypt, app
 from models import User, Bird
 
+
+from flask_cors import CORS
+CORS(app)
+
+
 from dotenv import load_dotenv
 load_dotenv()
 
@@ -95,6 +100,7 @@ class Birds(Resource):
         return make_response(new_bird.to_dict(), 201)
 
 api.add_resource(Birds, '/birds', endpoint='birds')
+
 
 class BirdByID(Resource):
     
