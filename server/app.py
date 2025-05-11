@@ -23,7 +23,7 @@ migrate = Migrate(app, db)
 
 @app.errorhandler(404)
 def not_found(e):
-    return jsonify({"error": "Not Found"}), 404
+    return render_template("index.html")
 
 api = Api(app)
 
