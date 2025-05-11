@@ -5,7 +5,7 @@
   "proxy": "http://127.0.0.1:5555",
   "scripts": {
     "dev": "next dev",
-    "build": "next build",
+    "build": "npm rebuild && next build",
     "start": "next start",
     "lint": "next lint"
   },
