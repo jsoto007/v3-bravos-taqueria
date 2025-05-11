@@ -99,7 +99,7 @@ class Birds(Resource):
 
         return make_response(new_bird.to_dict(), 201)
 
-api.add_resource(Birds, '/birds', endpoint='birds')
+api.add_resource(Birds, '/api/birds', endpoint='birds')
 
 
 class BirdByID(Resource):
@@ -137,4 +137,17 @@ api.add_resource(Login, '/login', endpoint='login')
 api.add_resource(Logout, '/logout', endpoint='logout')
 
 api.add_resource(BirdByID, '/birds/<int:id>')
+
+# Serve Vite build in production
+from flask import send_from_directory
+import os
+
+@app.route("/", defaults={"path": ""})
+@app.route("/<path:path>")
+def serve_react(path):
+    dist_dir = os.path.join(os.path.dirname(__file__), "../client/dist")
+    if path != "" and os.path.exists(os.path.join(dist_dir, path)):
+        return send_from_directory(dist_dir, path)
+    else:
+        return send_from_directory(dist_dir, "index.html")
 
