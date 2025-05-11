@@ -12,8 +12,6 @@ export default function Birds() {
           });
       }, []);
 
-      console.log(birds)
-
     return (
         <div className="p-4">
             <h1 className="text-2xl font-bold mb-4">Birds List</h1>
