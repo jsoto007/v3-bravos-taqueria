@@ -1,19 +1,14 @@
 'use client'
 import React, { useEffect, useState } from "react"
+import Birds from "./components/birds"
 
 export default function Home() {
 
-  useEffect(() => {
-    fetch("/birds")
-      .then((r) => r.json())
-      .then((birdsArray) => {
-        console.log("birds:", birdsArray);
-      });
-  }, []);
+
 
   return (
     <div>
-      Hello from page
+      <Birds />
     </div>
   )
 
