@@ -76,8 +76,6 @@ class Logout(Resource):
 
 
 
-
-
 class Birds(Resource):
 
     def get(self):
