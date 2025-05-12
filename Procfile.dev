@@ -1,2 +1,2 @@
 web: npx vite --port 4000 --host --root client
-api: gunicorn -b 0.0.0.0:$PORT --timeout 120 --workers 3 --chdir ./server app:app
+api: flask db upgrade && gunicorn -b 0.0.0.0:$PORT --timeout 120 --workers 3 --chdir ./server app:app
