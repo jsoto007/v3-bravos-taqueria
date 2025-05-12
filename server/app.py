@@ -19,7 +19,13 @@ CORS(app)
 from dotenv import load_dotenv
 load_dotenv()
 
+
 migrate = Migrate(app, db)
+
+# Ensure tables are created before the first request
+@app.before_first_request
+def create_tables():
+    db.create_all()
 
 @app.errorhandler(404)
 def not_found(e):
