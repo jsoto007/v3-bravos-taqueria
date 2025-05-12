@@ -129,10 +129,10 @@ class BirdByID(Resource):
         return make_response('', 204)
 
 
-api.add_resource(Signup, '/signup', endpoint='signup')
-api.add_resource(CheckSession, '/check_session', endpoint='check_session')
-api.add_resource(Login, '/login', endpoint='login')
-api.add_resource(Logout, '/logout', endpoint='logout')
+api.add_resource(Signup, '/api/signup', endpoint='signup')
+api.add_resource(CheckSession, '/api/check_session', endpoint='check_session')
+api.add_resource(Login, '/api/login', endpoint='login')
+api.add_resource(Logout, '/api/logout', endpoint='logout')
 
 api.add_resource(BirdByID, '/birds/<int:id>')
 
