@@ -74,8 +74,6 @@ class Logout(Resource):
 
 
 
-
-
 class Birds(Resource):
 
     def get(self):
@@ -97,7 +95,6 @@ class Birds(Resource):
 
         return make_response(new_bird.to_dict(), 201)
 
-api.add_resource(Birds, '/api/birds', endpoint='birds')
 
 
 class BirdByID(Resource):
@@ -134,6 +131,7 @@ api.add_resource(CheckSession, '/api/check_session', endpoint='check_session')
 api.add_resource(Login, '/api/login', endpoint='login')
 api.add_resource(Logout, '/api/logout', endpoint='logout')
 
+api.add_resource(Birds, '/api/birds', endpoint='birds')
 api.add_resource(BirdByID, '/birds/<int:id>')
 
 # Serve Vite build in production
