@@ -1,10 +1,17 @@
 import { Outlet, Navigate } from "react-router-dom";
+import { useContext } from "react";
+import { UserContext } from "../context/UserContextProvider";
 
+const ProtectedRoutes = () => {
+    const { currentUser, loading } = useContext(UserContext);
 
-const ProtactedRoutes = () => {
-    const user = null
+    console.log("current User", currentUser);
 
-    return user ? <Outlet /> : <Navigate to="/" />
+    if (loading) {
+        return <div>Loading...</div>; // Show loading indicator or placeholder while data is fetched
+    }
+
+    return currentUser ? <Outlet /> : <Navigate to="/" />;
 };
 
-export default ProtactedRoutes;
+export default ProtectedRoutes;

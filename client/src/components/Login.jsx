@@ -1,33 +1,20 @@
-import React, { useState } from "react";
+import React, { useState, useContext } from "react";
+import { useNavigate } from "react-router-dom";
+import { UserContext } from "../context/UserContextProvider";
 
-export default function Login({ setUser }) {
+export default function Login() {
     const [username, setUsername] = useState("");
     const [password, setPassword] = useState("");
-    const [error, setError] = useState("");
+    const navigate = useNavigate(); // Initialize the navigate function
+
+    const { login, error } = useContext(UserContext);
 
     const handleSubmit = async (e) => {
         e.preventDefault();
-        setError("");
+        const isLoggedIn = await login(username, password); // Call login function from context
 
-        try {
-            const response = await fetch("/api/login", {
-                method: "POST",
-                headers: {
-                    "Content-Type": "application/json"
-                },
-                body: JSON.stringify({ username, password })
-            });
-
-            if (response.ok) {
-                const userData = await response.json();
-                console.log("UserData:",userData)
-                setUser(userData);
-            } else {
-                const errorData = await response.json();
-                setError(errorData.error || "Login failed");
-            }
-        } catch (err) {
-            setError("An error occurred. Please try again.");
+        if (isLoggedIn) {
+            navigate("/dashboard"); // Navigate to the dashboard on successful login
         }
     };
 
