@@ -13,11 +13,11 @@ function App() {
     <Router>
       <div>
         <Routes>
-          <Route path="/" element={<Auth />} />
+          <Route path="/auth" element={<Auth />} />
 
           <Route element={<ProtactedRoutes />}>
           
-            <Route path="/Dashboard" element={<Dashboard />} />
+            <Route path="/" element={<Dashboard />} />
           
           </Route>
         </Routes>

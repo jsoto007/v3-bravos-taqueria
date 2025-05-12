@@ -11,7 +11,7 @@ const ProtectedRoutes = () => {
         return <div>Loading...</div>; // Show loading indicator or placeholder while data is fetched
     }
 
-    return currentUser ? <Outlet /> : <Navigate to="/" />;
+    return currentUser ? <Outlet /> : <Navigate to="/auth" />;
 };
 
 export default ProtectedRoutes;

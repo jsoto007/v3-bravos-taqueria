@@ -14,7 +14,7 @@ export default function Login() {
         const isLoggedIn = await login(username, password); // Call login function from context
 
         if (isLoggedIn) {
-            navigate("/dashboard"); // Navigate to the dashboard on successful login
+            navigate("/"); // Navigate to the dashboard on successful login
         }
     };
 
