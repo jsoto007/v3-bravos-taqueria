@@ -13,7 +13,6 @@ export default function Dashboard() {
       .catch((error) => console.error("Fetch error:", error));
   }, []);
 
-  console.log("Logging User", user);
 
   return (
     <div>
