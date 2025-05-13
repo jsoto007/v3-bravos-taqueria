@@ -58,7 +58,7 @@ class User(db.Model, SerializerMixin):
 
 
 
-class CarInventory(db.Model, SerializerMixin):
+class CarInventory(db.Model):
     __tablename__ = 'car_inventories'
 
     id = db.Column(db.Integer, primary_key=True)
@@ -75,12 +75,29 @@ class CarInventory(db.Model, SerializerMixin):
     is_sold = db.Column(db.Boolean, default=False)
 
     user_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
-    user = relationship('User', backref=backref('car_inventories', lazy='dynamic'))
+    user = relationship('User', backref=backref('car_inventories'))
 
     created_at = db.Column(db.DateTime, server_default=db.func.now())
     updated_at = db.Column(db.DateTime, onupdate=db.func.now())
 
-    serialize_rules = ('-user._password_hash', )
+    def to_dict(self):
+        return {
+            "id": self.id,
+            "location": self.location,
+            "vin_number": self.vin_number,
+            "is_submitted": self.is_submitted,
+            "is_reviewed": self.is_reviewed,
+            "purchase_price": self.purchase_price,
+            "sold_price": self.sold_price,
+            "sales_price": self.sales_price,
+            "year": self.year,
+            "make": self.make,
+            "is_sold": self.is_sold,
+            "user_id": self.user_id,
+            "created_at": self.created_at.isoformat() if self.created_at else None,
+            "updated_at": self.updated_at.isoformat() if self.updated_at else None,
+        }
+
 
 
 class CarPhoto(db.Model, SerializerMixin):
