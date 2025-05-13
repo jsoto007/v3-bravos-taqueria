@@ -58,4 +58,66 @@ class User(db.Model, SerializerMixin):
 
 
 
- 
+class CarInventory(db.Model, SerializerMixin):
+    __tablename__ = 'car_inventories'
+
+    id = db.Column(db.Integer, primary_key=True)
+    location = db.Column(db.String, nullable=False)
+    vin_number = db.Column(db.String, unique=True, nullable=False)
+    is_submitted = db.Column(db.Boolean, default=False)
+    is_reviewed = db.Column(db.Boolean, default=False)
+
+    purchase_price = db.Column(db.Float, nullable=True)
+    sold_price = db.Column(db.Float, nullable=True)
+    sales_price = db.Column(db.Float, nullable=True)
+    year = db.Column(db.Integer, nullable=True)
+    make = db.Column(db.String, nullable=True)
+    is_sold = db.Column(db.Boolean, default=False)
+
+    user_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
+    user = relationship('User', backref=backref('car_inventories', lazy='dynamic'))
+
+    created_at = db.Column(db.DateTime, server_default=db.func.now())
+    updated_at = db.Column(db.DateTime, onupdate=db.func.now())
+
+    serialize_rules = ('-user._password_hash', )
+
+
+class CarPhoto(db.Model, SerializerMixin):
+    __tablename__ = 'car_photos'
+
+    id = db.Column(db.Integer, primary_key=True)
+    url = db.Column(db.String, nullable=False)
+    car_inventory_id = db.Column(db.Integer, db.ForeignKey('car_inventories.id'), nullable=False)
+
+    car_inventory = relationship('CarInventory', backref=backref('photos', cascade='all, delete-orphan'))
+
+
+class CarEditLog(db.Model, SerializerMixin):
+    __tablename__ = 'car_edit_logs'
+
+    id = db.Column(db.Integer, primary_key=True)
+    car_inventory_id = db.Column(db.Integer, db.ForeignKey('car_inventories.id'), nullable=False)
+    field_changed = db.Column(db.String, nullable=False)
+    old_value = db.Column(db.String, nullable=True)
+    new_value = db.Column(db.String, nullable=True)
+    edited_by = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
+    edited_at = db.Column(db.DateTime, server_default=db.func.now())
+
+    car_inventory = relationship('CarInventory', backref='edit_logs')
+    editor = relationship('User')
+
+
+class MasterCarRecord(db.Model, SerializerMixin):
+    __tablename__ = 'master_car_records'
+
+    id = db.Column(db.Integer, primary_key=True)
+    vin_number = db.Column(db.String, unique=True, nullable=False)
+    location = db.Column(db.String, nullable=True)
+    year = db.Column(db.Integer, nullable=True)
+    make = db.Column(db.String, nullable=True)
+    purchase_price = db.Column(db.Float, nullable=True)
+    is_sold = db.Column(db.Boolean, default=False)
+
+    created_at = db.Column(db.DateTime, server_default=db.func.now())
+    updated_at = db.Column(db.DateTime, onupdate=db.func.now())
