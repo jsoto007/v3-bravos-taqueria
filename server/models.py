@@ -9,6 +9,19 @@ from sqlalchemy.orm import relationship, backref
 from config import db, bcrypt
 
 
+class Bird(db.Model, SerializerMixin):
+    __tablename__ = 'birds'
+
+    id = db.Column(db.Integer, primary_key=True)
+    name = db.Column(db.String)
+    species = db.Column(db.String)
+    image = db.Column(db.String)
+
+    def __repr__(self):
+        return f'<Bird {self.name} | Species: {self.species}>'
+
+        
+
 class User(db.Model, SerializerMixin):
     __tablename__ = 'users'
 
@@ -44,14 +57,5 @@ class User(db.Model, SerializerMixin):
         return f'User {self.email}, ID: {self.id}'
 
 
-class Bird(db.Model, SerializerMixin):
-    __tablename__ = 'birds'
 
-    id = db.Column(db.Integer, primary_key=True)
-    name = db.Column(db.String)
-    species = db.Column(db.String)
-    image = db.Column(db.String)
-
-    def __repr__(self):
-        return f'<Bird {self.name} | Species: {self.species}>'
  

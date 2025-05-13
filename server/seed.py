@@ -1,5 +1,5 @@
 from app import app
-from models import Bird
+from models import Bird, User
 from config import db
 
 with app.app_context():
@@ -29,8 +29,23 @@ with app.app_context():
         image='/images/dove.jpeg'
     )
 
-    print('Adding bird objects to transaction...')
-    db.session.add_all([chickadee, grackle, starling, dove])
+    print('🐒🐒🐒 Creating user objects...')
+    user1 = User(
+        email='user3@example.com',
+        admin=False
+    )
+    user1.password_hash = 'hashedpassword4'
+   
+    user2 = User(
+        email='test3@example.com',
+        admin=True
+    )
+    user2.password_hash = 'hashedpassword3'
+
+   
+
+    print('Adding bird and user objects to transaction...')
+    db.session.add_all([chickadee, grackle, starling, dove, user1, user2])
     print('Committing transaction...')
     db.session.commit()
     print('Complete.')
