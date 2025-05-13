@@ -1,4 +1,5 @@
 import React, { useState, useContext } from "react";
+import loginLogo from '../assets/autoTracker-login-logo.png';
 import { useNavigate } from "react-router-dom";
 import { UserContext } from "../context/UserContextProvider";
 
@@ -19,15 +20,13 @@ export default function Login() {
     };
 
     return (
-        <div className="flex min-h-full flex-1 bg-white dark:bg-gray-900 rounded-lg">
+        <div className="flex min-h-full flex-1 bg-white dark:bg-gray-900 rounded-lg mt-16">
           <div className="flex flex-1 flex-col justify-center px-4 py-12 sm:px-6 lg:flex-none lg:px-20 xl:px-24">
             <div className="mx-auto w-full max-w-sm lg:w-96">
               <div>
-                <img
-                  alt="Your Company"
-                  src="https://tailwindcss.com/plus-assets/img/logos/mark.svg?color=indigo&shade=600"
-                  className="h-10 w-auto "
-                />
+                <span className="logo text-6xl" role="img">
+                    🏎️
+                </span>
                 <h2 className="mt-8 text-2xl/9 font-bold tracking-tight text-gray-900 dark:text-white">Sign in to your account</h2>
               </div>
 
@@ -82,13 +81,15 @@ export default function Login() {
               </div>
             </div>
           </div>
-          <div className="relative hidden w-0 flex-1 lg:block">
+        <div className="relative hidden w-0 flex-1 lg:block">
+            <div className="absolute inset-0 bg-white/10 backdrop-invert backdrop-opacity-10 rounded-lg">
             <img
-              alt=""
-              src="https://images.unsplash.com/photo-1496917756835-20cb06e75b4e?ixlib=rb-1.2.1&ixid=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=crop&w=1908&q=80"
-              className="absolute inset-0 size-full object-cover rounded-lg"
+                alt="Login"
+                src={loginLogo}
+                className="size-full object-cover rounded-lg mix-blend-overlay"
             />
-          </div>
+            </div>
+        </div>
         </div>
     );
 }
