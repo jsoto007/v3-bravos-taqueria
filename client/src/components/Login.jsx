@@ -41,6 +41,7 @@ export default function Login() {
                         id="username"
                         name="username"
                         type="text"
+                        placeholder="example@email.com"
                         value={username}
                         onChange={(e) => setUsername(e.target.value)}
                         required
@@ -59,6 +60,7 @@ export default function Login() {
                         id="password"
                         name="password"
                         type="password"
+                        placeholder="please enter your passphrase"
                         value={password}
                         onChange={(e) => setPassword(e.target.value)}
                         required
