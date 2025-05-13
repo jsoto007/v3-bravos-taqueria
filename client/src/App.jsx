@@ -16,10 +16,9 @@ function App() {
           <Route path="/auth" element={<Auth />} />
 
           <Route element={<ProtactedRoutes />}>
-          
             <Route path="/" element={<Dashboard />} />
-          
           </Route>
+          
         </Routes>
       </div>
     </Router>
