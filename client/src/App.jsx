@@ -4,6 +4,7 @@ import { BrowserRouter as Router, Routes,Route } from 'react-router-dom';
 import ProtactedRoutes from './utils/ProtectedRoutes';
 import Auth from './components/Auth'
 import Dashboard from './components/Dashboard'
+import NavBar from './components/NavBar';
 
 
 function App() {
@@ -12,6 +13,7 @@ function App() {
   return (
     <Router>
       <div>
+        <NavBar />
         <Routes>
           <Route path="/auth" element={<Auth />} />
 
