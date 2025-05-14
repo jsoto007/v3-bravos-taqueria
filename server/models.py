@@ -34,7 +34,7 @@ class User(db.Model, SerializerMixin):
 
 
     @validates("email")
-    def validate_username(self, key, email):
+    def validate_email(self, key, email):
         if not email:
             raise ValueError("email must not be empty")
         return email
@@ -61,18 +61,14 @@ class User(db.Model, SerializerMixin):
 class CarInventory(db.Model):
     __tablename__ = 'car_inventories'
 
+    serialize_rules = ('-user._password_hash',)
+
     id = db.Column(db.Integer, primary_key=True)
     location = db.Column(db.String, nullable=False)
     vin_number = db.Column(db.String, unique=True, nullable=False)
-    is_submitted = db.Column(db.Boolean, default=False)
-    is_reviewed = db.Column(db.Boolean, default=False)
-
-    purchase_price = db.Column(db.Float, nullable=True)
-    sold_price = db.Column(db.Float, nullable=True)
-    sales_price = db.Column(db.Float, nullable=True)
+  
     year = db.Column(db.Integer, nullable=True)
     make = db.Column(db.String, nullable=True)
-    is_sold = db.Column(db.Boolean, default=False)
 
     user_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
     user = relationship('User', backref=backref('car_inventories'))
@@ -85,18 +81,15 @@ class CarInventory(db.Model):
             "id": self.id,
             "location": self.location,
             "vin_number": self.vin_number,
-            "is_submitted": self.is_submitted,
-            "is_reviewed": self.is_reviewed,
-            "purchase_price": self.purchase_price,
-            "sold_price": self.sold_price,
-            "sales_price": self.sales_price,
             "year": self.year,
             "make": self.make,
-            "is_sold": self.is_sold,
             "user_id": self.user_id,
             "created_at": self.created_at.isoformat() if self.created_at else None,
             "updated_at": self.updated_at.isoformat() if self.updated_at else None,
         }
+
+    def __repr__(self):
+        return f'<CarInventory VIN: {self.vin_number}>'
 
 
 
@@ -110,20 +103,6 @@ class CarPhoto(db.Model, SerializerMixin):
     car_inventory = relationship('CarInventory', backref=backref('photos', cascade='all, delete-orphan'))
 
 
-class CarEditLog(db.Model, SerializerMixin):
-    __tablename__ = 'car_edit_logs'
-
-    id = db.Column(db.Integer, primary_key=True)
-    car_inventory_id = db.Column(db.Integer, db.ForeignKey('car_inventories.id'), nullable=False)
-    field_changed = db.Column(db.String, nullable=False)
-    old_value = db.Column(db.String, nullable=True)
-    new_value = db.Column(db.String, nullable=True)
-    edited_by = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
-    edited_at = db.Column(db.DateTime, server_default=db.func.now())
-
-    car_inventory = relationship('CarInventory', backref='edit_logs')
-    editor = relationship('User')
-
 
 class MasterCarRecord(db.Model, SerializerMixin):
     __tablename__ = 'master_car_records'
@@ -134,7 +113,9 @@ class MasterCarRecord(db.Model, SerializerMixin):
     year = db.Column(db.Integer, nullable=True)
     make = db.Column(db.String, nullable=True)
     purchase_price = db.Column(db.Float, nullable=True)
+    selling_price = db.Column(db.Float, nullable=True)
     is_sold = db.Column(db.Boolean, default=False)
+    sold_price = db.Column(db.Float, nullable=True)
 
     created_at = db.Column(db.DateTime, server_default=db.func.now())
     updated_at = db.Column(db.DateTime, onupdate=db.func.now())

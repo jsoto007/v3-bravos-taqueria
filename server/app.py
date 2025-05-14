@@ -9,15 +9,11 @@ from flask_restful import Api, Resource
 from sqlalchemy.exc import IntegrityError
 
 from config import db, bcrypt, app
-from models import User, Bird, CarInventory, CarPhoto, CarEditLog, MasterCarRecord
+from models import User, Bird, CarInventory, CarPhoto, MasterCarRecord
 
 
 from flask_cors import CORS
 CORS(app)
-
-
-from dotenv import load_dotenv
-load_dotenv()
 
 
 migrate = Migrate(app, db)
@@ -137,14 +133,8 @@ class CarInventories(Resource):
         new_car = CarInventory(
             location=data['location'],
             vin_number=data['vin_number'],
-            is_submitted=data.get('is_submitted', False),
-            is_reviewed=data.get('is_reviewed', False),
-            purchase_price=data.get('purchase_price'),
-            sold_price=data.get('sold_price'),
-            sales_price=data.get('sales_price'),
             year=data.get('year'),
             make=data.get('make'),
-            is_sold=data.get('is_sold', False),
             user_id=data['user_id']
         )
         db.session.add(new_car)
@@ -164,21 +154,6 @@ class CarPhotos(Resource):
         return make_response(new_photo.to_dict(), 201)
 
 
-class CarEditLogs(Resource):
-    def post(self):
-        data = request.get_json()
-        new_log = CarEditLog(
-            car_inventory_id=data['car_inventory_id'],
-            field_changed=data['field_changed'],
-            old_value=data.get('old_value'),
-            new_value=data.get('new_value'),
-            edited_by=data['edited_by']
-        )
-        db.session.add(new_log)
-        db.session.commit()
-        return make_response(new_log.to_dict(), 201)
-
-
 class MasterCarRecords(Resource):
     def get(self):
         records = [rec.to_dict() for rec in MasterCarRecord.query.all()]
@@ -192,6 +167,8 @@ class MasterCarRecords(Resource):
             year=data.get('year'),
             make=data.get('make'),
             purchase_price=data.get('purchase_price'),
+            selling_price=data.get('selling_price'),
+            sold_price=data.get('sold_price'),
             is_sold=data.get('is_sold', False)
         )
         db.session.add(new_record)
@@ -209,7 +186,6 @@ api.add_resource(BirdByID, '/birds/<int:id>')
 
 api.add_resource(CarInventories, '/api/cars', endpoint='cars')
 api.add_resource(CarPhotos, '/api/car_photos', endpoint='car_photos')
-api.add_resource(CarEditLogs, '/api/car_edits', endpoint='car_edits')
 api.add_resource(MasterCarRecords, '/api/master_inventory', endpoint='master_inventory')
 
 # Serve Vite build in production
