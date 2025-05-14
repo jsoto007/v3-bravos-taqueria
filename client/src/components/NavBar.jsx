@@ -4,7 +4,7 @@ import { Outlet, Link } from "react-router-dom"
 export default function NavBar() {
     return (
       <>
-        <nav className="bg-slate-400/20 dark:bg-gray-800 p-4 rounded-xl">
+        <nav className="bg-slate-400/10 dark:bg-gray-800/30 p-4 rounded-xl font-bold">
           <ul className="flex space-x-6 text-gray-900 dark:text-white">
             <li>
               <Link to="/" className="hover:text-gray-600 dark:hover:text-gray-300">
