@@ -22,7 +22,7 @@ function App() {
           <Route path="/auth" element={<Auth />} />
 
           <Route element={<ProtactedRoutes />}>
-            <Route path="/" element={<Dashboard />} />
+            <Route path="/dashboard" element={<Dashboard />} />
             <Route path="/cars" element={<CarsContainer />} />
           </Route>
           
