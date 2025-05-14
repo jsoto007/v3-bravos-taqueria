@@ -1,4 +1,5 @@
 import { Outlet, Link } from "react-router-dom"
+import Logout from "./LogOut"
 
 
 export default function NavBar() {
@@ -17,10 +18,19 @@ export default function NavBar() {
               </Link>
             </li>
             <li>
-              <Link to="/cars" className="hover:text-gray-600 dark:hover:text-gray-300">
-                Cars
+              <Link to="/" className="hover:text-gray-600 dark:hover:text-gray-300">
+                Inventory
               </Link>
             </li>
+            <li>
+              <Link to="/" className="hover:text-gray-600 dark:hover:text-gray-300">
+                Client Outreach
+              </Link>
+            </li>
+            <li>
+              <Logout />
+            </li>
+
           </ul>
         </nav>
 

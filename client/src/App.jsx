@@ -16,14 +16,16 @@ function App() {
   return (
     <Router>
       <div>
-        {/* <NavBar /> */}
         {currentUser? <NavBar /> : null}
         <Routes>
           <Route path="/auth" element={<Auth />} />
 
+
           <Route element={<ProtactedRoutes />}>
+            <Route path="/" element={<CarsContainer />} />
             <Route path="/dashboard" element={<Dashboard />} />
-            <Route path="/cars" element={<CarsContainer />} />
+            <Route path="/inventory" element={<CarsContainer />} />
+            <Route path="/client_outreach" element={<CarsContainer />} />
           </Route>
           
         </Routes>
