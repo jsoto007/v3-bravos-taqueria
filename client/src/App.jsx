@@ -1,11 +1,12 @@
 import React, { useContext } from 'react'
 import './App.css'
 import { BrowserRouter as Router, Routes,Route } from 'react-router-dom';
+import { UserContext } from './context/UserContextProvider';
 import ProtactedRoutes from './utils/ProtectedRoutes';
 import Auth from './components/Auth'
 import Dashboard from './components/Dashboard'
 import NavBar from './components/NavBar';
-import { UserContext } from './context/UserContextProvider';
+import CarsContainer from './components/CarsContainer';
 
 
 function App() {
@@ -22,6 +23,7 @@ function App() {
 
           <Route element={<ProtactedRoutes />}>
             <Route path="/" element={<Dashboard />} />
+            <Route path="/cars" element={<CarsContainer />} />
           </Route>
           
         </Routes>

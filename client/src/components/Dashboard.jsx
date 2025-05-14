@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import CarsCart from "./CarsCart";
 
 export default function Dashboard() {
   const [user, setUser] = useState([]);
@@ -15,7 +16,7 @@ export default function Dashboard() {
 
 
   return (
-    <div>
+    <div className="text-black">
       <h1>Hello from the dashboard</h1>
       <h2>This is a fetch from the server</h2>
       <p className="read-the-docs">
