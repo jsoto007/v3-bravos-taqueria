@@ -9,7 +9,7 @@ from flask_restful import Api, Resource
 from sqlalchemy.exc import IntegrityError
 
 from config import db, bcrypt, app
-from models import User, Bird, CarInventory, CarPhoto, MasterCarRecord
+from models import User, Bird, CarInventory, CarPhoto, MasterCarRecord, UserInventory
 
 
 from flask_cors import CORS
@@ -130,16 +130,50 @@ class CarInventories(Resource):
 
     def post(self):
         data = request.get_json()
+        user_inventory_id = data.get('user_inventory_id')
+        if user_inventory_id:
+            inventory = UserInventory.query.filter_by(id=user_inventory_id).first()
+            if not inventory:
+                return {"error": "User inventory not found"}, 404
+            if inventory.submitted:
+                return {"error": "Inventory has been submitted and cannot be modified"}, 403
+        else:
+            return {"error": "User inventory ID is required"}, 400
+
         new_car = CarInventory(
             location=data['location'],
             vin_number=data['vin_number'],
             year=data.get('year'),
             make=data.get('make'),
-            user_id=data['user_id']
+            user_id=data['user_id'],
+            user_inventory_id=user_inventory_id
         )
         db.session.add(new_car)
         db.session.commit()
         return make_response(new_car.to_dict(), 201)
+
+
+# UserInventories resource to handle creating and submitting user inventories
+class UserInventories(Resource):
+    def post(self):
+        data = request.get_json()
+        user_id = data.get('user_id')
+        if not user_id:
+            return {"error": "User ID is required"}, 400
+
+        new_inventory = UserInventory(user_id=user_id)
+        db.session.add(new_inventory)
+        db.session.commit()
+        return make_response(new_inventory.to_dict(), 201)
+
+    def patch(self, id):
+        inventory = UserInventory.query.filter_by(id=id).first()
+        if not inventory:
+            return {"error": "Inventory not found"}, 404
+
+        inventory.submitted = True
+        db.session.commit()
+        return make_response(inventory.to_dict(), 200)
 
 
 class CarPhotos(Resource):
@@ -187,6 +221,10 @@ api.add_resource(BirdByID, '/birds/<int:id>')
 api.add_resource(CarInventories, '/api/cars', endpoint='cars')
 api.add_resource(CarPhotos, '/api/car_photos', endpoint='car_photos')
 api.add_resource(MasterCarRecords, '/api/master_inventory', endpoint='master_inventory')
+
+# Register UserInventories resource
+api.add_resource(UserInventories, '/api/user_inventories', endpoint='user_inventories')
+api.add_resource(UserInventories, '/api/user_inventories/<int:id>', endpoint='user_inventory_submit')
 
 # Serve Vite build in production
 from flask import send_from_directory

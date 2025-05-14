@@ -58,6 +58,21 @@ class User(db.Model, SerializerMixin):
 
 
 
+
+# UserInventory model
+class UserInventory(db.Model, SerializerMixin):
+    __tablename__ = 'user_inventories'
+
+    id = db.Column(db.Integer, primary_key=True)
+    user_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
+    submitted = db.Column(db.Boolean, default=False)
+    reviewed = db.Column(db.Boolean, default=False)
+    created_at = db.Column(db.DateTime, server_default=db.func.now())
+
+    user = relationship('User', backref=backref('user_inventories', cascade='all, delete-orphan'))
+
+
+# CarInventory model with user_inventory_id
 class CarInventory(db.Model):
     __tablename__ = 'car_inventories'
 
@@ -73,6 +88,10 @@ class CarInventory(db.Model):
     user_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
     user = relationship('User', backref=backref('car_inventories'))
 
+    # New field for user inventory
+    user_inventory_id = db.Column(db.Integer, db.ForeignKey('user_inventories.id'), nullable=True)
+    user_inventory = relationship('UserInventory', backref=backref('car_inventories', cascade='all, delete-orphan'))
+
     created_at = db.Column(db.DateTime, server_default=db.func.now())
     updated_at = db.Column(db.DateTime, onupdate=db.func.now())
 
@@ -84,6 +103,7 @@ class CarInventory(db.Model):
             "year": self.year,
             "make": self.make,
             "user_id": self.user_id,
+            "user_inventory_id": self.user_inventory_id,
             "created_at": self.created_at.isoformat() if self.created_at else None,
             "updated_at": self.updated_at.isoformat() if self.updated_at else None,
         }
