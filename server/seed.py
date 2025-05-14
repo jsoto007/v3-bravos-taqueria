@@ -50,34 +50,28 @@ with app.app_context():
     db.session.commit()
 
     # ---- Seed data for new tables ----
-    from models import CarInventory, CarPhoto, CarEditLog, MasterCarRecord
+    from models import CarInventory, CarPhoto, MasterCarRecord, UserInventory
+
+    print('Creating user inventory records...')
+    user_inventory1 = UserInventory(user=user1)
 
     print('Creating car inventory records...')
     car1 = CarInventory(
         location='New York Lot A',
         vin_number='1HGCM82633A004352',
-        is_submitted=True,
-        is_reviewed=True,
-        purchase_price=5000.00,
-        sold_price=7000.00,
-        sales_price=7200.00,
         year=2015,
         make='Honda',
-        is_sold=True,
-        user=user1
+        user=user1,
+        user_inventory=user_inventory1
     )
 
     car2 = CarInventory(
         location='Los Angeles Lot B',
         vin_number='2T1BURHE0JC123456',
-        is_submitted=True,
-        is_reviewed=False,
-        purchase_price=4000.00,
-        sales_price=6000.00,
         year=2017,
         make='Toyota',
-        is_sold=False,
-        user=user1
+        user=user1,
+        user_inventory=user_inventory1
     )
 
     print('Creating car photo records...')
@@ -85,14 +79,6 @@ with app.app_context():
     photo2 = CarPhoto(url='https://upload.wikimedia.org/wikipedia/commons/1/1b/Honda_CR-V_e-HEV_Elegance_AWD_%28VI%29_%E2%80%93_f_14072024.jpg', car_inventory=car1)
     photo3 = CarPhoto(url='https://www.kbb.com/wp-content/uploads/2022/10/2023-toyota-rav4-prime-frt-3qtr.jpg?w=918', car_inventory=car2)
 
-    print('Creating car edit log...')
-    edit1 = CarEditLog(
-        car_inventory=car1,
-        field_changed='sold_price',
-        old_value='6500.00',
-        new_value='7000.00',
-        edited_by=user2.id
-    )
 
     print('Creating master car records...')
     master1 = MasterCarRecord(
@@ -113,7 +99,7 @@ with app.app_context():
         is_sold=False
     )
 
-    db.session.add_all([car1, car2, photo1, photo2, photo3, edit1, master1, master2])
+    db.session.add_all([user_inventory1, car1, car2, photo1, photo2, photo3, master1, master2])
     db.session.commit()
     print('New car-related seed data committed.')
     print('✅✅✅✅ Complete.')

@@ -63,6 +63,8 @@ class User(db.Model, SerializerMixin):
 class UserInventory(db.Model, SerializerMixin):
     __tablename__ = 'user_inventories'
 
+    serialize_rules = ('-user.user_inventories', '-car_inventories.user', '-car_inventories.user_inventory')
+
     id = db.Column(db.Integer, primary_key=True)
     user_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
     submitted = db.Column(db.Boolean, default=False)
@@ -115,6 +117,8 @@ class CarInventory(db.Model):
 
 class CarPhoto(db.Model, SerializerMixin):
     __tablename__ = 'car_photos'
+
+    serialize_rules = ('-car_inventory',)
 
     id = db.Column(db.Integer, primary_key=True)
     url = db.Column(db.String, nullable=False)

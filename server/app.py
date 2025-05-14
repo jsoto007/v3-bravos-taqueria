@@ -209,6 +209,7 @@ class MasterCarRecords(Resource):
         db.session.commit()
         return make_response(new_record.to_dict(), 201)
 
+        
 
 api.add_resource(Signup, '/api/signup', endpoint='signup')
 api.add_resource(CheckSession, '/api/check_session', endpoint='check_session')
