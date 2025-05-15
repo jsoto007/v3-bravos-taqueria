@@ -1,5 +1,5 @@
 import { Outlet, Link } from "react-router-dom"
-import Logout from "./LogOut"
+import Logout from "./Logout"
 
 
 export default function NavBar() {
