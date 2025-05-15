@@ -10,6 +10,7 @@ export default function InventoryForm() {
     const [make, setMake] = useState("");
     const [cars, setCars] = useState([]);
     const [submitted, setSubmitted] = useState(false);
+    const [showForm, setShowForm] = useState(false);
 
     const { currentUser } = useContext(UserContext)
 
@@ -20,6 +21,11 @@ export default function InventoryForm() {
         } catch (err) {
             console.error("Error creating inventory", err);
         }
+    };
+
+    const handleStartInventory = () => {
+        setShowForm(true);
+        createInventory();
     };
 
     const addCar = async () => {
@@ -53,9 +59,9 @@ export default function InventoryForm() {
 
     return (
         <div className="p-6 max-w-md mx-auto mt-10 bg-white dark:bg-gray-800 shadow-md rounded-md">
-            {!inventoryId ? (
+            {!showForm ? (
                 <button
-                    onClick={createInventory}
+                    onClick={handleStartInventory}
                     className="w-full py-2 px-4 bg-blue-600/60 text-white rounded hover:bg-blue-700 transition"
                 >
                     Start Inventory
