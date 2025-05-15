@@ -35,11 +35,11 @@ function UserContextProvider({ children }) {
             if (response.ok) {
                 const userData = await response.json();
                 setCurrentUser(userData);
-                return true; // Successful login
+                return true; 
             } else {
                 const errorData = await response.json();
                 setError(errorData.error || "Login failed");
-                return false; // Failed login
+                return false; 
             }
         } catch (err) {
             setError("An error occurred. Please try again.");

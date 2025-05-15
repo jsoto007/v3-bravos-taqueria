@@ -7,9 +7,9 @@ import Auth from './components/Auth'
 import Dashboard from './components/Dashboard'
 import NavBar from './components/NavBar';
 import CarsContainer from './components/CarsContainer';
-import InventoryForm from './components/InventoryForm';
 import ClientsContainer from './components/ClientsContainer';
 import UserInventoryContainer from './components/UserInventoryContainer';
+import MasterInventoryContainer from './components/MasterInventoryContainer';
 
 
 
@@ -26,7 +26,7 @@ function App() {
 
           <Route element={<ProtactedRoutes />}>
             <Route path="/" element={<CarsContainer />} />
-            <Route path="/dashboard" element={<Dashboard />} />
+            <Route path="/master_inventory" element={<MasterInventoryContainer />} />
             <Route path="/crete_inventory" element={<UserInventoryContainer />} />
             <Route path="/client_outreach" element={<ClientsContainer />} />
           </Route>

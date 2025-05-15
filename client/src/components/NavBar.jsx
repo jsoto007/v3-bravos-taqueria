@@ -19,14 +19,14 @@ export default function NavBar() {
                     <Link to="/" className="inline-flex items-center border-b-2 border-transparent px-1 pt-1 text-sm font-medium text-gray-500 hover:border-gray-300 hover:text-gray-700 dark:text-white">
                       Home
                     </Link>
-                    <Link to="/dashboard" className="inline-flex items-center border-b-2 border-transparent px-1 pt-1 text-sm font-medium text-gray-500 hover:border-gray-300 hover:text-gray-700 dark:text-white">
-                      Master Inventory
-                    </Link>
                     <Link to="/crete_inventory" className="inline-flex items-center border-b-2 border-transparent px-1 pt-1 text-sm font-medium text-gray-500 hover:border-gray-300 hover:text-gray-700 dark:text-white">
                       Add Inventory
                     </Link>
                     <Link to="/client_outreach" className="inline-flex items-center border-b-2 border-transparent px-1 pt-1 text-sm font-medium text-gray-500 hover:border-gray-300 hover:text-gray-700 dark:text-white">
                       Client Outreach
+                    </Link>
+                    <Link to="/master_inventory" className="inline-flex items-center border-b-2 border-transparent px-1 pt-1 text-sm font-medium text-gray-500 hover:border-gray-300 hover:text-gray-700 dark:text-white">
+                      Master Inventory
                     </Link>
                   </div>
                 </div>
