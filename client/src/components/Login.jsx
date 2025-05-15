@@ -6,16 +6,14 @@ import { UserContext } from "../context/UserContextProvider";
 export default function Login() {
     const [username, setUsername] = useState("");
     const [password, setPassword] = useState("");
-    const navigate = useNavigate(); // Initialize the navigate function
-
+    const navigate = useNavigate();
     const { login, error } = useContext(UserContext);
 
     const handleSubmit = async (e) => {
         e.preventDefault();
-        const isLoggedIn = await login(username, password); // Call login function from context
-
+        const isLoggedIn = await login(username, password);
         if (isLoggedIn) {
-            navigate("/"); // Navigate to the dashboard on successful login
+            navigate("/");
         }
     };
 

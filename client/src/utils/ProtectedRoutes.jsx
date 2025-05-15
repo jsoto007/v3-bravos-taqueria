@@ -8,7 +8,7 @@ const ProtectedRoutes = () => {
     console.log("current User", currentUser);
 
     if (loading) {
-        return <div>Loading...</div>; // Show loading indicator or placeholder while data is fetched
+        return <div>Loading...</div>;
     }
 
     return currentUser ? <Outlet /> : <Navigate to="/auth" />;
