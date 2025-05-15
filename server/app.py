@@ -70,7 +70,7 @@ class Logout(Resource):
 
 
 
-
+# To be deleted
 class Birds(Resource):
 
     def get(self):
@@ -93,7 +93,7 @@ class Birds(Resource):
         return make_response(new_bird.to_dict(), 201)
 
 
-
+# To be deleted
 class BirdByID(Resource):
     
     def get(self, id):
@@ -176,6 +176,12 @@ class UserInventories(Resource):
         return make_response(inventory.to_dict(), 200)
 
 
+class UserInventoryHistory(Resource):
+    def get(self, user_id):
+        inventories = UserInventory.query.filter_by(user_id=user_id).all()
+        return make_response(jsonify([inv.to_dict() for inv in inventories]), 200)
+
+
 class CarPhotos(Resource):
     def post(self):
         data = request.get_json()
@@ -226,6 +232,8 @@ api.add_resource(MasterCarRecords, '/api/master_inventory', endpoint='master_inv
 # Register UserInventories resource
 api.add_resource(UserInventories, '/api/user_inventories', endpoint='user_inventories')
 api.add_resource(UserInventories, '/api/user_inventories/<int:id>', endpoint='user_inventory_submit')
+
+api.add_resource(UserInventoryHistory, '/api/user_inventories/history/<int:user_id>', endpoint='user_inventory_history')
 
 # Serve Vite build in production
 from flask import send_from_directory

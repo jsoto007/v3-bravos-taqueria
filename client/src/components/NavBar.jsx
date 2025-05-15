@@ -18,8 +18,8 @@ export default function NavBar() {
               </Link>
             </li>
             <li>
-              <Link to="/" className="hover:text-gray-600 dark:hover:text-gray-300">
-                Inventory
+              <Link to="/crete_inventory" className="hover:text-gray-600 dark:hover:text-gray-300">
+                Add Inventory
               </Link>
             </li>
             <li>
@@ -27,7 +27,9 @@ export default function NavBar() {
                 Client Outreach
               </Link>
             </li>
-            <li>
+
+            
+            <li className="ml-auto hover:text-gray-600 dark:hover:text-gray-300">
               <Logout />
             </li>
 

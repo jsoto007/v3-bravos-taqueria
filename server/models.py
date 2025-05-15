@@ -63,7 +63,11 @@ class User(db.Model, SerializerMixin):
 class UserInventory(db.Model, SerializerMixin):
     __tablename__ = 'user_inventories'
 
-    serialize_rules = ('-user.user_inventories', '-car_inventories.user', '-car_inventories.user_inventory')
+    serialize_rules = (
+        '-user.user_inventories',               # block user loop
+        '-car_inventories.user_inventory',      # block car → inventory loop
+        '-car_inventories.user',                # block car → user loop
+    )
 
     id = db.Column(db.Integer, primary_key=True)
     user_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
@@ -75,10 +79,14 @@ class UserInventory(db.Model, SerializerMixin):
 
 
 # CarInventory model with user_inventory_id
-class CarInventory(db.Model):
+class CarInventory(db.Model, SerializerMixin):
     __tablename__ = 'car_inventories'
 
-    serialize_rules = ('-user._password_hash',)
+    serialize_rules = (
+        '-user',                # avoid looping through the user
+        '-user_inventory',      # avoid looping back to the parent inventory
+        '-photos.car_inventory' # just in case you access car photos later
+    )
 
     id = db.Column(db.Integer, primary_key=True)
     location = db.Column(db.String, nullable=False)
