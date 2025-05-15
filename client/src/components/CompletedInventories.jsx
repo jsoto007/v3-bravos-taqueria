@@ -17,12 +17,10 @@ export default function CompletedInventories() {
 
     console.log("inventories in state:", inventories)
     return (
-        <div>
-            <h1>Container</h1>
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
             {inventories.map((inventory) => (
                 <CompletedInventoryCard key={inventory.id} inventory={inventory} />
             ))}
         </div>
     );
 }
-
