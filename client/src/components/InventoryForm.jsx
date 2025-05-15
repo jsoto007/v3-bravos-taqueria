@@ -13,8 +13,6 @@ export default function InventoryForm() {
 
     const { currentUser } = useContext(UserContext)
 
-    console.log("from form:", currentUser)
-
     const createInventory = async () => {
         try {
             const res = await axios.post("/api/user_inventories", { user_id: currentUser.id });
@@ -52,8 +50,6 @@ export default function InventoryForm() {
             console.error("Error submitting inventory", err);
         }
     };
-
-console.log("currentUser from context:", currentUser);
 
     return (
         <div className="p-6 max-w-md mx-auto mt-10 bg-white dark:bg-gray-800 shadow-md rounded-md">
