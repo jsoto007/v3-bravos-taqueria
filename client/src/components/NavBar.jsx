@@ -23,7 +23,7 @@ export default function NavBar() {
               </Link>
             </li>
             <li>
-              <Link to="/" className="hover:text-gray-600 dark:hover:text-gray-300">
+              <Link to="/client_outreach" className="hover:text-gray-600 dark:hover:text-gray-300">
                 Client Outreach
               </Link>
             </li>
