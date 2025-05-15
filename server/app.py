@@ -11,6 +11,11 @@ from sqlalchemy.exc import IntegrityError
 from config import db, bcrypt, app
 from models import User, Bird, CarInventory, CarPhoto, MasterCarRecord, UserInventory
 
+# Add this block
+app.config['SQLALCHEMY_ENGINE_OPTIONS'] = {
+    'pool_pre_ping': True
+}
+
 
 from flask_cors import CORS
 CORS(app)
