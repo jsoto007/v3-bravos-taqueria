@@ -1,4 +1,4 @@
-
+// currently redondant; to be deleted
 export default function CarsCart() {
     return (
         <div className="bg-gray-100 dark:bg-gray-900">

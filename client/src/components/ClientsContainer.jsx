@@ -12,7 +12,7 @@ export default function ClientsContainer() {
 
     return (
         <div>
-            
+            Hello from Client Outrach: This route is under construction!
         </div>
     );
 }
