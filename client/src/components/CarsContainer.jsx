@@ -18,32 +18,8 @@ const people = [
     imageUrl:
       'https://i.abcnewsfe.com/a/f43853f3-9eaf-4048-9ae7-757332c5787e/mclaren-1-ht-gmh-240412_1712928561648_hpMain_16x9.jpg?w=1600',
   },
- 
-  {
-    name: '2077 Avocado Martin',
-    title: 'Certified pre-owned',
-    role: '77,777',
-    telephone: '+1-202-555-0170',
-    imageUrl:
-      'https://i.abcnewsfe.com/a/f43853f3-9eaf-4048-9ae7-757332c5787e/mclaren-1-ht-gmh-240412_1712928561648_hpMain_16x9.jpg?w=1600',
-  },
-  {
-    name: '2077 Avocado Martin',
-    title: 'Certified pre-owned',
-    role: '77,777',
-    telephone: '+1-202-555-0170',
-    imageUrl:
-      'https://i.abcnewsfe.com/a/f43853f3-9eaf-4048-9ae7-757332c5787e/mclaren-1-ht-gmh-240412_1712928561648_hpMain_16x9.jpg?w=1600',
-  },
-  {
-    name: '2077 Avocado Martin',
-    title: 'Certified pre-owned',
-    role: '77,777',
-    telephone: '+1-202-555-0170',
-    imageUrl:
-      'https://i.abcnewsfe.com/a/f43853f3-9eaf-4048-9ae7-757332c5787e/mclaren-1-ht-gmh-240412_1712928561648_hpMain_16x9.jpg?w=1600',
-  },
- 
+
+
   // More people...
 ]
 
