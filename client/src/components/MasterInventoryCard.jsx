@@ -23,8 +23,6 @@ export default function MasterInventoryCard( { onInventory } ) {
                         </th>
                     </tr>
                 </thead>
-
-
                 <tbody>
                     {onInventory?.map((car) => (
                             <tr key={car.id} class="bg-white border-b dark:bg-gray-800 dark:border-gray-700 border-gray-200">

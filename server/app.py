@@ -201,7 +201,7 @@ class CarPhotos(Resource):
 
 class MasterCarRecords(Resource):
     def get(self):
-        records = [rec.to_dict() for rec in MasterCarRecord.query.all()]
+        records = [rec.to_dict() for rec in MasterCarRecord.query.order_by(MasterCarRecord.created_at.desc()).all()]
         return make_response(jsonify(records), 200)
 
     def post(self):

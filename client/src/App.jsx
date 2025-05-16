@@ -10,6 +10,7 @@ import CarsContainer from './components/CarsContainer';
 import ClientsContainer from './components/ClientsContainer';
 import UserInventoryContainer from './components/UserInventoryContainer';
 import MasterInventoryContainer from './components/MasterInventoryContainer';
+import MasterInventoryForm from './components/MasterInventoryForm';
 
 
 
@@ -27,6 +28,7 @@ function App() {
           <Route element={<ProtactedRoutes />}>
             <Route path="/" element={<CarsContainer />} />
             <Route path="/master_inventory" element={<MasterInventoryContainer />} />
+            <Route path="/master_inventory/create_master_inventory" element={<MasterInventoryForm />} />
             <Route path="/crete_inventory" element={<UserInventoryContainer />} />
             <Route path="/client_outreach" element={<ClientsContainer />} />
           </Route>
