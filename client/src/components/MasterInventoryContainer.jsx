@@ -17,8 +17,6 @@ export default function MasterInventoryContainer() {
             });
     }, []);
 
-    console.log("INVENTORY:", inventory)
-
     return (
         <>
             <MasterInventoryCard onInventory={inventory} />

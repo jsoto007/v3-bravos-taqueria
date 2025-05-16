@@ -4,6 +4,8 @@ import { Disclosure, DisclosurePanel, DisclosureButton } from '@headlessui/react
 import { Bars3Icon, XMarkIcon } from '@heroicons/react/24/outline'
 
 export default function NavBar() {
+
+  
   return (
     <>
       <Disclosure as="nav" className="bg-white dark:bg-gray-800 shadow rounded-xl">

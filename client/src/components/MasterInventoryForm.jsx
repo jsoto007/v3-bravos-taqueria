@@ -48,49 +48,47 @@ export default function MasterInventoryForm() {
     return Object.keys(newErrors).length === 0;
   };
 
-  const handleSubmit = async (e) => {
+  const handleSubmit = (e) => {
     e.preventDefault();
 
     if (!validateForm()) {
       return;
     }
-  
+
     // Convert number strings to floats, remove commas, and handle empty strings
     const sanitizeNumber = (val) =>
       val === "" ? null : parseFloat(val.replace(/,/g, ""));
-  
+
     const payload = {
       ...formData,
       purchase_price: sanitizeNumber(formData.purchase_price),
       selling_price: sanitizeNumber(formData.selling_price),
       sold_price: sanitizeNumber(formData.sold_price),
     };
-  
-    try {
-      const response = await fetch("/api/master_inventory", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(payload),
-      });
-  
-      if (!response.ok) {
-        throw new Error("Network response was not ok");
-      }
-  
-      const result = await response.json();
-      console.log("Successfully added record:", result);
-      navigate("/master_inventory");
-    } catch (error) {
-      console.error("Error submitting form:", error);
-    }
+
+    // Trigger the request in the background
+    fetch("/api/master_inventory", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(payload),
+    })
+      .then((response) => {
+        if (!response.ok) throw new Error("Network response was not ok");
+        return response.json();
+      })
+      .then((result) => console.log("Successfully added record:", result))
+      .catch((error) => console.error("Error submitting form:", error));
+
+    // Navigate immediately
+    navigate("/master_inventory");
   };
 
   return (
     <form
       onSubmit={handleSubmit}
-      className="max-w-2xl mx-auto p-4 bg-white dark:bg-gray-800 shadow-md rounded-md"
+      className=" mt-10 max-w-2xl mx-auto p-4 bg-white dark:bg-gray-800 shadow-md rounded-md"
     >
       <h2 className="text-xl font-semibold text-gray-900 dark:text-gray-100 mb-4">
         Master Inventory Form

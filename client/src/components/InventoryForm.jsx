@@ -11,20 +11,24 @@ export default function InventoryForm() {
     const [cars, setCars] = useState([]);
     const [submitted, setSubmitted] = useState(false);
     const [showForm, setShowForm] = useState(false);
+    
+    const [errors, setErrors] = useState({})
 
     const { currentUser } = useContext(UserContext)
 
+    // Move createInventory out of handleStartInventory and call it asynchronously without awaiting
     const createInventory = async () => {
         try {
             const res = await axios.post("/api/user_inventories", { user_id: currentUser.id });
             setInventoryId(res.data.id);
         } catch (err) {
-            console.error("Error creating inventory", err);
+            setErrors(err);
         }
     };
 
     const handleStartInventory = () => {
         setShowForm(true);
+        // Run createInventory in the background
         createInventory();
     };
 
@@ -44,7 +48,7 @@ export default function InventoryForm() {
             setYear("");
             setMake("");
         } catch (err) {
-            console.error("Error adding car", err);
+            setErrors(err);
         }
     };
 
@@ -53,12 +57,12 @@ export default function InventoryForm() {
             await axios.patch(`/api/user_inventories/${inventoryId}`);
             setSubmitted(true);
         } catch (err) {
-            console.error("Error submitting inventory", err);
+            setErrors(err);
         }
     };
 
     return (
-        <div className="p-6 max-w-md mx-auto mt-10 bg-white dark:bg-gray-800 shadow-md rounded-md">
+        <div className="p-6 max-w-md mx-auto mt-12 bg-white dark:bg-gray-800 shadow-md rounded-md">
             {!showForm ? (
                 <button
                     onClick={handleStartInventory}
