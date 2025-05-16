@@ -78,11 +78,11 @@ export default function MasterInventoryForm() {
         if (!response.ok) throw new Error("Network response was not ok");
         return response.json();
       })
-      .then((result) => console.log("Successfully added record:", result))
+      .then((result) => {
+        console.log("Successfully added record:", result);
+        navigate("/master_inventory");
+      })
       .catch((error) => console.error("Error submitting form:", error));
-
-    // Navigate immediately
-    navigate("/master_inventory");
   };
 
   return (
