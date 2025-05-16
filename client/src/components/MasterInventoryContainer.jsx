@@ -5,7 +5,8 @@ import MasterInventoryCard from './MasterInventoryCard';
 export default function MasterInventoryContainer() {
 
     const [inventory, setInventory] = useState([])
-    
+    const [searchTerm, setSearchTerm] = useState("");
+
     useEffect(() => {
         fetch('/api/master_inventory')
             .then(response => response.json())
@@ -17,6 +18,13 @@ export default function MasterInventoryContainer() {
             });
     }, []);
 
+    // Search bar is to be move to it's own component once context is implemented. 
+    const filteredInventory = inventory.filter(car =>
+        (car.vin_number?.toLowerCase() || "").includes(searchTerm.toLowerCase()) ||
+        (car.make?.toLowerCase() || "").includes(searchTerm.toLowerCase()) ||
+        (car.year?.toString() || "").includes(searchTerm)
+    );
+
     return (
         <>
             <div className="flex justify-between items-start mb-4 mt-8">
@@ -25,6 +33,13 @@ export default function MasterInventoryContainer() {
                     <p className="mt-2 text-sm text-gray-700 dark:text-gray-300">
                         All the cars in your account, including their model, VIN, location, and purchase price.
                     </p>
+                    <input
+                        type="text"
+                        placeholder="Search by VIN, year, or make"
+                        value={searchTerm}
+                        onChange={(e) => setSearchTerm(e.target.value)}
+                        className="mt-2 p-1 border border-gray-300 rounded w-full sm:w-80"
+                    />
                 </div>
                 <Link
                     to="/master_inventory/create_master_inventory"
@@ -33,7 +48,7 @@ export default function MasterInventoryContainer() {
                     + Car
                 </Link>
             </div>
-            <MasterInventoryCard onInventory={inventory} />
+            <MasterInventoryCard onInventory={filteredInventory} />
         </>
     );
 }
