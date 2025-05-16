@@ -13,6 +13,7 @@ export default function AdminCarEdit({ car, onSave, showEdit, setShowEdit }) {
         is_sold: false,
     });
 
+    
     useEffect(() => {
         if (car) {
             setFormData({
@@ -22,7 +23,7 @@ export default function AdminCarEdit({ car, onSave, showEdit, setShowEdit }) {
                 make: car.make || "",
                 purchase_price: car.purchase_price || "",
                 selling_price: car.selling_price || "",
-                sold_price: car.sold_price || null,
+                sold_price: car.sold_price?.toString() || "",
                 is_sold: car.is_sold || false,
             });
         }

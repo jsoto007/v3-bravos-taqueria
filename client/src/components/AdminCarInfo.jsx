@@ -1,5 +1,6 @@
 import React from "react";
 import PhotoGallery from "../shared/PhotoGellery";
+import AdminCarDelete from "./AdminCarDelete";
 
 
 export default function AdminCarInfo( { car, showEdit, setShowEdit } ) {
@@ -55,7 +56,8 @@ export default function AdminCarInfo( { car, showEdit, setShowEdit } ) {
             >
                 Edit
             </button>
-          <button className="px-4 py-2 rounded bg-red-600 text-white hover:bg-red-700">Delete</button>
+            <AdminCarDelete car={car} />
+          {/* <button className="px-4 py-2 rounded bg-red-600 text-white hover:bg-red-700">Delete</button> */}
         </div>
       </div>
     );
