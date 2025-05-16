@@ -183,7 +183,7 @@ class UserInventories(Resource):
 
 class UserInventoryHistory(Resource):
     def get(self, user_id):
-        inventories = UserInventory.query.filter_by(user_id=user_id).all()
+        inventories = UserInventory.query.filter_by(user_id=user_id).order_by(UserInventory.created_at.desc()).limit(12).all()
         return make_response(jsonify([inv.to_dict() for inv in inventories]), 200)
 
 
@@ -220,6 +220,27 @@ class MasterCarRecords(Resource):
         db.session.commit()
         return make_response(new_record.to_dict(), 201)
 
+    def patch(self, id):
+        record = MasterCarRecord.query.filter_by(id=id).first()
+        if not record:
+            return {"error": "Record not found"}, 404
+
+        data = request.get_json()
+        for attr, value in data.items():
+            setattr(record, attr, value)
+
+        db.session.commit()
+        return make_response(record.to_dict(), 200)
+
+    def delete(self, id):
+        record = MasterCarRecord.query.filter_by(id=id).first()
+        if not record:
+            return {"error": "Record not found"}, 404
+
+        db.session.delete(record)
+        db.session.commit()
+        return make_response('', 204)
+
         
 
 api.add_resource(Signup, '/api/signup', endpoint='signup')
@@ -233,8 +254,9 @@ api.add_resource(BirdByID, '/birds/<int:id>')
 api.add_resource(CarInventories, '/api/cars', endpoint='cars')
 api.add_resource(CarPhotos, '/api/car_photos', endpoint='car_photos')
 api.add_resource(MasterCarRecords, '/api/master_inventory', endpoint='master_inventory')
+api.add_resource(MasterCarRecords, '/api/master_inventory/<int:id>', endpoint='master_inventory_by_id')
 
-# Register UserInventories resource
+
 api.add_resource(UserInventories, '/api/user_inventories', endpoint='user_inventories')
 api.add_resource(UserInventories, '/api/user_inventories/<int:id>', endpoint='user_inventory_submit')
 
