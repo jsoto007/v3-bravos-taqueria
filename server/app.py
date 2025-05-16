@@ -220,6 +220,14 @@ class MasterCarRecords(Resource):
         db.session.commit()
         return make_response(new_record.to_dict(), 201)
 
+
+class MasterCarRecordById(Resource):
+    def get(self, id):
+        record = MasterCarRecord.query.filter_by(id=id).first()
+        if not record:
+            return {"error": "Record not found"}, 404
+        return make_response(record.to_dict(), 200)
+
     def patch(self, id):
         record = MasterCarRecord.query.filter_by(id=id).first()
         if not record:
@@ -254,7 +262,7 @@ api.add_resource(BirdByID, '/birds/<int:id>')
 api.add_resource(CarInventories, '/api/cars', endpoint='cars')
 api.add_resource(CarPhotos, '/api/car_photos', endpoint='car_photos')
 api.add_resource(MasterCarRecords, '/api/master_inventory', endpoint='master_inventory')
-api.add_resource(MasterCarRecords, '/api/master_inventory/<int:id>', endpoint='master_inventory_by_id')
+api.add_resource(MasterCarRecordById, '/api/master_inventory/<int:id>', endpoint='master_inventory_by_id')
 
 
 api.add_resource(UserInventories, '/api/user_inventories', endpoint='user_inventories')
