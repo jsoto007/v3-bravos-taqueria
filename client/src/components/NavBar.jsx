@@ -5,7 +5,7 @@ import { Bars3Icon, XMarkIcon } from '@heroicons/react/24/outline'
 
 export default function NavBar() {
 
-  
+
   return (
     <>
       <Disclosure as="nav" className="bg-white dark:bg-gray-800 shadow rounded-xl">
@@ -49,14 +49,17 @@ export default function NavBar() {
             </div>
             <DisclosurePanel className="sm:hidden">
               <div className="space-y-1 pb-3 pt-2">
-                <DisclosureButton as={Link} to="/dashboard" className="block border-l-4 border-transparent py-2 pl-3 pr-4 text-base font-medium text-gray-500 hover:border-gray-300 hover:bg-gray-50 hover:text-gray-700 dark:text-white">
-                  Dashboard
+                <DisclosureButton as={Link} to="/" className="block border-l-4 border-transparent py-2 pl-3 pr-4 text-base font-medium text-gray-500 hover:border-gray-300 hover:bg-gray-50 hover:text-gray-700 dark:text-white">
+                  Home
                 </DisclosureButton>
                 <DisclosureButton as={Link} to="/crete_inventory" className="block border-l-4 border-transparent py-2 pl-3 pr-4 text-base font-medium text-gray-500 hover:border-gray-300 hover:bg-gray-50 hover:text-gray-700 dark:text-white">
                   Add Inventory
                 </DisclosureButton>
                 <DisclosureButton as={Link} to="/client_outreach" className="block border-l-4 border-transparent py-2 pl-3 pr-4 text-base font-medium text-gray-500 hover:border-gray-300 hover:bg-gray-50 hover:text-gray-700 dark:text-white">
                   Client Outreach
+                </DisclosureButton>
+                <DisclosureButton as={Link} to="/master_inventory" className="block border-l-4 border-transparent py-2 pl-3 pr-4 text-base font-medium text-gray-500 hover:border-gray-300 hover:bg-gray-50 hover:text-gray-700 dark:text-white">
+                  Master Inventory
                 </DisclosureButton>
                 <div className="border-t border-gray-200 dark:border-gray-700 pb-3 pt-4">
                   <div className="px-4">
