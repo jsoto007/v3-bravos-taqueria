@@ -2,7 +2,7 @@ import React from "react";
 import PhotoGallery from "../shared/PhotoGellery";
 
 
-export default function AdminCarInfo( { car } ) {
+export default function AdminCarInfo( { car, showEdit, setShowEdit } ) {
 
     return (
         <div className="mt-6 divide-y-4 divide-gray-200 font-mono dark:divide-gray-700 overflow-hidden rounded-lg bg-white dark:bg-gray-800 shadow">
@@ -49,7 +49,12 @@ export default function AdminCarInfo( { car } ) {
           </table>
         </div>
         <div className="p-4 sm:p-6 text-gray-900 dark:text-white flex flex-row items-center">
-          <button className="mr-4 px-4 py-2 rounded bg-blue-600 text-white hover:bg-blue-700">Edit</button>
+            <button 
+                className="mr-4 px-4 py-2 rounded bg-blue-600 text-white hover:bg-blue-700"
+                onClick={() => setShowEdit(!showEdit)}
+            >
+                Edit
+            </button>
           <button className="px-4 py-2 rounded bg-red-600 text-white hover:bg-red-700">Delete</button>
         </div>
       </div>

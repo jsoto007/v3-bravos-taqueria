@@ -7,7 +7,7 @@ import AdminCarEdit from "./AdminCarEdit";
 export default function MasterCarContainer() {
   const { id } = useParams();
   const [car, setCar] = useState(null);
-  console.log(id)
+  const [showEdit, setShowEdit] = useState(false);
 
   useEffect(() => {
     fetch(`/api/master_inventory/${id}`)
@@ -20,7 +20,11 @@ export default function MasterCarContainer() {
 
   return (
     <>
-      <AdminCarInfo car={car} />
+      {!showEdit ? (
+        <AdminCarInfo car={car} showEdit={showEdit} setShowEdit={setShowEdit} />
+      ) : (
+        <AdminCarEdit car={car} onSave={setCar} showEdit={showEdit} setShowEdit={setShowEdit} />
+      )}
     </>
   );
 }

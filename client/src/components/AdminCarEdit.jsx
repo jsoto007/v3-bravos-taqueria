@@ -1,6 +1,7 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState } from "react"; 
+import PhotoGallery from "../shared/PhotoGellery";
 
-export default function AdminCarEdit({ car, onSave }) {
+export default function AdminCarEdit({ car, onSave, showEdit, setShowEdit }) {
     const [formData, setFormData] = useState({
         vin_number: "",
         location: "",
@@ -21,7 +22,7 @@ export default function AdminCarEdit({ car, onSave }) {
                 make: car.make || "",
                 purchase_price: car.purchase_price || "",
                 selling_price: car.selling_price || "",
-                sold_price: car.sold_price || "",
+                sold_price: car.sold_price || null,
                 is_sold: car.is_sold || false,
             });
         }
@@ -37,19 +38,27 @@ export default function AdminCarEdit({ car, onSave }) {
 
     const handleSubmit = async (e) => {
         e.preventDefault();
+        // Clean formData: convert empty strings for numeric fields to null
+        const cleanedData = {
+            ...formData,
+            purchase_price: formData.purchase_price === "" ? null : formData.purchase_price,
+            selling_price: formData.selling_price === "" ? null : formData.selling_price,
+            sold_price: formData.sold_price === "" ? null : formData.sold_price,
+        };
         try {
             const res = await fetch(`/api/master_inventory/${car.id}`, {
-                method: "PUT",
+                method: "PATCH",
                 headers: {
                     "Content-Type": "application/json",
                 },
-                body: JSON.stringify(formData),
+                body: JSON.stringify(cleanedData),
             });
 
             if (!res.ok) throw new Error("Failed to update car");
 
             const updatedCar = await res.json();
             onSave(updatedCar);
+            setShowEdit(showEdit => !showEdit)
         } catch (error) {
             console.error(error);
             alert("There was a problem updating the car.");
@@ -65,6 +74,7 @@ export default function AdminCarEdit({ car, onSave }) {
                 <h1 className="text-xl font-bold mb-2 font-serif">
                     Editing: {formData.make} {formData.year}
                 </h1>
+                <PhotoGallery />
             </div>
             <div className="p-4 sm:p-6">
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -105,6 +115,13 @@ export default function AdminCarEdit({ car, onSave }) {
                     className="mr-4 px-4 py-2 rounded bg-blue-600 text-white hover:bg-blue-700"
                 >
                     Save Changes
+                </button>
+                <button
+                    type="button"
+                    onClick={() => setShowEdit(!showEdit)}
+                    className="px-4 py-2 rounded bg-gray-500 text-white hover:bg-gray-600"
+                >
+                    Cancel
                 </button>
             </div>
         </form>
