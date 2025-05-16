@@ -15,15 +15,15 @@ export default function MasterCarContainer() {
       .catch((err) => console.error("Failed to fetch car:", err));
   }, [id]);
 
-  if (!car) return <div className="text-black">Loading...</div>;
+  if (!car) return <div className="text-gray-900 dark:text-white">Loading...</div>;
 
   return (
-    <div className="divide-y divide-gray-200 overflow-hidden rounded-lg bg-white shadow">
-      <div className="px-4 py-5 sm:px-6 text-black">
+    <div className="divide-y divide-gray-200 dark:divide-gray-700 overflow-hidden rounded-lg bg-white dark:bg-gray-800 shadow">
+      <div className="p-4 sm:p-6 text-gray-900 dark:text-white">
         <h1>{car.make} {car.year}   |   VIN {car.vin_number}</h1>
         <PhotoGallery />
       </div>
-      <div className="px-4 py-5 sm:p-6 text-black">
+      <div className="p-4 sm:p-6 text-gray-900 dark:text-white">
         <ul>
           <li>Vin: {car.vin_number}</li>
           <li>Location: {car.location}</li>
@@ -35,9 +35,9 @@ export default function MasterCarContainer() {
           <li>Is Sold: {car.is_sold ? "Yes" : "No"}</li>
         </ul>
       </div>
-      <div className="px-4 py-4 sm:px-6 text-black">
-        <button className="mr-10">Edit</button>
-        <button>Delete</button>
+      <div className="p-4 sm:p-6 text-gray-900 dark:text-white flex flex-row items-center">
+        <button className="mr-4 px-4 py-2 rounded bg-blue-600 text-white hover:bg-blue-700">Edit</button>
+        <button className="px-4 py-2 rounded bg-red-600 text-white hover:bg-red-700">Delete</button>
       </div>
     </div>
   );

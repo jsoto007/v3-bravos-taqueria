@@ -5,7 +5,6 @@ export default function MasterInventoryCard( { onInventory } ) {
     const navigate = useNavigate();
 
     return (
-       
 
         <div className="relative overflow-x-auto mt-6 rounded-md">
 
@@ -53,3 +52,4 @@ export default function MasterInventoryCard( { onInventory } ) {
 
       )
 }
+
