@@ -18,7 +18,7 @@ export default function InventoryContainer() {
 
     const { currentUser } = useContext(UserContext)
 
-    // Move createInventory out of handleStartInventory and call it asynchronously without awaiting
+
     const createInventory = async () => {
         try {
             const res = await axios.post("/api/user_inventories", { user_id: currentUser.id });
