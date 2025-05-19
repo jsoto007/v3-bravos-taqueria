@@ -90,7 +90,7 @@ class CarInventory(db.Model, SerializerMixin):
 
     id = db.Column(db.Integer, primary_key=True)
     location = db.Column(db.String, nullable=False)
-    vin_number = db.Column(db.String, unique=True, nullable=False)
+    vin_number = db.Column(db.String, unique=False, nullable=False)
   
     year = db.Column(db.Integer, nullable=True)
     make = db.Column(db.String, nullable=True)

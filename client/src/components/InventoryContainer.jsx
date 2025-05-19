@@ -49,7 +49,7 @@ export default function InventoryContainer() {
             });
             setCars([...cars, res.data]);
             setVin("");
-            setLocation("");
+            setLocation("Auto Spot");
             setYear("");
             setMake("");
         } catch (err) {
@@ -68,6 +68,11 @@ export default function InventoryContainer() {
 
     useEffect(() => {
         console.log("DECODED VIN in state", decodedVin);
+        if (decodedVin && Object.keys(decodedVin).length > 0) {
+          if (decodedVin.vin) setVin(decodedVin.vin);
+          if (decodedVin.info?.modelYear) setYear(decodedVin.info.modelYear);
+          if (decodedVin.info?.manufacturer) setMake(decodedVin.info.manufacturer);
+        }
       }, [decodedVin]);
 
     return (
@@ -86,7 +91,7 @@ export default function InventoryContainer() {
             ) : (
                 <>
                 <BarcodeScanner decodedVin={decodedVin} setDecodedVin={setDecodedVin} />
-                <InventoryForm 
+                <InventoryForm
                     vin={vin}
                     setVin={setVin}
                     location={location}
@@ -98,6 +103,7 @@ export default function InventoryContainer() {
                     addCar={addCar}
                     cars={cars}
                     submitInventory={submitInventory}
+                    decodedVin={decodedVin}
                 />
                 </>
             )}

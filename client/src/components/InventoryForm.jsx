@@ -13,7 +13,8 @@ export default function InventoryForm( {
     setMake, 
     addCar, 
     cars, 
-    submitInventory
+    submitInventory,
+    decodedVin
 } ) {
 
 
@@ -22,8 +23,8 @@ export default function InventoryForm( {
                 <>
                     <h3 className="text-xl font-semibold mb-4 text-gray-800 dark:text-gray-200">Add Car</h3>
                     <input
-                        value={vin}
-                        onChange={(e) => setVin(e.target.value)}
+                        value={decodedVin?.vin}
+                        // onChange={(e) => setVin(e.target.value)}
                         placeholder="VIN Number"
                         className="w-full mb-2 p-2 border border-gray-300 dark:border-gray-700 rounded bg-white dark:bg-gray-700 text-gray-800 dark:text-gray-200"
                     />
@@ -37,14 +38,14 @@ export default function InventoryForm( {
                         type="number"
                         min="1886"
                         max={new Date().getFullYear()}
-                        value={year}
-                        onChange={(e) => setYear(e.target.value)}
+                        value={decodedVin?.info?.modelYear}
+                        // onChange={(e) => setYear(e.target.value)}
                         placeholder="Year"
                         className="w-full mb-2 p-2 border border-gray-300 dark:border-gray-700 rounded bg-white dark:bg-gray-700 text-gray-800 dark:text-gray-200"
                     />
                     <input
-                        value={make}
-                        onChange={(e) => setMake(e.target.value)}
+                        value={decodedVin?.info?.manufacturer}
+                        // onChange={(e) => setMake(e.target.value)}
                         placeholder="Make"
                         className="w-full mb-2 p-2 border border-gray-300 dark:border-gray-700 rounded bg-white dark:bg-gray-700 text-gray-800 dark:text-gray-200"
                     />
