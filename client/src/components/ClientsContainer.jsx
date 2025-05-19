@@ -1,4 +1,5 @@
 import { useEffect } from "react";
+import BarcodeScanner from "../utils/BarcodeScanner";
 
 export default function ClientsContainer() {
     useEffect(() => {
@@ -11,6 +12,7 @@ export default function ClientsContainer() {
     return (
         <div className="text-4xl text-bold mt-10">
             Hello from Client Outrach: This route is under construction!
+            <BarcodeScanner />
         </div>
     );
 }

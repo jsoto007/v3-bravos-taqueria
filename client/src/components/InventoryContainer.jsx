@@ -2,6 +2,8 @@ import { useState, useContext } from "react";
 import axios from "axios";
 import { UserContext } from "../context/UserContextProvider";
 import InventoryForm from "./InventoryForm";
+import { decodeVinData } from '../utils/VinDecoder';
+
 
 export default function InventoryContainer() {
 
@@ -49,6 +51,11 @@ export default function InventoryContainer() {
             setLocation("");
             setYear("");
             setMake("");
+
+            // Decode VIN after successful scan
+            const decoded = await decodeVinData(vin);
+            console.log("DECODED VIN:", decoded);
+
         } catch (err) {
             setErrors(err);
         }
