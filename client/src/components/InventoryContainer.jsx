@@ -1,9 +1,8 @@
-import { useState, useContext } from "react";
+import { useState, useContext, useEffect } from "react";
 import axios from "axios";
 import { UserContext } from "../context/UserContextProvider";
 import InventoryForm from "./InventoryForm";
-import { decodeVinData } from '../utils/VinDecoder';
-
+import BarcodeScanner from "../utils/BarcodeScanner";
 
 export default function InventoryContainer() {
 
@@ -15,6 +14,8 @@ export default function InventoryContainer() {
     const [cars, setCars] = useState([]);
     const [submitted, setSubmitted] = useState(false);
     const [showForm, setShowForm] = useState(false);
+
+    const [decodedVin, setDecodedVin] = useState({});
     
     const [errors, setErrors] = useState({})
 
@@ -51,11 +52,6 @@ export default function InventoryContainer() {
             setLocation("");
             setYear("");
             setMake("");
-
-            // Decode VIN after successful scan
-            const decoded = await decodeVinData(vin);
-            console.log("DECODED VIN:", decoded);
-
         } catch (err) {
             setErrors(err);
         }
@@ -70,6 +66,9 @@ export default function InventoryContainer() {
         }
     };
 
+    useEffect(() => {
+        console.log("DECODED VIN in state", decodedVin);
+      }, [decodedVin]);
 
     return (
         <div>
@@ -85,6 +84,8 @@ export default function InventoryContainer() {
                     Inventory Submitted!
                 </div>
             ) : (
+                <>
+                <BarcodeScanner decodedVin={decodedVin} setDecodedVin={setDecodedVin} />
                 <InventoryForm 
                     vin={vin}
                     setVin={setVin}
@@ -98,6 +99,7 @@ export default function InventoryContainer() {
                     cars={cars}
                     submitInventory={submitInventory}
                 />
+                </>
             )}
         </div>
     )

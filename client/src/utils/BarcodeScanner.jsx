@@ -2,9 +2,8 @@ import { useEffect, useRef, useState } from 'react';
 import { BrowserMultiFormatReader } from '@zxing/browser';
 import { decodeVinData } from './VinDecoder';
 
-export default function BarcodeScanner({ onScan }) {
+export default function BarcodeScanner({ onScan, setDecodedVin, decodedVin }) {
   const videoRef = useRef(null);
-  const [decodedVin, setDecodedVin] = useState({});
 
   useEffect(() => {
     const codeReader = new BrowserMultiFormatReader();
@@ -36,9 +35,6 @@ export default function BarcodeScanner({ onScan }) {
     };
   }, [onScan]);
 
-  useEffect(() => {
-    console.log("DECODED VIN in state", decodedVin);
-  }, [decodedVin]);
 
   return <video ref={videoRef} style={{ width: '100%' }} />;
 }
