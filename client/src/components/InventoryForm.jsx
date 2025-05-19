@@ -3,14 +3,8 @@ import axios from "axios";
 import { UserContext } from "../context/UserContextProvider";
 
 export default function InventoryForm( { 
-    vin, 
-    setVin, 
     location, 
-    setLocation, 
-    year, 
-    setYear, 
-    make, 
-    setMake, 
+    setLocation,  
     addCar, 
     cars, 
     submitInventory,

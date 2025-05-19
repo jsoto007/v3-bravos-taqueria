@@ -38,24 +38,37 @@ export default function InventoryContainer() {
     };
 
     const addCar = async () => {
-        try {
-            const res = await axios.post("/api/cars", {
-                user_id: currentUser.id,
-                user_inventory_id: inventoryId,
-                vin_number: vin,
-                location,
-                year,
-                make,
-            });
-            setCars([...cars, res.data]);
-            setVin("");
-            setLocation("Auto Spot");
-            setYear("");
-            setMake("");
-        } catch (err) {
-            setErrors(err);
+        if (!vin || !year || !make || !location) {
+            setDecodedVin({ vin: "", info: { modelYear: "", manufacturer: "" } });
+          alert("Please scan a valid VIN or fill out all required fields.");
+          return;
         }
-    };
+
+        if (cars.some((car) => car.vin_number === vin)) {
+            setDecodedVin({ vin: "", info: { modelYear: "", manufacturer: "" } });
+          alert("This car has already been added to the current inventory.");
+          return;
+        }
+      
+        try {
+          const res = await axios.post("/api/cars", {
+            user_id: currentUser.id,
+            user_inventory_id: inventoryId,
+            vin_number: vin,
+            location,
+            year,
+            make,
+          });
+          setCars([...cars, res.data]);
+          setVin("");
+          setLocation("Auto Spot");
+          setYear("");
+          setMake("");
+          setDecodedVin({ vin: "", info: { modelYear: "", manufacturer: "" } });
+        } catch (err) {
+          setErrors(err);
+        }
+      };
 
     const submitInventory = async () => {
         try {
@@ -92,14 +105,8 @@ export default function InventoryContainer() {
                 <>
                 <BarcodeScanner decodedVin={decodedVin} setDecodedVin={setDecodedVin} />
                 <InventoryForm
-                    vin={vin}
-                    setVin={setVin}
                     location={location}
                     setLocation={setLocation}
-                    year={year}
-                    setYear={setYear}
-                    make={make}
-                    setMake={setMake}
                     addCar={addCar}
                     cars={cars}
                     submitInventory={submitInventory}
