@@ -22,7 +22,8 @@ export default function InventoryForm( {
                     />
                     <input
                         value={location}
-                        onChange={(e) => setLocation(e.target.value)}
+                        readOnly
+                        // onChange={(e) => setLocation(e.target.value)}
                         placeholder="Location"
                         className="w-full mb-2 p-2 border border-gray-300 dark:border-gray-700 rounded bg-white dark:bg-gray-700 text-gray-800 dark:text-gray-200"
                     />

@@ -1,6 +1,6 @@
 
 
-export async function userLocation(vin) {
+export async function userLocation(vin, setLocation, location) {
     console.log("GEO being called with VIN:", vin);
   
     if (!vin) {
@@ -21,6 +21,10 @@ export async function userLocation(vin) {
             console.log("Latitude:", latitude, "Longitude:", longitude);
   
             const address = await getAddressFromCoordinates(latitude, longitude);
+            if (setLocation) {
+                setLocation(address);
+                console.log(location)
+              }
             console.log("Address:", address);
           } catch (innerErr) {
             console.error("Error during position handling or reverse geocoding:", innerErr);
@@ -43,7 +47,7 @@ export async function userLocation(vin) {
       throw new Error("Missing LocationIQ API key. Please set VITE_LOCATIONIQ_API_KEY in your .env file.");
     }
   
-    const url = `https://us1.locationiq.com/v1/reverse.php?key=${apiKey}&lat=${lat}&lon=${lon}&format=json`;
+    const url = `https://locationiq.com/v1/reverse.php?key=${apiKey}&lat=${lat}&lon=${lon}&format=json`;
     const response = await fetch(url);
   
     if (!response.ok) {
@@ -55,3 +59,4 @@ export async function userLocation(vin) {
     console.log("USER'S ADDRESS:", data);
     return data.display_name;
   }
+

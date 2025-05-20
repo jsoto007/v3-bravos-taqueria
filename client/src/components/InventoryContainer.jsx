@@ -62,7 +62,7 @@ export default function InventoryContainer() {
           });
           setCars([...cars, res.data]);
           setVin("");
-          setLocation("Auto Spot");
+          setLocation("");
           setYear("");
           setMake("");
           setDecodedVin({ vin: "", info: { modelYear: "", manufacturer: "" } });
@@ -90,10 +90,10 @@ export default function InventoryContainer() {
       }, [decodedVin]);
       
     useEffect(() => {
-    if (vin) {
-        console.log("Calling userLocation with vin:", vin);
-        userLocation(vin);
-    }
+        if (vin) {
+            console.log("Calling userLocation with vin:", vin);
+            userLocation(vin, setLocation);
+        }
     }, [vin]);
 
     return (
