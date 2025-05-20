@@ -3,7 +3,7 @@ import axios from "axios";
 import { UserContext } from "../context/UserContextProvider";
 import InventoryForm from "./InventoryForm";
 import BarcodeScanner from "../utils/BarcodeScanner";
-import { userLocatoin } from "../utils/UserLocation";
+import { userLocation } from "../utils/UserLocation";
  
 export default function InventoryContainer() {
 
@@ -88,6 +88,13 @@ export default function InventoryContainer() {
           if (decodedVin.info?.manufacturer) setMake(decodedVin.info.manufacturer);
         }
       }, [decodedVin]);
+      
+    useEffect(() => {
+    if (vin) {
+        console.log("Calling userLocation with vin:", vin);
+        userLocation(vin);
+    }
+    }, [vin]);
 
     return (
         <div>
