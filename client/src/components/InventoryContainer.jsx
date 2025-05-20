@@ -3,7 +3,8 @@ import axios from "axios";
 import { UserContext } from "../context/UserContextProvider";
 import InventoryForm from "./InventoryForm";
 import BarcodeScanner from "../utils/BarcodeScanner";
-
+import { userLocatoin } from "../utils/UserLocation";
+ 
 export default function InventoryContainer() {
 
     const [inventoryId, setInventoryId] = useState(null);

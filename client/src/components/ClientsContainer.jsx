@@ -1,5 +1,6 @@
 import { useEffect } from "react";
 import InventoryContainer from "./InventoryContainer";
+import { userLocatoin } from "../utils/UserLocation"
 
 export default function ClientsContainer() {
     useEffect(() => {
@@ -9,10 +10,14 @@ export default function ClientsContainer() {
             .catch(err => console.error("Error fetching inventory history:", err));
     }, []);
 
+    
+    userLocatoin()
+
     return (
         <div className="text-4xl text-bold mt-10">
             Hello from Client Outrach: This route is under construction!
-            <InventoryContainer />
+            {/* <InventoryContainer /> */}
+
         </div>
     );
 }
