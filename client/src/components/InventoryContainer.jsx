@@ -62,9 +62,9 @@ export default function InventoryContainer() {
           });
           setCars([...cars, res.data]);
           setVin("");
-          setLocation("");
           setYear("");
           setMake("");
+          setLocation("");
           setDecodedVin({ vin: "", info: { modelYear: "", manufacturer: "" } });
         } catch (err) {
           setErrors(err);
@@ -114,7 +114,6 @@ export default function InventoryContainer() {
                 <BarcodeScanner decodedVin={decodedVin} setDecodedVin={setDecodedVin} />
                 <InventoryForm
                     location={location}
-                    setLocation={setLocation}
                     addCar={addCar}
                     cars={cars}
                     submitInventory={submitInventory}
