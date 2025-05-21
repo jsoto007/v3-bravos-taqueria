@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
-import AdminInventoryReviewCard from "./AdminInventoryReviewCard";
+import AdminInventoryReviewDisplay from "./AdminInventoryReviewDisplay";
 
 export default function AdminInventoryReviewContainer() {
     const [userInventory, setUserInventory] = useState(null);
@@ -25,12 +25,10 @@ export default function AdminInventoryReviewContainer() {
             });
     }, []);
 
-    console.log("USER Inventory:", userInventory)
-    console.log("USER matchingCAR:", matchingCars)
 
     return (
         <>
-            <AdminInventoryReviewCard 
+            <AdminInventoryReviewDisplay 
                 userInventory={userInventory}
                 matchingCars={matchingCars}
                 error={error}
