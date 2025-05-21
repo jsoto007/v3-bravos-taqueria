@@ -1,4 +1,4 @@
-
+import { useEffect, useState } from 'react';
 
 export default function InventoryForm( { 
     location, 
@@ -8,6 +8,17 @@ export default function InventoryForm( {
     decodedVin
 } ) {
 
+
+    const [justAddedId, setJustAddedId] = useState(null);
+
+    useEffect(() => {
+        if (cars.length > 0) {
+            const lastCar = cars[cars.length - 1];
+            setJustAddedId(lastCar.id);
+            const timer = setTimeout(() => setJustAddedId(null), 3000);
+            return () => clearTimeout(timer);
+        }
+    }, [cars]);
 
     return (
         <div className="p-6 max-w-md mx-auto mt-12 bg-white dark:bg-gray-800 shadow-md rounded-md">
@@ -45,7 +56,10 @@ export default function InventoryForm( {
                     </button>
                     <ul className="mb-4 text-gray-700 dark:text-gray-300">
                         {cars.map((car) => (
-                            <li key={car.id} className="mb-1">
+                            <li
+                                key={car.id}
+                                className={`mb-1 rounded-md ${car.id === justAddedId ? 'bg-green-200/30 dark:bg-green-900' : ''}`}
+                            >
                                 {car.vin_number} - {car.make} ({car.year})
                             </li>
                         ))}
