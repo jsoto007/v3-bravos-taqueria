@@ -2,9 +2,11 @@ import React, { useEffect, useState, useContext } from "react";
 import { UserContext } from '../context/UserContextProvider';
 import CompletedInventoryCard from '../components/CompletedInventoryCard';
 import { useNavigate } from 'react-router-dom';
+import Loading from "../shared/Loading";
 
 export default function CompletedInventories() {
     const [inventories, setInventories] = useState([]);
+    const [loading, setLoading] = useState(true);
     const { currentUser } = useContext(UserContext);
     const navigate = useNavigate();
     const isAdmin = currentUser?.admin === true;
@@ -14,9 +16,19 @@ export default function CompletedInventories() {
     
         fetch(`/api/user_inventories/history/${currentUser.id}`)
             .then(res => res.json())
-            .then(data => setInventories(data))
-            .catch(err => console.error("Error fetching inventory history:", err));
+            .then(data => {
+                setInventories(data);
+                setLoading(false);
+            })
+            .catch(err => {
+                console.error("Error fetching inventory history:", err);
+                setLoading(false);
+            });
     }, [currentUser]);
+
+    if (loading) {
+        return <Loading />;
+    }
 
     console.log("inventories in state:", inventories)
     return (
