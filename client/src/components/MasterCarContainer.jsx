@@ -8,12 +8,13 @@ export default function MasterCarContainer() {
   const { id } = useParams();
   const [car, setCar] = useState(null);
   const [showEdit, setShowEdit] = useState(false);
+  const [error, setError] = useState("")
 
   useEffect(() => {
     fetch(`/api/master_inventory/${id}`)
       .then((res) => res.json())
       .then((data) => setCar(data))
-      .catch((err) => console.error("Failed to fetch car:", err));
+      .catch((err) => setError(err));
   }, [id]);
 
   if (!car) return <div className="text-gray-900 dark:text-white">Loading...</div>;

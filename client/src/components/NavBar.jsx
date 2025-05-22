@@ -2,7 +2,7 @@ import { Outlet, Link } from "react-router-dom"
 import Logout from "./Logout"
 import { Disclosure, DisclosurePanel, DisclosureButton } from '@headlessui/react'
 import { Bars3Icon, XMarkIcon } from '@heroicons/react/24/outline'
-import logo  from '../../public/logo.png'
+import logo  from '/logo.png'
 
 
 

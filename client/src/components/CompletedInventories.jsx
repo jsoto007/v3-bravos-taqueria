@@ -21,7 +21,6 @@ export default function CompletedInventories() {
                 setLoading(false);
             })
             .catch(err => {
-                console.error("Error fetching inventory history:", err);
                 setLoading(false);
             });
     }, [currentUser]);
@@ -30,7 +29,6 @@ export default function CompletedInventories() {
         return <Loading />;
     }
 
-    console.log("inventories in state:", inventories)
     return (
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
             {inventories.map((inventory) => {

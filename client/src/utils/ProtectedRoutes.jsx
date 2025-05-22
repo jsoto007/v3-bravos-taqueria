@@ -6,8 +6,6 @@ import Loading from "../shared/Loading";
 const ProtectedRoutes = () => {
     const { currentUser, loading } = useContext(UserContext);
 
-    console.log("current User", currentUser);
-
     if (loading) {
         return <Loading />;
     }

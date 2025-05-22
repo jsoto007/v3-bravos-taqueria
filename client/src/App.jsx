@@ -4,7 +4,6 @@ import { BrowserRouter as Router, Routes,Route } from 'react-router-dom';
 import { UserContext } from './context/UserContextProvider';
 import ProtactedRoutes from './utils/ProtectedRoutes';
 import Auth from './components/Auth'
-import Dashboard from './components/Dashboard'
 import NavBar from './components/NavBar';
 import CarsContainer from './components/CarsContainer';
 import ClientsContainer from './components/ClientsContainer';
@@ -35,7 +34,7 @@ function App() {
             <Route path="/master_inventory/create_master_inventory" element={<MasterInventoryForm />} />
             <Route path="/admin/user_inventory_check/:id" element={<AdminInventoryReviewContainer />} />
           </Route>
-          
+
           <Route element={<AdminProtectedRoutes />}>
             <Route path="/master_inventory" element={<MasterInventoryContainer />} />
           </Route>

@@ -6,6 +6,7 @@ export default function MasterInventoryContainer() {
 
     const [inventory, setInventory] = useState([])
     const [searchTerm, setSearchTerm] = useState("");
+    const [error, setError] = useState("")
 
     useEffect(() => {
         fetch('/api/master_inventory')
@@ -13,8 +14,8 @@ export default function MasterInventoryContainer() {
             .then(MastInventory => {
                 setInventory(MastInventory)
             })
-            .catch(error => {
-                console.error('Error fetching master inventory:', error);
+            .catch(err => {
+                setError(err);
             });
     }, []);
 

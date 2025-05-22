@@ -17,7 +17,6 @@ export default function AdminCarDelete({ car }) {
 
             navigate("/master_inventory");
         } catch (error) {
-            console.error(error);
             alert("There was a problem deleting the car.");
         }
     };

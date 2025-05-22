@@ -11,7 +11,6 @@ export default function BarcodeScanner({ onScan, setDecodedVin, decodedVin }) {
     codeReader.decodeFromVideoDevice(null, videoRef.current, (result, err) => {
       if (result) {
         const vin = result.getText();
-        console.log('Scanned result:', vin);
         if (onScan) onScan(vin);
 
         decodeVinData(vin)

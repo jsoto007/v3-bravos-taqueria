@@ -82,7 +82,7 @@ export default function MasterInventoryForm() {
         console.log("Successfully added record:", result);
         navigate("/master_inventory");
       })
-      .catch((error) => console.error("Error submitting form:", error));
+      .catch((err) => setErrors(err));
   };
 
   return (

@@ -47,8 +47,9 @@ export default function InventoryContainer() {
 
         if (cars.some((car) => car.vin_number === vin)) {
             setDecodedVin({ vin: "", info: { modelYear: "", manufacturer: "" } });
-          alert("This car has already been added to the current inventory.");
-          return;
+            alert("This car has already been added to the current inventory.");
+            
+            return;
         }
       
         try {
@@ -91,7 +92,6 @@ export default function InventoryContainer() {
     useEffect(() => {
         if (vin) {
             const timer = setTimeout(() => {
-                console.log("Calling userLocation with vin:", vin);
                 userLocation(vin, setLocation);
             }, 1000);
             return () => clearTimeout(timer);

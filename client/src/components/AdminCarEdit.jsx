@@ -61,7 +61,6 @@ export default function AdminCarEdit({ car, onSave, showEdit, setShowEdit }) {
             onSave(updatedCar);
             setShowEdit(showEdit => !showEdit)
         } catch (error) {
-            console.error(error);
             alert("There was a problem updating the car.");
         }
     };

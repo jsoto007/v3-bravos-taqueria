@@ -1,16 +1,15 @@
-
+import { useState } from 'react'
 
 export async function userLocation(vin, setLocation, location) {
-    console.log("GEO being called with VIN:", vin);
+
+    const [error, setError] = useState("")
   
     if (!vin) {
-      console.log("No VIN provided — skipping location lookup.");
       return;
     }
   
     try {
       if (!navigator.geolocation) {
-        console.error("Geolocation is not supported by this browser.");
         return;
       }
   
@@ -18,16 +17,14 @@ export async function userLocation(vin, setLocation, location) {
         async (position) => {
           try {
             const { latitude, longitude } = position.coords;
-            console.log("Latitude:", latitude, "Longitude:", longitude);
   
             const address = await getAddressFromCoordinates(latitude, longitude);
             if (setLocation) {
                 setLocation(address);
-                console.log(location)
               }
-            console.log("Address:", address);
+
           } catch (innerErr) {
-            console.error("Error during position handling or reverse geocoding:", innerErr);
+            setError(innerErr)
           }
         },
         (error) => {
