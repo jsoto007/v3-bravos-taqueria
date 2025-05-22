@@ -64,7 +64,6 @@ export default function InventoryContainer() {
           setVin("");
           setYear("");
           setMake("");
-          setLocation("");
           setDecodedVin({ vin: "", info: { modelYear: "", manufacturer: "" } });
         } catch (err) {
           setErrors(err);

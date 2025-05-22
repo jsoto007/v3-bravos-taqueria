@@ -54,7 +54,7 @@ class CheckSession(Resource):
         return {"error": "Please log in"}, 401
 
 
-class Login(Resource):
+class Login(Resource):  
     def post(self):
         email = request.get_json()['username']
         password = request.get_json()['password']

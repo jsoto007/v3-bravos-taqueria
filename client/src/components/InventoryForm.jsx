@@ -15,7 +15,7 @@ export default function InventoryForm( {
         if (cars.length > 0) {
             const lastCar = cars[cars.length - 1];
             setJustAddedId(lastCar.id);
-            const timer = setTimeout(() => setJustAddedId(null), 3000);
+            const timer = setTimeout(() => setJustAddedId(null), 120000);
             return () => clearTimeout(timer);
         }
     }, [cars]);
