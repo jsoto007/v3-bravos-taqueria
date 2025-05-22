@@ -47,9 +47,7 @@ export async function userLocation(vin, setLocation, location) {
       throw new Error("Missing LocationIQ API key. Please set VITE_LOCATIONIQ_API_KEY in your .env file.");
     }
   
-    const url = `https://us1.locationiq.com/v1/reverse?key=${apiKey}&lat=${lat}&lon=${lon}&format=json`;
-
-
+    const url = `https://locationiq.com/v1/reverse.php?key=${apiKey}&lat=${lat}&lon=${lon}&format=json`;
     const response = await fetch(url);
   
     if (!response.ok) {
@@ -61,4 +59,3 @@ export async function userLocation(vin, setLocation, location) {
     console.log("USER'S ADDRESS:", data);
     return data.display_name;
   }
-

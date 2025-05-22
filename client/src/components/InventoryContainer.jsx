@@ -39,10 +39,10 @@ export default function InventoryContainer() {
     };
 
     const addCar = async () => {
-        if (!vin || !year || !make || !location) {
+        if (!vin) {
             setDecodedVin({ vin: "", info: { modelYear: "", manufacturer: "" } });
-          alert("Please scan a valid VIN or fill out all required fields.");
-          return;
+            alert("Please scan a valid VIN.");
+            return;
         }
 
         if (cars.some((car) => car.vin_number === vin)) {
