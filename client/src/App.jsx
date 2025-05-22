@@ -13,7 +13,7 @@ import MasterInventoryContainer from './components/MasterInventoryContainer';
 import MasterInventoryForm from './components/MasterInventoryForm';
 import MasterCarContainer from './components/MasterCarContainer';
 import AdminInventoryReviewContainer from './components/AdminInventoryReviewContainer';
-import AdminInventoryReviewCard from './components/AdminInventoryReviewCard';
+import AdminProtectedRoutes from './utils/AdminProtectedRoutes';
 
 
 function App() {
@@ -28,14 +28,16 @@ function App() {
           <Route path="/auth" element={<Auth />} />
           <Route element={<ProtactedRoutes />}>
             <Route path="/" element={<CarsContainer />} />
-            <Route path="/master_inventory" element={<MasterInventoryContainer />} />
-            <Route path="/master_inventory/:id" element={<MasterCarContainer />} />
-            <Route path="/master_inventory/create_master_inventory" element={<MasterInventoryForm />} />
             <Route path="/inventory" element={<UserInventoryContainer />} />
             <Route path="/client_outreach" element={<ClientsContainer />} />
 
-            {/* <Route path="/admin/user_inventory_check" element={<AdminInventoryReviewCard />} /> */}
+            <Route path="/master_inventory/:id" element={<MasterCarContainer />} />
+            <Route path="/master_inventory/create_master_inventory" element={<MasterInventoryForm />} />
             <Route path="/admin/user_inventory_check/:id" element={<AdminInventoryReviewContainer />} />
+          </Route>
+          
+          <Route element={<AdminProtectedRoutes />}>
+            <Route path="/master_inventory" element={<MasterInventoryContainer />} />
           </Route>
           
         </Routes>
