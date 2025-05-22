@@ -249,7 +249,33 @@ class MasterCarRecordById(Resource):
         db.session.commit()
         return make_response('', 204)
 
-        
+
+# AdminUserInventoryCheck resource: returns the specified user inventory and matching cars
+class AdminUserInventoryCheck(Resource):
+    def get(self, user_inventory_id):
+        # Check if the session user is admin
+        user_id = session.get('user_id')
+        if not user_id:
+            return {"error": "Unauthorized"}, 401
+
+        user = User.query.filter_by(id=user_id).first()
+        if not user or not getattr(user, 'is_admin', False):
+            return {"error": "Forbidden: Admins only"}, 403
+
+        # Get the user inventory
+        user_inventory = UserInventory.query.filter_by(id=user_inventory_id).first()
+        if not user_inventory:
+            return {"error": "User inventory not found"}, 404
+
+        # Get all master car records with created_at <= user_inventory.created_at
+        cars = MasterCarRecord.query.filter(
+            MasterCarRecord.created_at <= user_inventory.created_at
+        ).all()
+
+        return make_response(jsonify({
+            "user_inventory": user_inventory.to_dict(),
+            "matching_cars": [car.to_dict() for car in cars]
+        }), 200)
 
 api.add_resource(Signup, '/api/signup', endpoint='signup')
 api.add_resource(CheckSession, '/api/check_session', endpoint='check_session')
@@ -269,6 +295,9 @@ api.add_resource(UserInventories, '/api/user_inventories', endpoint='user_invent
 api.add_resource(UserInventories, '/api/user_inventories/<int:id>', endpoint='user_inventory_submit')
 
 api.add_resource(UserInventoryHistory, '/api/user_inventories/history/<int:user_id>', endpoint='user_inventory_history')
+
+# Admin endpoint to check a specific user inventory and its cars
+api.add_resource(AdminUserInventoryCheck, '/api/admin/user_inventory_check/<int:user_inventory_id>', endpoint='admin_user_inventory_check')
 
 # Serve Vite build in production
 from flask import send_from_directory
