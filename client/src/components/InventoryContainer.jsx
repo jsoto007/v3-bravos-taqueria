@@ -91,8 +91,11 @@ export default function InventoryContainer() {
       
     useEffect(() => {
         if (vin) {
-            console.log("Calling userLocation with vin:", vin);
-            userLocation(vin, setLocation);
+            const timer = setTimeout(() => {
+                console.log("Calling userLocation with vin:", vin);
+                userLocation(vin, setLocation);
+            }, 1000);
+            return () => clearTimeout(timer);
         }
     }, [vin]);
 

@@ -8,8 +8,8 @@ export default function InventoryForm( {
     decodedVin
 } ) {
 
-
     const [justAddedId, setJustAddedId] = useState(null);
+    const [loadingLocation, setLoadingLocation] = useState(true);
 
     useEffect(() => {
         if (cars.length > 0) {
@@ -19,6 +19,12 @@ export default function InventoryForm( {
             return () => clearTimeout(timer);
         }
     }, [cars]);
+
+    useEffect(() => {
+        if (location) {
+            setLoadingLocation(false);
+        }
+    }, [location]);
 
     return (
         <div className="p-6 max-w-md mx-auto mt-12 bg-white dark:bg-gray-800 shadow-md rounded-md">
@@ -30,10 +36,10 @@ export default function InventoryForm( {
                         className="w-full mb-2 p-2 border border-gray-300 dark:border-gray-700 rounded bg-white dark:bg-gray-700 text-gray-800 dark:text-gray-200"
                     />
                     <input
-                        value={location}
+                        value={loadingLocation ? 'Getting location...' : location}
                         readOnly
                         placeholder="Location"
-                        className="w-full mb-2 p-2 border border-gray-300 dark:border-gray-700 rounded bg-white dark:bg-gray-700 text-gray-800 dark:text-gray-200"
+                        className="w-full mb-2 p-2 border border-gray-300 dark:border-gray-700 rounded bg-white dark:bg-gray-700 text-gray-800 dark:text-gray-200 italic"
                     />
                     <input
                         type="number"
