@@ -40,7 +40,10 @@ class Signup(Resource):
             user.password_hash = json['password']
             db.session.add(user)
             db.session.commit()
-            return user.to_dict(), 201
+            user_dict = user.to_dict()
+            user_dict.pop('_password_hash', None)
+            user_dict.pop('password_hash', None)
+            return user_dict, 201
         except IntegrityError:
             db.session.rollback()
             return {"error": "Username already exists."}, 422
@@ -50,7 +53,10 @@ class CheckSession(Resource):
     def get(self):
         if session.get('user_id'):
             user = User.query.filter(User.id == session['user_id']).first()
-            return user.to_dict(), 200
+            user_dict = user.to_dict()
+            user_dict.pop('_password_hash', None)
+            user_dict.pop('password_hash', None)
+            return user_dict, 200
         return {"error": "Please log in"}, 401
 
 
@@ -63,7 +69,10 @@ class Login(Resource):
 
         if user and user.authenticate(password):
             session['user_id'] = user.id
-            return user.to_dict(), 200
+            user_dict = user.to_dict()
+            user_dict.pop('_password_hash', None)
+            user_dict.pop('password_hash', None)
+            return user_dict, 200
         return {'error': "401 Unauthorized"}, 401
 
 
