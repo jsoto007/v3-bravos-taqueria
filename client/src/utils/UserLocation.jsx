@@ -48,7 +48,7 @@ export async function userLocation(vin, setLocation, location) {
     const response = await fetch(url);
   
     if (!response.ok) {
-      const errorText = await response.text(); // for better debugging
+      const errorText = await response.text();
       throw new Error(`Reverse geocoding failed: ${response.status} ${response.statusText} - ${errorText}`);
     }
   
