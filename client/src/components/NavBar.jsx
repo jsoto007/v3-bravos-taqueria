@@ -17,7 +17,7 @@ export default function NavBar() {
               <div className="flex h-16 justify-between">
                 <div className="flex">
                   <div className="flex shrink-0 items-center">
-                    <Link to="/" className="text-xl font-bold text-gray-900 dark:text-white">
+                    <Link to="/home" className="text-xl font-bold text-gray-900 dark:text-white">
                       <img src={logo} alt="Logo" className="h-8 w-auto rounded-lg" />
                     </Link>
                   </div>

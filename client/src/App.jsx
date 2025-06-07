@@ -26,7 +26,7 @@ function App() {
         <Routes>
           <Route path="/auth" element={<Auth />} />
           <Route element={<ProtactedRoutes />}>
-            <Route path="/" element={<CarsContainer />} />
+            <Route path="/home" element={<CarsContainer />} />
             <Route path="/inventory" element={<UserInventoryContainer />} />
             <Route path="/client_outreach" element={<ClientsContainer />} />
 
