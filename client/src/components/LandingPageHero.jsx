@@ -36,11 +36,6 @@ export default function LandingPageHero() {
       </svg>
       <div className="mx-auto max-w-7xl px-6 pb-24 pt-10 sm:pb-32 lg:flex lg:px-8 lg:py-40">
         <div className="mx-auto max-w-2xl lg:mx-0 lg:shrink-0 lg:pt-8">
-          <img
-            alt="Your Company"
-            src="https://tailwindcss.com/plus-assets/img/logos/mark.svg?color=indigo&shade=600"
-            className="h-11"
-          />
           <div className="mt-24 sm:mt-32 lg:mt-16">
             <a href="#" className="inline-flex space-x-6">
               <span className={`rounded-full ${isDark ? 'bg-indigo-500/10 text-indigo-400 ring-indigo-500/20' : 'bg-indigo-600/10 text-indigo-600 ring-indigo-600/10'} px-3 py-1 text-sm/6 font-semibold ring-1 ring-inset`}>
@@ -68,7 +63,7 @@ export default function LandingPageHero() {
               Get started
             </a>
             <a href="/about" className={`text-sm/6 font-semibold ${isDark ? 'text-white' : 'text-gray-900'}`}>
-              Learn more <span aria-hidden="true">→</span>
+              Log In <span aria-hidden="true">→</span>
             </a>
           </div>
         </div>
