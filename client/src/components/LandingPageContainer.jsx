@@ -1,10 +1,10 @@
-
+import LandingPageHero from "./LandingPageHero"
 
 export default function LandingPageContainer() {
 
     return (
-        <>
-            Hello from Landing Page Container
+        <>  
+            <LandingPageHero />
         </>
     )
 }
