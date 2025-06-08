@@ -13,6 +13,7 @@ import MasterInventoryForm from './components/MasterInventoryForm';
 import MasterCarContainer from './components/MasterCarContainer';
 import AdminInventoryReviewContainer from './components/AdminInventoryReviewContainer';
 import AdminProtectedRoutes from './utils/AdminProtectedRoutes';
+import LandingPageContainer from './components/LandingPageContainer';
 
 
 function App() {
@@ -25,6 +26,7 @@ function App() {
         {currentUser? <NavBar /> : null}
         <Routes>
           <Route path="/auth" element={<Auth />} />
+          <Route path="/" element={<LandingPageContainer />} />
           <Route element={<ProtactedRoutes />}>
             <Route path="/home" element={<CarsContainer />} />
             <Route path="/inventory" element={<UserInventoryContainer />} />

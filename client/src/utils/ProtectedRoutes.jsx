@@ -10,7 +10,7 @@ const ProtectedRoutes = () => {
         return <Loading />;
     }
 
-    return currentUser ? <Outlet /> : <Navigate to="/auth" />;
+    return currentUser ? <Outlet /> : window.location.pathname === "/auth" ? <Outlet /> : <Navigate to="/auth" />;
 };
 
 export default ProtectedRoutes;
