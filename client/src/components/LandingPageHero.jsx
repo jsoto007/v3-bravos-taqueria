@@ -48,7 +48,7 @@ export default function LandingPageHero() {
             </a>
           </div>
           <h1 className={`mt-10 text-pretty text-5xl font-semibold tracking-tight ${isDark ? 'text-white' : 'text-gray-900'} sm:text-7xl`}>
-          Supercharge Your Dealer  
+          Supercharge Your Dealership  
           </h1>
           <p className={`mt-8 text-pretty text-lg font-medium ${isDark ? 'text-gray-400' : 'text-gray-500'} sm:text-xl/8`}>
             Streamline your inventory with real-time tracking and VIN decoding.
