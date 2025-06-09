@@ -68,7 +68,7 @@ export default function LandingPagePricing() {
   }, []);
 
   return (
-    <div className={`${isDark ? 'bg-blue-950/20' : 'bg-blue-900/10'} py-24 sm:py-32 rounded-sm`}>
+    <div id='pricingDiv' className={`${isDark ? 'bg-blue-950/20' : 'bg-blue-900/10'} py-24 sm:py-32 rounded-sm`}>
       <div className="mx-auto max-w-7xl px-6 lg:px-8">
         <div className="mx-auto max-w-4xl text-center">
           <h2 className="text-base/7 font-semibold text-indigo-600">Pricing</h2>
