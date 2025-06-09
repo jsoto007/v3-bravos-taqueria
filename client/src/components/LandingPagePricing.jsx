@@ -2,46 +2,54 @@ import { CheckIcon } from '@heroicons/react/20/solid'
 import { useEffect, useState } from 'react';
 
 const tiers = [
-  {
-    name: 'Freelancer',
-    id: 'tier-freelancer',
-    href: '#',
-    priceMonthly: '$19',
-    description: 'The essentials to provide your best work for clients.',
-    features: ['5 products', 'Up to 1,000 subscribers', 'Basic analytics', '48-hour support response time'],
-    mostPopular: false,
-  },
-  {
-    name: 'Startup',
-    id: 'tier-startup',
-    href: '#',
-    priceMonthly: '$49',
-    description: 'A plan that scales with your rapidly growing business.',
-    features: [
-      '25 products',
-      'Up to 10,000 subscribers',
-      'Advanced analytics',
-      '24-hour support response time',
-      'Marketing automations',
-    ],
-    mostPopular: true,
-  },
-  {
-    name: 'Enterprise',
-    id: 'tier-enterprise',
-    href: '#',
-    priceMonthly: '$99',
-    description: 'Dedicated support and infrastructure for your company.',
-    features: [
-      'Unlimited products',
-      'Unlimited subscribers',
-      'Advanced analytics',
-      '1-hour, dedicated support response time',
-      'Marketing automations',
-    ],
-    mostPopular: false,
-  },
-]
+    {
+      name: 'Starter',
+      id: 'tier-starter',
+      href: '#',
+      priceMonthly: '$49.99',
+      description: 'Perfect for independent dealers getting started.',
+      features: [
+        '1 admin account',
+        '3 user accounts',
+        'Up to 100 vehicles',
+        'Basic inventory tracking',
+        'Email support (48-hour response time)',
+      ],
+      mostPopular: false,
+    },
+    {
+      name: 'Professional',
+      id: 'tier-professional',
+      href: '#',
+      priceMonthly: '$99.99',
+      description: 'Best for growing dealerships managing higher volumes.',
+      features: [
+        '2 admin accounts',
+        '10 user accounts',
+        'Up to 250 vehicles',
+        'Advanced reporting & analytics',
+        'VIN decoding + location tracking',
+        '24-hour support response time',
+      ],
+      mostPopular: true,
+    },
+    {
+      name: 'Enterprise',
+      id: 'tier-enterprise',
+      href: '#',
+      priceMonthly: '$199.99',
+      description: 'Full-scale solution with dedicated support for large dealer networks.',
+      features: [
+        'Unlimited admin and user accounts',
+        'Unlimited vehicle listings',
+        'Custom integrations (e.g. DMS, CRM)',
+        'AI-powered recommendations & analytics',
+        'Real-time multi-location tracking',
+        '1-hour priority support',
+      ],
+      mostPopular: false,
+    },
+  ]
 
 function classNames(...classes) {
   return classes.filter(Boolean).join(' ')
@@ -65,7 +73,7 @@ export default function LandingPagePricing() {
         <div className="mx-auto max-w-4xl text-center">
           <h2 className="text-base/7 font-semibold text-indigo-600">Pricing</h2>
           <p className={`mt-2 text-balance text-5xl font-semibold tracking-tight ${isDark ? 'text-white' : 'text-gray-900'} sm:text-6xl`}>
-            Pricing that grows with you
+            Choose the right plan for you
           </p>
         </div>
         <p className={`mx-auto mt-6 max-w-2xl text-pretty text-center text-lg font-medium ${isDark ? 'text-gray-400' : 'text-gray-600'} sm:text-xl/8`}>
