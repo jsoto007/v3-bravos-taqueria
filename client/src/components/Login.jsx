@@ -28,6 +28,15 @@ export default function Login() {
                 <h2 className="mt-8 text-2xl/9 font-bold tracking-tight text-gray-900 dark:text-white">Sign in to your account</h2>
               </div>
 
+              <div className="mt-6">
+                <button
+                  onClick={() => navigate('/')}
+                  className="text-sm font-semibold text-indigo-600 hover:text-indigo-500"
+                >
+                  ← Back to Home
+                </button>
+              </div>
+
               <div className="mt-10">
                 <form onSubmit={handleSubmit} className="space-y-6">
                   <div>
