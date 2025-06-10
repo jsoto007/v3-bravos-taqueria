@@ -1,5 +1,6 @@
 import LandingPageHero from "./LandingPageHero"
 import LandingPagePricing from "./LandingPagePricing"
+import Footer from "./Footer"
 
 export default function LandingPageContainer() {
 
@@ -7,6 +8,7 @@ export default function LandingPageContainer() {
         <>  
             <LandingPageHero />
             <LandingPagePricing />
+            <Footer />
         </>
     )
 }
