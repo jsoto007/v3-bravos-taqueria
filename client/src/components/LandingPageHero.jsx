@@ -15,7 +15,7 @@ export default function LandingPageHero() {
   }, []);
 
   return (
-    <div className={`relative isolate overflow-hidden ${isDark ? 'bg-gray-900' : 'bg-white'}`}>
+    <div id="landing-page-hero" className={`relative isolate overflow-hidden ${isDark ? 'bg-gray-900' : 'bg-white'}`}>
       <svg
         aria-hidden="true"
         className={`absolute inset-0 -z-10 size-full ${isDark ? 'stroke-white/10' : 'stroke-gray-200'} [mask-image:radial-gradient(100%_100%_at_top_right,white,transparent)]`}
