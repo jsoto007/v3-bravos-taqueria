@@ -22,7 +22,7 @@ export default function LandingPageNav() {
         {/* Navigation Links */}
         <div className="hidden md:flex space-x-8 text-gray-700 dark:text-gray-200">
           <Link to="/about" className="hover:text-indigo-600 dark:hover:text-indigo-400">About</Link>
-          <Link to="/sales" className="hover:text-indigo-600 dark:hover:text-indigo-400">Sales</Link>
+          <Link to="/sales" className="hover:text-indigo-600 dark:hover:text-indigo-400">Pricing</Link>
           <Link to="/contact" className="hover:text-indigo-600 dark:hover:text-indigo-400">Contact</Link>
         </div>
 
