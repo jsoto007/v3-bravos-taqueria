@@ -8,10 +8,10 @@ from flask_migrate import Migrate
 from flask_restful import Api, Resource
 from sqlalchemy.exc import IntegrityError
 
-from config import db, bcrypt, app
-from models import User, Bird, CarInventory, CarPhoto, MasterCarRecord, UserInventory
+from config import db, app
+from models import User, CarInventory, CarPhoto, MasterCarRecord, UserInventory
 
-# Add this block
+
 app.config['SQLALCHEMY_ENGINE_OPTIONS'] = {
     'pool_pre_ping': True
 }
@@ -81,60 +81,6 @@ class Logout(Resource):
         session['user_id'] = None
 
         return {}, 204
-
-
-
-# To be deleted
-class Birds(Resource):
-
-    def get(self):
-        birds = [bird.to_dict() for bird in Bird.query.all()]
-        return make_response(jsonify(birds), 200)
-
-    def post(self):
-
-        data = request.get_json()
-
-        new_bird = Bird(
-            name=data['name'],
-            species=data['species'],
-            image=data['image'],
-        )
-
-        db.session.add(new_bird)
-        db.session.commit()
-
-        return make_response(new_bird.to_dict(), 201)
-
-
-# To be deleted
-class BirdByID(Resource):
-    
-    def get(self, id):
-        bird = Bird.query.filter_by(id=id).first().to_dict()
-        return make_response(jsonify(bird), 200)
-
-    def patch(self, id):
-
-        data = request.get_json()
-
-        bird = Bird.query.filter_by(id=id).first()
-
-        for attr in data:
-            setattr(bird, attr, data[attr])
-
-        db.session.add(bird)
-        db.session.commit()
-
-        return make_response(bird.to_dict(), 200)
-
-    def delete(self, id):
-
-        bird = Bird.query.filter_by(id=id).first()
-        db.session.delete(bird)
-        db.session.commit()
-
-        return make_response('', 204)
 
 
 class CarInventories(Resource):
@@ -290,9 +236,6 @@ api.add_resource(Signup, '/api/signup', endpoint='signup')
 api.add_resource(CheckSession, '/api/check_session', endpoint='check_session')
 api.add_resource(Login, '/api/login', endpoint='login')
 api.add_resource(Logout, '/api/logout', endpoint='logout')
-
-api.add_resource(Birds, '/api/birds', endpoint='birds')
-api.add_resource(BirdByID, '/birds/<int:id>')
 
 api.add_resource(CarInventories, '/api/cars', endpoint='cars')
 api.add_resource(CarPhotos, '/api/car_photos', endpoint='car_photos')
