@@ -9,19 +9,6 @@ from sqlalchemy.orm import relationship, backref
 from config import db, bcrypt
 
 
-class Bird(db.Model, SerializerMixin):
-    __tablename__ = 'birds'
-
-    id = db.Column(db.Integer, primary_key=True)
-    name = db.Column(db.String)
-    species = db.Column(db.String)
-    image = db.Column(db.String)
-
-    def __repr__(self):
-        return f'<Bird {self.name} | Species: {self.species}>'
-
-        
-
 class User(db.Model, SerializerMixin):
     __tablename__ = 'users'
 
@@ -64,9 +51,9 @@ class UserInventory(db.Model, SerializerMixin):
     __tablename__ = 'user_inventories'
 
     serialize_rules = (
-        '-user.user_inventories',               # block user loop
-        '-car_inventories.user_inventory',      # block car → inventory loop
-        '-car_inventories.user',                # block car → user loop
+        '-user.user_inventories',               
+        '-car_inventories.user_inventory',      
+        '-car_inventories.user',                
     )
 
     id = db.Column(db.Integer, primary_key=True)
@@ -83,9 +70,9 @@ class CarInventory(db.Model, SerializerMixin):
     __tablename__ = 'car_inventories'
 
     serialize_rules = (
-        '-user',                # avoid looping through the user
-        '-user_inventory',      # avoid looping back to the parent inventory
-        '-photos.car_inventory' # just in case you access car photos later
+        '-user',                
+        '-user_inventory',      
+        '-photos.car_inventory' 
     )
 
     id = db.Column(db.Integer, primary_key=True)
@@ -98,7 +85,7 @@ class CarInventory(db.Model, SerializerMixin):
     user_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
     user = relationship('User', backref=backref('car_inventories'))
 
-    # New field for user inventory
+
     user_inventory_id = db.Column(db.Integer, db.ForeignKey('user_inventories.id'), nullable=True)
     user_inventory = relationship('UserInventory', backref=backref('car_inventories', cascade='all, delete-orphan'))
 
@@ -144,6 +131,18 @@ class MasterCarRecord(db.Model, SerializerMixin):
     location = db.Column(db.String, nullable=True)
     year = db.Column(db.Integer, nullable=True)
     make = db.Column(db.String, nullable=True)
+    model = db.Column(db.String, nullable=True)
+    trim = db.Column(db.String, nullable=True)
+    body_style = db.Column(db.String, nullable=True)
+    color = db.Column(db.String, nullable=True)
+    interior_color = db.Column(db.String, nullable=True)
+    transmission = db.Column(db.String, nullable=True)
+    drivetrain = db.Column(db.String, nullable=True)
+    engine = db.Column(db.String, nullable=True)
+    fuel_type = db.Column(db.String, nullable=True)
+    date_acquired = db.Column(db.DateTime, nullable=True)
+    date_sold = db.Column(db.DateTime, nullable=True)
+    mileage = db.Column(db.Float, nullable=True)
     purchase_price = db.Column(db.Float, nullable=True)
     selling_price = db.Column(db.Float, nullable=True)
     is_sold = db.Column(db.Boolean, default=False)
