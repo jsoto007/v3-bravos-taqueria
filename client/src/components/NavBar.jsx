@@ -10,7 +10,7 @@ export default function NavBar() {
 
   return (
     <>
-      <Disclosure as="nav" className="fixed top-0 left-0 right-0 z-50 bg-white/80 dark:bg-gray-900/20 shadow-md">
+      <Disclosure as="nav" className="fixed top-0 left-0 right-0 z-50 bg-white/80 dark:bg-gray-900/80 shadow-md">
         {({ open }) => (
           <>
             <div className="mx-auto flex max-w-7xl items-center justify-between px-4 py-4 sm:px-6 lg:px-8">
