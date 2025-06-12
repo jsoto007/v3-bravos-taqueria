@@ -14,6 +14,7 @@ import MasterCarContainer from './components/MasterCarContainer';
 import AdminInventoryReviewContainer from './components/AdminInventoryReviewContainer';
 import AdminProtectedRoutes from './utils/AdminProtectedRoutes';
 import LandingPageContainer from './components/LandingPageContainer';
+import NavBarContainer from './components/NavBarContainer';
 
 
 function App() {
@@ -23,7 +24,7 @@ function App() {
   return (
     <Router>
       <div>
-        {currentUser? <NavBar /> : null}
+        <NavBarContainer />
         <Routes>
           <Route path="/auth" element={<Auth />} />
           <Route path="/" element={<LandingPageContainer />} />

@@ -27,12 +27,12 @@ export default function AdminInventoryReviewContainer() {
 
 
     return (
-        <>
+        <div className="mt-16">
             <AdminInventoryReviewDisplay 
                 userInventory={userInventory}
                 matchingCars={matchingCars}
                 error={error}
             />
-        </>
+        </div>
     );
 }
