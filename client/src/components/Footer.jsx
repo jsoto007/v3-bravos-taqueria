@@ -105,7 +105,9 @@ export default function Footer() {
             </a>
           ))}
         </div>
-        <p className={`mt-10 text-center text-sm/6 ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>&copy; {year} SotoDevelopment, Inc. All rights reserved.</p>
+        <p className={`mt-10 text-center text-sm/6 ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>
+            &copy; {year} <a href="https://sotodev.com/" target="_blank" rel="noopener noreferrer">SotoDevelopment</a>, Inc. All rights reserved.
+        </p>
       </div>
     </footer>
   )

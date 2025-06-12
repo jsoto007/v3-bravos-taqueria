@@ -9,6 +9,18 @@ export default function MasterInventoryForm() {
     location: "",
     year: "",
     make: "",
+    model: "",
+    trim: "",
+    body_style: "",
+    color: "",
+    interior_color: "",
+    transmission: "",
+    drivetrain: "",
+    engine: "",
+    fuel_type: "",
+    date_acquired: "",
+    date_sold: "",
+    mileage: "",
     purchase_price: "",
     selling_price: "",
     sold_price: "",
@@ -43,6 +55,7 @@ export default function MasterInventoryForm() {
     validateNumber("purchase_price", "Purchase Price");
     validateNumber("selling_price", "Selling Price");
     validateNumber("sold_price", "Sold Price");
+    validateNumber("mileage", "Mileage");
 
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
@@ -61,6 +74,7 @@ export default function MasterInventoryForm() {
 
     const payload = {
       ...formData,
+      mileage: sanitizeNumber(formData.mileage),
       purchase_price: sanitizeNumber(formData.purchase_price),
       selling_price: sanitizeNumber(formData.selling_price),
       sold_price: sanitizeNumber(formData.sold_price),
@@ -99,10 +113,22 @@ export default function MasterInventoryForm() {
         { label: "Location", name: "location" },
         { label: "Year", name: "year" },
         { label: "Make", name: "make" },
+        { label: "Model", name: "model" },
+        { label: "Trim", name: "trim" },
+        { label: "Body Style", name: "body_style" },
+        { label: "Color", name: "color" },
+        { label: "Interior Color", name: "interior_color" },
+        { label: "Transmission", name: "transmission" },
+        { label: "Drivetrain", name: "drivetrain" },
+        { label: "Engine", name: "engine" },
+        { label: "Fuel Type", name: "fuel_type" },
+        { label: "Date Acquired", name: "date_acquired", type: "date" },
+        { label: "Date Sold", name: "date_sold", type: "date" },
+        { label: "Mileage", name: "mileage" },
         { label: "Purchase Price", name: "purchase_price" },
         { label: "Selling Price", name: "selling_price" },
         { label: "Sold Price", name: "sold_price" },
-      ].map(({ label, name }) => (
+      ].map(({ label, name, type = "text" }) => (
         <div className="mb-4" key={name}>
           <label
             htmlFor={name}
@@ -111,7 +137,7 @@ export default function MasterInventoryForm() {
             {label}
           </label>
           <input
-            type="text"
+            type={type}
             name={name}
             id={name}
             value={formData[name]}
