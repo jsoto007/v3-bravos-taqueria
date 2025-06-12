@@ -98,8 +98,8 @@ export default function InventoryContainer() {
         }
     }, [vin]);
 
-    return (
-        <div>
+    return (    
+        <div className="mt-16">
             {!showForm ? (
                 <button
                     onClick={handleStartInventory}

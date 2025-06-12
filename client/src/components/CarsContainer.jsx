@@ -1,6 +1,6 @@
 import { EnvelopeIcon, PhoneIcon } from '@heroicons/react/20/solid'
 
-const people = [
+const carsList = [
   {
     name: '2077 Toyota Camry',
     title: 'Certified pre-owned',
@@ -20,33 +20,35 @@ const people = [
   },
 
 
-  // More people...
+  // More carsList...
 ]
 
 export default function CarsContainer() {
   return (
-    <ul role="list" className="grid grid-cols-1 gap-6 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 mt-10">
-      {people.map((person) => (
-        <li
-          key={person.name}
-          className="col-span-1 flex flex-col divide-y divide-gray-200 dark:divide-gray-700 rounded-lg bg-white dark:bg-gray-800 text-center shadow"
-        >
-          <div className="flex flex-1 flex-col p-2">
-            <img alt="" src={person.imageUrl} className="mx-auto rounded-sm" />
-            <h3 className="mt-4 text-xl font-medium text-gray-900 dark:text-white">{person.name}</h3>
-            <dl className="mt-1 flex grow flex-col justify-between">
-              <dt className="sr-only">Title</dt>
-              <dd className="text-sm text-gray-500 dark:text-gray-400">{person.title}</dd>
-              <dt className="sr-only">Role</dt>
-              <dd className="mt-3">
-                <span className="inline-flex items-center rounded-lg bg-green-50/20 dark:bg-green-700/20 px-2 py-1 text-xl font-medium text-green-700 dark:text-green-300">
-                 $ {person.role}
-                </span>
-              </dd>
-            </dl>
-          </div>
-        </li>
-      ))}
-    </ul>
+    <div className='mt-16'>
+      <ul role="list" className="grid grid-cols-1 gap-6 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 mt-10">
+        {carsList.map((person) => (
+          <li
+            key={person.name}
+            className="col-span-1 flex flex-col divide-y divide-gray-200 dark:divide-gray-700 rounded-lg bg-white dark:bg-gray-800 text-center shadow"
+          >
+            <div className="flex flex-1 flex-col p-2">
+              <img alt="" src={person.imageUrl} className="mx-auto rounded-sm" />
+              <h3 className="mt-4 text-xl font-medium text-gray-900 dark:text-white">{person.name}</h3>
+              <dl className="mt-1 flex grow flex-col justify-between">
+                <dt className="sr-only">Title</dt>
+                <dd className="text-sm text-gray-500 dark:text-gray-400">{person.title}</dd>
+                <dt className="sr-only">Role</dt>
+                <dd className="mt-3">
+                  <span className="inline-flex items-center rounded-lg bg-green-50/20 dark:bg-green-700/20 px-2 py-1 text-xl font-medium text-green-700 dark:text-green-300">
+                  $ {person.role}
+                  </span>
+                </dd>
+              </dl>
+            </div>
+          </li>
+        ))}
+      </ul>
+    </div>
   )
 }
