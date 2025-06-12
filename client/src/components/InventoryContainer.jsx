@@ -98,8 +98,13 @@ export default function InventoryContainer() {
         }
     }, [vin]);
 
+<<<<<<< HEAD
     return (
         <div className="mt-10">
+=======
+    return (    
+        <div className="mt-16">
+>>>>>>> updates-nav
             {!showForm ? (
                 <button
                     onClick={handleStartInventory}
