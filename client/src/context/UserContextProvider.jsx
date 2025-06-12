@@ -47,6 +47,8 @@ function UserContextProvider({ children }) {
         }
     };
 
+    console.log(currentUser)
+
     return (
         <UserContext.Provider value={{ currentUser, setCurrentUser, loading, login, error }}>
             {children}

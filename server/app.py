@@ -8,10 +8,10 @@ from flask_migrate import Migrate
 from flask_restful import Api, Resource
 from sqlalchemy.exc import IntegrityError
 
-from config import db, app
+from config import db, bcrypt, app
 from models import User, CarInventory, CarPhoto, MasterCarRecord, UserInventory
 
-
+# Add this block
 app.config['SQLALCHEMY_ENGINE_OPTIONS'] = {
     'pool_pre_ping': True
 }
@@ -40,10 +40,7 @@ class Signup(Resource):
             user.password_hash = json['password']
             db.session.add(user)
             db.session.commit()
-            user_dict = user.to_dict()
-            user_dict.pop('_password_hash', None)
-            user_dict.pop('password_hash', None)
-            return user_dict, 201
+            return user.to_dict(), 201
         except IntegrityError:
             db.session.rollback()
             return {"error": "Username already exists."}, 422
@@ -53,14 +50,11 @@ class CheckSession(Resource):
     def get(self):
         if session.get('user_id'):
             user = User.query.filter(User.id == session['user_id']).first()
-            user_dict = user.to_dict()
-            user_dict.pop('_password_hash', None)
-            user_dict.pop('password_hash', None)
-            return user_dict, 200
+            return user.to_dict(), 200
         return {"error": "Please log in"}, 401
 
 
-class Login(Resource):  
+class Login(Resource):
     def post(self):
         email = request.get_json()['username']
         password = request.get_json()['password']
@@ -69,10 +63,7 @@ class Login(Resource):
 
         if user and user.authenticate(password):
             session['user_id'] = user.id
-            user_dict = user.to_dict()
-            user_dict.pop('_password_hash', None)
-            user_dict.pop('password_hash', None)
-            return user_dict, 200
+            return user.to_dict(), 200
         return {'error': "401 Unauthorized"}, 401
 
 
@@ -214,7 +205,7 @@ class AdminUserInventoryCheck(Resource):
             return {"error": "Unauthorized"}, 401
 
         user = User.query.filter_by(id=user_id).first()
-        if not user or not getattr(user, 'is_admin', False):
+        if not user or not getattr(user, 'admin', False):
             return {"error": "Forbidden: Admins only"}, 403
 
         # Get the user inventory
