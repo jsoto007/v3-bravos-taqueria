@@ -28,11 +28,7 @@ export default function MasterInventoryContainer() {
 
     return (
         <>
-<<<<<<< HEAD
-            <div className="flex justify-between items-start mt-12 mb-4 mt-8">
-=======
             <div className="flex justify-between items-start mb-4 mt-16">
->>>>>>> updates-nav
                 <div className="sm:flex-auto text-left">
                     <h1 className="text-2xl font-semibold leading-6 text-gray-900 dark:text-gray-100">Cars Master List</h1>
                     <p className="mt-2 text-sm text-gray-700 dark:text-gray-300">
