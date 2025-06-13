@@ -257,8 +257,6 @@ from flask import send_from_directory
 import os
 
 
-
-
 # Flask routes for photo upload and serving uploaded files
 from flask import send_from_directory, jsonify, request
 
@@ -304,3 +302,10 @@ def serve_uploaded_file(filename):
 
 if __name__ == "__main__":
     app.run(host="0.0.0.0", port=int(os.environ.get("PORT", 5555)))
+
+
+
+# Working on uploaded photos, Need to update the models for new relationship. 
+# Need to check the master record for photo relationship
+# Need to check each class for behavior on the server. 
+# Need to continue testing upload photo. which should be more than one and belongs to the masterCarList
