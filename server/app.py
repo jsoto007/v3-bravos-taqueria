@@ -263,6 +263,9 @@ from flask import send_from_directory, jsonify, request
 
 @app.route('/api/upload_photo', methods=['POST'])
 def upload_photo():
+    print("Request.files:", request.files)
+    print("Request.form:", request.form)
+
     if 'photo' not in request.files:
         return jsonify({"error": "No file part"}), 400
     file = request.files['photo']
@@ -304,8 +307,8 @@ if __name__ == "__main__":
     app.run(host="0.0.0.0", port=int(os.environ.get("PORT", 5555)))
 
 
+# Need to check the route for photo upload: change the format.
 
-# Working on uploaded photos, Need to update the models for new relationship. 
 # Need to check the master record for photo relationship
 # Need to check each class for behavior on the server. 
 # Need to continue testing upload photo. which should be more than one and belongs to the masterCarList

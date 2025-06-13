@@ -10,11 +10,12 @@ export default function PhotoUploader({ carInventoryId }) {
 
     const formData = new FormData();
     formData.append("photo", file);
-    formData.append("car_inventory_id", carInventoryId); // adjust if needed
+    // formData.append("master_car_record_id", carInventoryId); // adjust if needed
+    formData.append("master_car_record_id", 17); // adjust if needed
 
     const response = await fetch("/api/upload_photo", {
       method: "POST",
-      body: formData
+      body: formData,
     });
 
     if (response.ok) {
