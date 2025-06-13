@@ -1,10 +1,8 @@
-import React, { useContext } from 'react'
+import React from 'react'
 import './App.css'
 import { BrowserRouter as Router, Routes,Route } from 'react-router-dom';
-import { UserContext } from './context/UserContextProvider';
 import ProtactedRoutes from './utils/ProtectedRoutes';
 import Auth from './components/Auth'
-import NavBar from './components/NavBar';
 import CarsContainer from './components/CarsContainer';
 import ClientsContainer from './components/ClientsContainer';
 import UserInventoryContainer from './components/UserInventoryContainer';
@@ -18,9 +16,8 @@ import NavBarContainer from './components/NavBarContainer';
 
 
 function App() {
-  const { currentUser } = useContext(UserContext)
- 
 
+  
   return (
     <Router>
       <div>

@@ -258,42 +258,50 @@ from flask import send_from_directory
 import os
 
 
-# Upload photo as a Flask-RESTful resource
-class UploadPhoto(Resource):
-    def post(self):
-        if 'photo' not in request.files:
-            return {"error": "No file part"}, 400
-        file = request.files['photo']
-        car_inventory_id = request.form.get("car_inventory_id")
-
-        if not car_inventory_id:
-            return {"error": "Missing car_inventory_id"}, 400
-
-        if file.filename == '':
-            return {"error": "No selected file"}, 400
-
-        if file and allowed_file(file.filename):
-            filename = f"{uuid.uuid4().hex}_{secure_filename(file.filename)}"
-            filepath = os.path.join(app.config['UPLOAD_FOLDER'], filename)
-            file.save(filepath)
-
-            photo = CarPhoto(url=f"/static/uploads/{filename}", car_inventory_id=car_inventory_id)
-            db.session.add(photo)
-            db.session.commit()
-
-            return {"message": "Photo uploaded", "url": f"/static/uploads/{filename}"}, 201
-
-        return {"error": "File type not allowed"}, 400
 
 
-# Serve static uploaded files as a Flask-RESTful resource
-class ServeUploadedFile(Resource):
-    def get(self, filename):
-        return send_from_directory(app.config['UPLOAD_FOLDER'], filename)
+# Flask routes for photo upload and serving uploaded files
+from flask import send_from_directory, jsonify, request
 
-api.add_resource(UploadPhoto, '/api/upload_photo', endpoint='upload_photo')
-api.add_resource(ServeUploadedFile, '/static/uploads/<filename>', endpoint='serve_uploaded_file')
+
+@app.route('/api/upload_photo', methods=['POST'])
+def upload_photo():
+    if 'photo' not in request.files:
+        return jsonify({"error": "No file part"}), 400
+    file = request.files['photo']
+
+    master_car_record_id = request.form.get("master_car_record_id")
+    if not master_car_record_id:
+        return jsonify({"error": "Missing master_car_record_id"}), 400
+
+    if file.filename == '':
+        return jsonify({"error": "No selected file"}), 400
+
+    if file and allowed_file(file.filename):
+        filename = f"{uuid.uuid4().hex}_{secure_filename(file.filename)}"
+        filepath = os.path.join(app.config['UPLOAD_FOLDER'], filename)
+        file.save(filepath)
+
+        record = MasterCarRecord.query.get(master_car_record_id)
+        if not record:
+            return jsonify({"error": "MasterCarRecord not found"}), 404
+
+        photo = CarPhoto(
+            url=f"/static/uploads/{filename}",
+            master_car_record_id=master_car_record_id
+        )
+        db.session.add(photo)
+        db.session.commit()
+
+        return jsonify({"message": "Photo uploaded", "url": f"/static/uploads/{filename}"}), 201
+
+    return jsonify({"error": "File type not allowed"}), 400
+
+
+@app.route('/static/uploads/<filename>')
+def serve_uploaded_file(filename):
+    return send_from_directory(app.config['UPLOAD_FOLDER'], filename)
 
 
 if __name__ == "__main__":
-    app.run(host="0.0.0.0", port=int(os.environ.get("PORT", 5000)))
+    app.run(host="0.0.0.0", port=int(os.environ.get("PORT", 5555)))

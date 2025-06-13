@@ -1,6 +1,6 @@
 import { useEffect } from "react";
-import InventoryContainer from "./InventoryContainer";
 import { userLocation } from "../utils/UserLocation"
+import PhotoUploader from "../utils/PhotoUploader";
 
 export default function ClientsContainer() {
     useEffect(() => {
@@ -15,8 +15,9 @@ export default function ClientsContainer() {
 
     return (
         <div className="text-4xl text-bold mt-10">
-            Hello from Client Outrach: This route is under construction!
-            {/* <InventoryContainer /> */}
+           <h1 className="mb-10"> Hello from Client Outrach: This route is under construction!</h1>
+            <PhotoUploader />
+
 
         </div>
     );

@@ -115,13 +115,16 @@ class CarInventory(db.Model, SerializerMixin):
 class CarPhoto(db.Model, SerializerMixin):
     __tablename__ = 'car_photos'
 
-    serialize_rules = ('-car_inventory',)
+    serialize_rules = ('-car_inventory', '-master_car_record',)
 
     id = db.Column(db.Integer, primary_key=True)
     url = db.Column(db.String, nullable=False)
-    car_inventory_id = db.Column(db.Integer, db.ForeignKey('car_inventories.id'), nullable=False)
 
+    car_inventory_id = db.Column(db.Integer, db.ForeignKey('car_inventories.id'), nullable=True)
     car_inventory = relationship('CarInventory', backref=backref('photos', cascade='all, delete-orphan'))
+
+    master_car_record_id = db.Column(db.Integer, db.ForeignKey('master_car_records.id'), nullable=True)
+    master_car_record = relationship('MasterCarRecord', backref=backref('photos', cascade='all, delete-orphan'))
 
 
 
