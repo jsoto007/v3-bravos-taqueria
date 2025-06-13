@@ -206,7 +206,6 @@ class MasterCarRecordById(Resource):
         db.session.commit()
         return make_response('', 204)
 
-
 # AdminUserInventoryCheck resource: returns the specified user inventory and matching cars
 class AdminUserInventoryCheck(Resource):
     def get(self, user_inventory_id):
