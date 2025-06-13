@@ -261,41 +261,45 @@ import os
 from flask import send_from_directory, jsonify, request
 
 
-@app.route('/api/upload_photo', methods=['POST'])
-def upload_photo():
-    print("Request.files:", request.files)
-    print("Request.form:", request.form)
 
-    if 'photo' not in request.files:
-        return jsonify({"error": "No file part"}), 400
-    file = request.files['photo']
+# Resource for uploading photos to master car records
+class UploadPhoto(Resource):
+    def post(self):
+        print("Request.files:", request.files)
+        print("Request.form:", request.form)
 
-    master_car_record_id = request.form.get("master_car_record_id")
-    if not master_car_record_id:
-        return jsonify({"error": "Missing master_car_record_id"}), 400
+        if 'photo' not in request.files:
+            return {"error": "No file part"}, 400
+        file = request.files['photo']
 
-    if file.filename == '':
-        return jsonify({"error": "No selected file"}), 400
+        master_car_record_id = request.form.get("master_car_record_id")
+        if not master_car_record_id:
+            return {"error": "Missing master_car_record_id"}, 400
 
-    if file and allowed_file(file.filename):
-        filename = f"{uuid.uuid4().hex}_{secure_filename(file.filename)}"
-        filepath = os.path.join(app.config['UPLOAD_FOLDER'], filename)
-        file.save(filepath)
+        if file.filename == '':
+            return {"error": "No selected file"}, 400
 
-        record = MasterCarRecord.query.get(master_car_record_id)
-        if not record:
-            return jsonify({"error": "MasterCarRecord not found"}), 404
+        if file and allowed_file(file.filename):
+            filename = f"{uuid.uuid4().hex}_{secure_filename(file.filename)}"
+            filepath = os.path.join(app.config['UPLOAD_FOLDER'], filename)
+            file.save(filepath)
 
-        photo = CarPhoto(
-            url=f"/static/uploads/{filename}",
-            master_car_record_id=master_car_record_id
-        )
-        db.session.add(photo)
-        db.session.commit()
+            record = MasterCarRecord.query.get(master_car_record_id)
+            if not record:
+                return {"error": "MasterCarRecord not found"}, 404
 
-        return jsonify({"message": "Photo uploaded", "url": f"/static/uploads/{filename}"}), 201
+            photo = CarPhoto(
+                url=f"/static/uploads/{filename}",
+                master_car_record_id=master_car_record_id
+            )
+            db.session.add(photo)
+            db.session.commit()
 
-    return jsonify({"error": "File type not allowed"}), 400
+            return {"message": "Photo uploaded", "url": f"/static/uploads/{filename}"}, 201
+
+        return {"error": "File type not allowed"}, 400
+
+api.add_resource(UploadPhoto, '/api/upload_photo', endpoint='upload_photo')
 
 
 @app.route('/static/uploads/<filename>')
