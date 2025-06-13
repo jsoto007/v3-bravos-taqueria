@@ -257,8 +257,7 @@ from flask import send_from_directory
 import os
 
 
-# Flask routes for photo upload and serving uploaded files
-from flask import send_from_directory, jsonify, request
+from flask import send_from_directory, jsonify, request, url_for
 
 
 
@@ -295,7 +294,7 @@ class UploadPhoto(Resource):
             db.session.add(photo)
             db.session.commit()
 
-            return {"message": "Photo uploaded", "url": f"/static/uploads/{filename}"}, 201
+            return {"message": "Photo uploaded", "url": url_for('serve_uploaded_file', filename=filename, _external=True)}, 201
 
         return {"error": "File type not allowed"}, 400
 

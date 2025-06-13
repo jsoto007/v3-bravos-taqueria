@@ -3,6 +3,7 @@ import React, { useState } from "react";
 export default function PhotoUploader({ carInventoryId }) {
   const [file, setFile] = useState(null);
   const [message, setMessage] = useState("");
+  const [photoUrl, setPhotoUrl] = useState("");
 
   const handleUpload = async (e) => {
     e.preventDefault();
@@ -19,9 +20,12 @@ export default function PhotoUploader({ carInventoryId }) {
     });
 
     if (response.ok) {
+      const data = await response.json();
       setMessage("Photo uploaded successfully!");
+      setPhotoUrl(data.url);
     } else {
       setMessage("Upload failed.");
+      setPhotoUrl("");
     }
   };
 
@@ -30,6 +34,13 @@ export default function PhotoUploader({ carInventoryId }) {
       <input type="file" onChange={(e) => setFile(e.target.files[0])} />
       <button type="submit">Upload</button>
       {message && <p>{message}</p>}
+      {photoUrl && (
+        <img
+          src={photoUrl}
+          alt="Uploaded"
+          className="mt-4 max-w-xs border border-gray-300 rounded"
+        />
+      )}
     </form>
   );
 }
