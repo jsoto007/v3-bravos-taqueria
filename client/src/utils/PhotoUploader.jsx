@@ -14,7 +14,6 @@ export default function PhotoUploader({ carInventoryId, open, setOpen }) {
       return;
     }
 
-    console.log("from uploader", carInventoryId)
     
     const uploadedUrls = [];
     try {
