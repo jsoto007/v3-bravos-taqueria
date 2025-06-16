@@ -14,12 +14,14 @@ export default function PhotoUploader({ carInventoryId, open, setOpen }) {
       return;
     }
 
+    console.log("from uploader", carInventoryId)
+    
     const uploadedUrls = [];
     try {
       for (const file of files) {
         const formData = new FormData();
         formData.append("photo", file);
-        formData.append("master_car_record_id", carInventoryId || 12);
+        formData.append("master_car_record_id", carInventoryId);
 
         const response = await fetch("http://localhost:5555/api/upload_photo", {
           method: "POST",

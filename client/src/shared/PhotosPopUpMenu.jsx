@@ -3,7 +3,7 @@ import { Menu, MenuButton, MenuItem, MenuItems } from '@headlessui/react'
 import { EllipsisVerticalIcon } from '@heroicons/react/20/solid'
 import PhotoUploader from '../utils/PhotoUploader'
 
-export default function PhotosPopUpMenu() {
+export default function PhotosPopUpMenu( { carInventoryId } ) {
 
   const [open, setOpen] = useState(false)
 
@@ -44,7 +44,7 @@ export default function PhotosPopUpMenu() {
           </div>
         </MenuItems>
       </Menu>
-      {open && <PhotoUploader open={open} setOpen={setOpen} />}
+      {open && <PhotoUploader carInventoryId={carInventoryId} open={open} setOpen={setOpen} />}
     </>
   )
 }

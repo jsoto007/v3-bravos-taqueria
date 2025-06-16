@@ -12,7 +12,7 @@ export default function AdminCarInfo( { car, showEdit, setShowEdit } ) {
         <div className="mt-6 divide-y-4 divide-gray-200 font-mono dark:divide-gray-700 overflow-hidden rounded-lg bg-white dark:bg-gray-800 shadow">
         <div className="p-4 sm:p-6 text-gray-900 dark:text-white">
           <h1 className="text-xl text-bold mb-2 font-serif">{car.make} {car.year}</h1>
-          <PhotoGallery />
+          <PhotoGallery carInventoryId={car.id} />
         </div>
         <div className="p-4 sm:p-6 text-gray-900 dark:text-white">
           <table className="min-w-full  divide-gray-200 dark:divide-gray-700">
