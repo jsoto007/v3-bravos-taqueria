@@ -1,6 +1,5 @@
-
-
 import React, { useState } from 'react';
+import PhotosPopUpMenu from './PhotosPopUpMenu';
 
 const photos = [
   'https://hips.hearstapps.com/hmg-prod/images/2025-aston-martin-valhalla-105-6757330eaad2c.jpg?crop=0.726xw:0.725xh;0.117xw,0.129xh&resize=980:*',
@@ -14,7 +13,10 @@ const PhotoGallery = () => {
 
   return (
     <div className="flex flex-col items-center justify-center py-4 px-2 bg-white dark:bg-gray-900 rounded-md">
-      <div className="mb-4">
+      <div className="mb-4 w-full">
+        <div className="w-full flex justify-end">
+          <PhotosPopUpMenu />
+        </div>
         <div className="w-full h-48 flex items-center justify-center">
           <img
             src={photos[selectedIndex]}

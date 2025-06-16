@@ -5,6 +5,9 @@ import AdminCarDelete from "./AdminCarDelete";
 
 export default function AdminCarInfo( { car, showEdit, setShowEdit } ) {
 
+  console.log("CarID:", car)
+  console.log("CarID:", car.id)
+
     return (
         <div className="mt-6 divide-y-4 divide-gray-200 font-mono dark:divide-gray-700 overflow-hidden rounded-lg bg-white dark:bg-gray-800 shadow">
         <div className="p-4 sm:p-6 text-gray-900 dark:text-white">
@@ -57,7 +60,6 @@ export default function AdminCarInfo( { car, showEdit, setShowEdit } ) {
                 Edit
             </button>
             <AdminCarDelete car={car} />
-          {/* <button className="px-4 py-2 rounded bg-red-600 text-white hover:bg-red-700">Delete</button> */}
         </div>
       </div>
     );

@@ -20,12 +20,12 @@ export default function MasterCarContainer() {
   if (!car) return <div className="text-gray-900 dark:text-white">Loading...</div>;
 
   return (
-    <>
+    <div className="mt-12">
       {!showEdit ? (
         <AdminCarInfo car={car} showEdit={showEdit} setShowEdit={setShowEdit} />
       ) : (
         <AdminCarEdit car={car} onSave={setCar} showEdit={showEdit} setShowEdit={setShowEdit} />
       )}
-    </>
+    </div>
   );
 }
