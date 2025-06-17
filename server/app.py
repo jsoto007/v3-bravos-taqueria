@@ -233,24 +233,6 @@ class AdminUserInventoryCheck(Resource):
             "matching_cars": [car.to_dict() for car in cars]
         }), 200)
 
-api.add_resource(Signup, '/api/signup', endpoint='signup')
-api.add_resource(CheckSession, '/api/check_session', endpoint='check_session')
-api.add_resource(Login, '/api/login', endpoint='login')
-api.add_resource(Logout, '/api/logout', endpoint='logout')
-
-api.add_resource(CarInventories, '/api/cars', endpoint='cars')
-api.add_resource(CarPhotos, '/api/car_photos', endpoint='car_photos')
-api.add_resource(MasterCarRecords, '/api/master_inventory', endpoint='master_inventory')
-api.add_resource(MasterCarRecordById, '/api/master_inventory/<int:id>', endpoint='master_inventory_by_id')
-
-
-api.add_resource(UserInventories, '/api/user_inventories', endpoint='user_inventories')
-api.add_resource(UserInventories, '/api/user_inventories/<int:id>', endpoint='user_inventory_submit')
-
-api.add_resource(UserInventoryHistory, '/api/user_inventories/history/<int:user_id>', endpoint='user_inventory_history')
-
-# Admin endpoint to check a specific user inventory and its cars
-api.add_resource(AdminUserInventoryCheck, '/api/admin/user_inventory_check/<int:user_inventory_id>', endpoint='admin_user_inventory_check')
 
 # Serve Vite build in production
 from flask import send_from_directory
@@ -312,8 +294,29 @@ class UploadPhoto(Resource):
         return make_response("", 204)
 
 
-api.add_resource(UploadPhoto, '/api/upload_photo', endpoint='upload_photo')
 
+api.add_resource(Signup, '/api/signup', endpoint='signup')
+api.add_resource(CheckSession, '/api/check_session', endpoint='check_session')
+api.add_resource(Login, '/api/login', endpoint='login')
+api.add_resource(Logout, '/api/logout', endpoint='logout')
+
+api.add_resource(CarInventories, '/api/cars', endpoint='cars')
+api.add_resource(CarPhotos, '/api/car_photos', endpoint='car_photos')
+api.add_resource(MasterCarRecords, '/api/master_inventory', endpoint='master_inventory')
+api.add_resource(MasterCarRecordById, '/api/master_inventory/<int:id>', endpoint='master_inventory_by_id')
+
+
+api.add_resource(UserInventories, '/api/user_inventories', endpoint='user_inventories')
+api.add_resource(UserInventories, '/api/user_inventories/<int:id>', endpoint='user_inventory_submit')
+
+api.add_resource(UserInventoryHistory, '/api/user_inventories/history/<int:user_id>', endpoint='user_inventory_history')
+
+# Admin endpoint to check a specific user inventory and its cars
+api.add_resource(AdminUserInventoryCheck, '/api/admin/user_inventory_check/<int:user_inventory_id>', endpoint='admin_user_inventory_check')
+
+
+api.add_resource(UploadPhoto, '/api/upload_photo', endpoint='upload_photo')
+api.add_resource(UploadPhoto, '/api/upload_photo/<int:id>', endpoint='upload_photo_by_id')
 
 @app.route('/static/uploads/<filename>')
 def serve_uploaded_file(filename):
@@ -323,10 +326,3 @@ def serve_uploaded_file(filename):
 if __name__ == "__main__":
     app.run(host="0.0.0.0", port=int(os.environ.get("PORT", 5555)))
 
-
-# Need to check the route for photo upload: change the format.
-
-
-# Need to check the master record for photo relationship
-# Need to check each class for behavior on the server. 
-# Need to continue testing upload photo. which should be more than one and belongs to the masterCarList
