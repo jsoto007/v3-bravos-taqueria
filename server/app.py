@@ -283,7 +283,7 @@ class UploadPhoto(Resource):
             filepath = os.path.join(app.config['UPLOAD_FOLDER'], filename)
             file.save(filepath)
 
-            record = MasterCarRecord.query.get(master_car_record_id)
+            record = MasterCarRecord.query.get(int(master_car_record_id))
             if not record:
                 return {"error": "MasterCarRecord not found"}, 404
 
@@ -296,7 +296,21 @@ class UploadPhoto(Resource):
 
             return {"message": "Photo uploaded", "url": url_for('serve_uploaded_file', filename=filename, _external=True)}, 201
 
-        return {"error": "File type not allowed"}, 400
+        return {"error": "File type not allowed. Allowed types: png, jpg, jpeg, gif"}, 400
+    
+    def delete(self, id):
+        
+        record = CarPhoto.query.filter_by(id=id).first()
+        if not record:
+            return {"error": "Record not found"}, 404
+        
+        filepath = os.path.join(app.config['UPLOAD_FOLDER'], os.path.basename(record.url))
+        if os.path.exists(filepath):
+            os.remove(filepath)
+        db.session.delete(record)
+        db.session.commit()
+        return make_response("", 204)
+
 
 api.add_resource(UploadPhoto, '/api/upload_photo', endpoint='upload_photo')
 
