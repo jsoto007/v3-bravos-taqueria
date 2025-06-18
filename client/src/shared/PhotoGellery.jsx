@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import PhotosPopUpMenu from './PhotosPopUpMenu';
 
 
+
 const PhotoGallery = ( { carInventory } ) => {
   const [selectedIndex, setSelectedIndex] = useState(0);
   const [isFullscreen, setIsFullscreen] = useState(false);
@@ -13,6 +14,9 @@ const PhotoGallery = ( { carInventory } ) => {
   const photos = carInventory.photos.map(
     photo => `${import.meta.env.VITE_BACKEND_URL}${photo.url}`
   );
+
+  console.log("Photos", carInventory.photos)
+
 
   const handleTouchStart = (e) => {
     setTouchStartX(e.targetTouches[0].clientX);
@@ -39,12 +43,17 @@ const PhotoGallery = ( { carInventory } ) => {
     setTouchEndX(null);
   };
   
+  console.log("PHOTOS:", carInventory.photos[selectedIndex])
+
   return (
     <>
       <div className="flex flex-col items-center justify-center py-4 px-2 bg-white dark:bg-gray-900 rounded-md">
         <div className="mb-4 w-full">
           <div className="w-full flex justify-end">
-            <PhotosPopUpMenu carInventoryId={carInventory.id} />
+            <PhotosPopUpMenu 
+              carInventoryId={carInventory.id} 
+              selectedPhoto={carInventory.photos[selectedIndex]}
+            />
           </div>
           <div className="w-full h-48 flex items-center justify-center">
             <img

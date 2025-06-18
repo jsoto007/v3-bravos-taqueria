@@ -2,10 +2,15 @@ import { useState } from 'react';
 import { Menu, MenuButton, MenuItem, MenuItems } from '@headlessui/react'
 import { EllipsisVerticalIcon } from '@heroicons/react/20/solid'
 import PhotoUploader from '../utils/PhotoUploader'
+import PhotoDeleter from './PhotoDeleter';
 
-export default function PhotosPopUpMenu( { carInventoryId } ) {
+export default function PhotosPopUpMenu( { carInventoryId, selectedPhoto } ) {
 
   const [open, setOpen] = useState(false)
+  const [showDeleter, setShowDeleter] = useState(false)
+
+
+  console.log("SL PHOTO ID", selectedPhoto.id)
 
   return (
     <>
@@ -32,12 +37,12 @@ export default function PhotosPopUpMenu( { carInventoryId } ) {
             </MenuItem>
 
             <MenuItem>
-              <a
-                href="#"
-                className="block px-4 py-2 text-sm text-gray-700 dark:text-gray-200 data-[focus]:bg-gray-100 data-[focus]:text-gray-900 dark:data-[focus]:bg-gray-700 dark:data-[focus]:text-white data-[focus]:outline-none"
+              <button
+                onClick={() => setShowDeleter(true)}
+                className="block w-full text-left px-4 py-2 text-sm text-gray-700 dark:text-gray-200 data-[focus]:bg-gray-100 data-[focus]:text-gray-900 dark:data-[focus]:bg-gray-700 dark:data-[focus]:text-white data-[focus]:outline-none"
               >
                 Delete Selected Photo
-              </a>
+              </button>
             </MenuItem>
             <form action="#" method="POST">
             </form>
@@ -45,6 +50,12 @@ export default function PhotosPopUpMenu( { carInventoryId } ) {
         </MenuItems>
       </Menu>
       {open && <PhotoUploader carInventoryId={carInventoryId} open={open} setOpen={setOpen} />}
+      {showDeleter && selectedPhoto && (
+        <PhotoDeleter 
+          photoId={selectedPhoto?.id} 
+          onDeleteSuccess={() => setShowDeleter(false)} 
+        />
+      )}
     </>
   )
 }
