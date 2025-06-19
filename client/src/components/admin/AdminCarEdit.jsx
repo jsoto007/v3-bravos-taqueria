@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react"; 
 import PhotoGallery from "../../shared/PhotoGellery";
 
+
 export default function AdminCarEdit({ car, onSave, showEdit, setShowEdit }) {
     const [formData, setFormData] = useState({
         vin_number: "",
@@ -13,6 +14,7 @@ export default function AdminCarEdit({ car, onSave, showEdit, setShowEdit }) {
         is_sold: false,
     });
 
+    console.log("CAR from Here:", car)
     
     useEffect(() => {
         if (car) {
@@ -74,7 +76,7 @@ export default function AdminCarEdit({ car, onSave, showEdit, setShowEdit }) {
                 <h1 className="text-xl font-bold mb-2 font-serif">
                     Editing: {formData.make} {formData.year}
                 </h1>
-                <PhotoGallery />
+                <PhotoGallery carInventory={car} />
             </div>
             <div className="p-4 sm:p-6">
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
