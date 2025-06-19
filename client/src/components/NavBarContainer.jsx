@@ -1,7 +1,7 @@
 import React, { useContext } from "react"
 import { UserContext } from "../context/UserContextProvider"
 import NavBar from "./NavBar"
-import LandingPageNav from "./LandingPageNav"
+import LandingPageNav from "./landingPage/LandingPageNav"
 
 
 export default function NavBarContainer() {

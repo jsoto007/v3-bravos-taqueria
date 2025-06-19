@@ -1,6 +1,6 @@
 import { ChevronRightIcon } from '@heroicons/react/20/solid'
 import { useEffect, useState } from 'react';
-import loginLogo from '../assets/autoTracker-login-logo.png';
+import loginLogo from '../../assets/autoTracker-login-logo.png'
 
 export default function LandingPageHero() {
   const [isDark, setIsDark] = useState(false);

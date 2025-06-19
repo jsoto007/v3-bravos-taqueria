@@ -1,12 +1,10 @@
 import React from "react";
-import PhotoGallery from "../shared/PhotoGellery";
+import PhotoGallery from "../../shared/PhotoGellery";
 import AdminCarDelete from "./AdminCarDelete";
 
 
 export default function AdminCarInfo( { car, showEdit, setShowEdit } ) {
 
-  console.log("CarID:", car)
-  console.log("CarID:", car.id)
 
     return (
         <div className="mt-6 divide-y-4 divide-gray-200 font-mono dark:divide-gray-700 overflow-hidden rounded-lg bg-white dark:bg-gray-800 shadow">

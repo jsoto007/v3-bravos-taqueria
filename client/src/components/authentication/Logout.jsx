@@ -1,6 +1,6 @@
 import React, { useContext } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { UserContext } from '../context/UserContextProvider';
+import { UserContext } from '../../context/UserContextProvider';
 
 export default function Logout() {
     const navigate = useNavigate();

@@ -1,5 +1,5 @@
 import React from "react";
-import CompletedInventories from "./CompletedInventories";
+import CompletedInventories from "../completedInventories/CompletedInventories";
 import InventoryContainer from "./InventoryContainer";
 
 

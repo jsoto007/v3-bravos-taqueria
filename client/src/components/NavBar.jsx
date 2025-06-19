@@ -1,5 +1,5 @@
 import { Outlet, Link } from "react-router-dom"
-import Logout from "./Logout"
+import Logout from "./authentication/Logout"
 import { Disclosure, DisclosurePanel, DisclosureButton } from '@headlessui/react'
 import { Bars3Icon, XMarkIcon } from '@heroicons/react/24/outline'
 import logo  from '/logo.png'

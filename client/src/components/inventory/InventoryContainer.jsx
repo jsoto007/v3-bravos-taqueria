@@ -1,9 +1,9 @@
 import { useState, useContext, useEffect } from "react";
 import axios from "axios";
-import { UserContext } from "../context/UserContextProvider";
+import { UserContext } from "../../context/UserContextProvider";
 import InventoryForm from "./InventoryForm";
-import BarcodeScanner from "../utils/BarcodeScanner";
-import { userLocation } from "../utils/UserLocation";
+import BarcodeScanner from "../../utils/BarcodeScanner";
+import { userLocation } from "../../utils/UserLocation";
  
 export default function InventoryContainer() {
 

@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react"; 
-import PhotoGallery from "../shared/PhotoGellery";
+import PhotoGallery from "../../shared/PhotoGellery";
 
 export default function AdminCarEdit({ car, onSave, showEdit, setShowEdit }) {
     const [formData, setFormData] = useState({

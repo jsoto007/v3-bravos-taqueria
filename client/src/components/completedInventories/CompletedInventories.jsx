@@ -1,8 +1,8 @@
 import React, { useEffect, useState, useContext } from "react";
-import { UserContext } from '../context/UserContextProvider';
-import CompletedInventoryCard from '../components/CompletedInventoryCard';
+import { UserContext } from '../../context/UserContextProvider';
+import CompletedInventoryCard from './CompletedInventoryCard';
 import { useNavigate } from 'react-router-dom';
-import Loading from "../shared/Loading";
+import Loading from "../../shared/Loading";
 
 export default function CompletedInventories() {
     const [inventories, setInventories] = useState([]);

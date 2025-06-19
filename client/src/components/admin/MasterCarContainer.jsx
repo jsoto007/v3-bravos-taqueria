@@ -17,7 +17,7 @@ export default function MasterCarContainer() {
       .catch((err) => setError(err));
   }, [id]);
 
-  if (!car) return <div className="text-gray-900 dark:text-white">Loading...</div>;
+  if (!car) return <div className="text-gray-900 dark:text-white mt-16">Loading...</div>;
 
   return (
     <div className="mt-12">

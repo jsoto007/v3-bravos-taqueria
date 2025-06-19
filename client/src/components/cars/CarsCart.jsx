@@ -1,5 +1,10 @@
 // currently redondant; to be deleted
 export default function CarsCart() {
+
+    // This component needs to be re-think
+    // Is this the best way to display the cars. I am thinking more of a store front.
+    // Data will be received from context
+    
     return (
         <div className="bg-gray-100 dark:bg-gray-900">
 

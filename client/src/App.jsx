@@ -2,16 +2,16 @@ import React from 'react'
 import './App.css'
 import { BrowserRouter as Router, Routes,Route } from 'react-router-dom';
 import ProtactedRoutes from './utils/ProtectedRoutes';
-import Auth from './components/Auth'
-import CarsContainer from './components/CarsContainer';
+import Auth from './components/authentication/Auth'
+import CarsContainer from './components/cars/CarsContainer';
 import ClientsContainer from './components/ClientsContainer';
-import UserInventoryContainer from './components/UserInventoryContainer';
-import MasterInventoryContainer from './components/MasterInventoryContainer';
-import MasterInventoryForm from './components/MasterInventoryForm';
-import MasterCarContainer from './components/MasterCarContainer';
-import AdminInventoryReviewContainer from './components/AdminInventoryReviewContainer';
+import UserInventoryContainer from './components/inventory/UserInventoryContainer';
+import MasterInventoryContainer from './components/admin/MasterInventoryContainer';
+import MasterInventoryForm from './components/inventory/MasterInventoryForm';
+import MasterCarContainer from './components/admin/MasterCarContainer';
+import AdminInventoryReviewContainer from './components/admin/AdminInventoryReviewContainer';
 import AdminProtectedRoutes from './utils/AdminProtectedRoutes';
-import LandingPageContainer from './components/LandingPageContainer';
+import LandingPageContainer from './components/landingPage/LandingPageContainer';
 import NavBarContainer from './components/NavBarContainer';
 
 

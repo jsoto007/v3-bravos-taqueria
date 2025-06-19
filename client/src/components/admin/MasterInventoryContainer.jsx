@@ -1,6 +1,6 @@
 import { Link } from 'react-router-dom';
 import { useEffect, useState } from 'react';
-import MasterInventoryCard from './MasterInventoryCard';
+import MasterInventoryCard from '../inventory/MasterInventoryCard';
 
 export default function MasterInventoryContainer() {
 

@@ -1,7 +1,7 @@
 import React, { useState, useContext } from "react";
-import loginLogo from '../assets/autoTracker-login-logo.png';
+import loginLogo from '../../assets/autoTracker-login-logo.png';
 import { useNavigate } from "react-router-dom";
-import { UserContext } from "../context/UserContextProvider";
+import { UserContext } from "../../context/UserContextProvider";
 
 export default function Login() {
     const [username, setUsername] = useState("");

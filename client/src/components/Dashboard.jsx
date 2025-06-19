@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import CarsCart from "./CarsCart";
+import CarsCart from "./cars/CarsCart";
 
 export default function Dashboard() {
   const [user, setUser] = useState([]);
