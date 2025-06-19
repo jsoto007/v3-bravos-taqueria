@@ -318,6 +318,8 @@ api.add_resource(AdminUserInventoryCheck, '/api/admin/user_inventory_check/<int:
 api.add_resource(UploadPhoto, '/api/upload_photo', endpoint='upload_photo')
 api.add_resource(UploadPhoto, '/api/upload_photo/<int:id>', endpoint='upload_photo_by_id')
 
+
+
 @app.route('/static/uploads/<filename>')
 def serve_uploaded_file(filename):
     return send_from_directory(app.config['UPLOAD_FOLDER'], filename)

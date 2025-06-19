@@ -81,7 +81,6 @@ export default function InventoryContainer() {
     };
 
     useEffect(() => {
-        console.log("DECODED VIN in state", decodedVin);
         if (decodedVin && Object.keys(decodedVin).length > 0) {
           if (decodedVin.vin) setVin(decodedVin.vin);
           if (decodedVin.info?.modelYear) setYear(decodedVin.info.modelYear);
