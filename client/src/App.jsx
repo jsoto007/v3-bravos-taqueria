@@ -33,10 +33,11 @@ function App() {
             <Route path="/master_inventory/:id" element={<MasterCarContainer />} />
             <Route path="/master_inventory/create_master_inventory" element={<MasterInventoryForm />} />
             <Route path="/admin/user_inventory_check/:id" element={<AdminInventoryReviewContainer />} />
+          
+            <Route path="/master_inventory" element={<MasterInventoryContainer />} />
           </Route>
 
           <Route element={<AdminProtectedRoutes />}>
-            <Route path="/master_inventory" element={<MasterInventoryContainer />} />
           </Route>
           
         </Routes>
