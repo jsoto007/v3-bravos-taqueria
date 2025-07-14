@@ -34,8 +34,8 @@ function App() {
             <Route path="/master_inventory/create_master_inventory" element={<MasterInventoryForm />} />
             <Route path="/admin/user_inventory_check/:id" element={<AdminInventoryReviewContainer />} />
           
-            <Route path="/master_inventory" element={<MasterInventoryContainer />} />
           </Route>
+            <Route path="/master_inventory" element={<MasterInventoryContainer />} />
 
           <Route element={<AdminProtectedRoutes />}>
           </Route>
