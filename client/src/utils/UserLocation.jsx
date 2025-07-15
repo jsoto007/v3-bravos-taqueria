@@ -1,45 +1,65 @@
-import { useEffect, useState } from "react";
 
-export function useUserLocation(vin) {
-  const [location, setLocation] = useState(null);
 
-  useEffect(() => {
-    async function fetchLocation() {
-      console.log("GEO being called with VIN:", vin);
+let cachedAddress = null;
+let fetching = false;
 
-      if (!vin) {
-        console.log("No VIN provided — skipping location lookup.");
-        return;
-      }
+export async function userLocation(vin, setLocation, location) {
+  console.log("GEO being called with VIN:", vin);
 
-      if (!navigator.geolocation) {
-        console.error("Geolocation is not supported by this browser.");
-        return;
-      }
+  if (!vin) {
+    console.log("No VIN provided — skipping location lookup.");
+    return;
+  }
 
-      navigator.geolocation.getCurrentPosition(
-        async (position) => {
-          try {
-            const { latitude, longitude } = position.coords;
-            console.log("Latitude:", latitude, "Longitude:", longitude);
+  if (cachedAddress) {
+    console.log("Using cached address:", cachedAddress);
+    setLocation && setLocation(cachedAddress);
+    return;
+  }
 
-            const address = await getAddressFromCoordinates(latitude, longitude);
-            setLocation(address);
-            console.log("Address:", address);
-          } catch (innerErr) {
-            console.error("Error during position handling or reverse geocoding:", innerErr);
-          }
-        },
-        (error) => {
-          console.error("Error getting location:", error.message || error);
-        }
-      );
+  if (fetching) {
+    console.log("Fetch already in progress — skipping.");
+    return;
+  }
+
+  fetching = true;
+
+  try {
+    if (!navigator.geolocation) {
+      console.error("Geolocation is not supported by this browser.");
+      fetching = false;
+      return;
     }
 
-    fetchLocation();
-  }, [vin]);
+    navigator.geolocation.getCurrentPosition(
+      async (position) => {
+        try {
+          const { latitude, longitude } = position.coords;
+          console.log("Latitude:", latitude, "Longitude:", longitude);
 
-  return location;
+          const address = await getAddressFromCoordinates(latitude, longitude);
+          cachedAddress = address;
+          setLocation && setLocation(address);
+          console.log("Address:", address);
+
+          setTimeout(() => {
+            cachedAddress = null;
+            fetching = false;
+          }, 2 * 60 * 1000);
+        } catch (innerErr) {
+          console.error("Error during position handling or reverse geocoding:", innerErr);
+          fetching = false;
+        }
+      },
+      (error) => {
+        console.error("Error getting location:", error.message || error);
+        fetching = false;
+      }
+    );
+  } catch (error) {
+    console.error("Unexpected error:", error);
+    fetching = false;
+  }
 }
 
 async function getAddressFromCoordinates(lat, lon) {
