@@ -98,7 +98,7 @@ export default function BarcodeScanner({ onScan, setDecodedVin, decodedVin }) {
           borderRadius: '4px'
         }}
       >
-        Run OCR on Frame
+        Scan Img
       </button>
     </>
   );
