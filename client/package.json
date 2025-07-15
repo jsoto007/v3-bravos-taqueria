@@ -21,6 +21,7 @@
     "react-dom": "^19.1.0",
     "react-router-dom": "^7.6.0",
     "tailwindcss": "^4.1.6",
+    "tesseract.js": "^4.1.4",
     "universal-vin-decoder": "^1.0.0"
   },
   "devDependencies": {
