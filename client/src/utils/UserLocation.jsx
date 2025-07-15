@@ -6,6 +6,7 @@ let fetching = false;
 export async function userLocation(vin, setLocation, location) {
   console.log("GEO being called with VIN:", vin);
 
+  // add alert for user to check settings
   if (!vin) {
     console.log("No VIN provided — skipping location lookup.");
     return;
@@ -24,6 +25,7 @@ export async function userLocation(vin, setLocation, location) {
 
   fetching = true;
 
+  // add alart for user to change browser; unlikely in modern phones
   try {
     if (!navigator.geolocation) {
       console.error("Geolocation is not supported by this browser.");
@@ -45,7 +47,7 @@ export async function userLocation(vin, setLocation, location) {
           setTimeout(() => {
             cachedAddress = null;
             fetching = false;
-          }, 2 * 60 * 1000);
+          }, 5 * 60 * 1000);
         } catch (innerErr) {
           console.error("Error during position handling or reverse geocoding:", innerErr);
           fetching = false;
