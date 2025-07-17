@@ -10,7 +10,7 @@ export default function NavBar() {
 
   return (
     <>
-      <Disclosure as="nav" className="fixed top-0 left-0 right-0 z-50 bg-white/80 dark:bg-gray-900/80 shadow-md">
+      <Disclosure as="nav" className="fixed top-0 left-0 right-0 z-50 bg-white/90 dark:bg-gray-900/90 shadow-md">
         {({ open }) => (
           <>
             <div className="mx-auto flex max-w-7xl items-center justify-between px-4 py-4 sm:px-6 lg:px-8">
@@ -26,9 +26,9 @@ export default function NavBar() {
 
               {/* Navigation Links */}
               <div className="hidden md:flex space-x-8 text-gray-700 dark:text-gray-200">
-                <Link to="/home" className="hover:text-indigo-600 dark:hover:text-indigo-400">Home</Link>
+                <Link to="/dashboard" className="hover:text-indigo-600 dark:hover:text-indigo-400">Dashboard</Link>
                 <Link to="/inventory" className="hover:text-indigo-600 dark:hover:text-indigo-400">Inventory</Link>
-                <Link to="/client_outreach" className="hover:text-indigo-600 dark:hover:text-indigo-400">Client Outreach</Link>
+                {/* <Link to="/client_outreach" className="hover:text-indigo-600 dark:hover:text-indigo-400">Client Outreach</Link>  */}
                 <Link to="/master_inventory" className="hover:text-indigo-600 dark:hover:text-indigo-400">Master Inventory</Link>
               </div>
 
@@ -52,16 +52,16 @@ export default function NavBar() {
 
             {/* Mobile menu */}
             <DisclosurePanel className="md:hidden">
-              <div className="space-y-1 pb-3 pt-2 px-2">
-                <DisclosureButton as={Link} to="/home" className="block rounded-md py-2 px-3 text-base font-medium text-gray-700 hover:bg-gray-100 dark:text-white dark:hover:bg-gray-700">
+              <div className="space-y-1 pb-3 pt-2 px-2 bg-slate-900/90">
+                {/* <DisclosureButton as={Link} to="/home" className="block rounded-md py-2 px-3 text-base font-medium text-gray-700 hover:bg-gray-100 dark:text-white dark:hover:bg-gray-700">
                   Home
-                </DisclosureButton>
+                </DisclosureButton> */}
                 <DisclosureButton as={Link} to="/inventory" className="block rounded-md py-2 px-3 text-base font-medium text-gray-700 hover:bg-gray-100 dark:text-white dark:hover:bg-gray-700">
                   Inventory
                 </DisclosureButton>
-                <DisclosureButton as={Link} to="/client_outreach" className="block rounded-md py-2 px-3 text-base font-medium text-gray-700 hover:bg-gray-100 dark:text-white dark:hover:bg-gray-700">
+                {/* <DisclosureButton as={Link} to="/client_outreach" className="block rounded-md py-2 px-3 text-base font-medium text-gray-700 hover:bg-gray-100 dark:text-white dark:hover:bg-gray-700">
                   Client Outreach
-                </DisclosureButton>
+                </DisclosureButton> */}
                 <DisclosureButton as={Link} to="/master_inventory" className="block rounded-md py-2 px-3 text-base font-medium text-gray-700 hover:bg-gray-100 dark:text-white dark:hover:bg-gray-700">
                   Master Inventory
                 </DisclosureButton>

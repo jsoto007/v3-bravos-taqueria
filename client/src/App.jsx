@@ -23,12 +23,12 @@ function App() {
       <div>
         <NavBarContainer />
         <Routes>
-          <Route path="/auth" element={<Auth />} />
           <Route path="/" element={<LandingPageContainer />} />
+          <Route path="/auth" element={<Auth />} />
           <Route element={<ProtactedRoutes />}>
-            <Route path="/home" element={<CarsContainer />} />
+            <Route path="/dashboard" element={<CarsContainer />} />
             <Route path="/inventory" element={<UserInventoryContainer />} />
-            <Route path="/client_outreach" element={<ClientsContainer />} />
+            {/* <Route path="/client_outreach" element={<ClientsContainer />} /> */}
 
             <Route path="/master_inventory/:id" element={<MasterCarContainer />} />
             <Route path="/master_inventory/create_master_inventory" element={<MasterInventoryForm />} />
