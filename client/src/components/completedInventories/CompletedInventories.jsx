@@ -30,15 +30,9 @@ export default function CompletedInventories() {
     }
 
     return (
-        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
-            {inventories.map((inventory) => {
-                const card = <CompletedInventoryCard key={inventory.id} inventory={inventory} />;
-                return isAdmin ? (
-                    <div key={inventory.id} onClick={() => navigate(`/admin/user_inventory_check/${inventory.id}`)} className="cursor-pointer">
-                        {card}
-                    </div>
-                ) : card;
-            })}
-        </div>
+        <>
+        <CompletedInventoryCard />
+        </>
+      
     );
 }
