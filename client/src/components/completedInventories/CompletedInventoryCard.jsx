@@ -57,70 +57,25 @@ const people = [
   
   export default function CompletedInventoryCard() {
     return (
-      <div className="px-4 sm:px-6 lg:px-8 bg-white dark:bg-gray-900 text-gray-900 dark:text-white overflow-hidden rounded-lg">
-        <div className="sm:flex sm:items-center">
-          <div className="sm:flex-auto">
-            <h1 className="text-base font-semibold text-gray-900 dark:text-white">Users</h1>
-            <p className="mt-2 text-sm text-gray-700 dark:text-gray-300">
-              A list of all the users in your account including their name, title, email and role.
-            </p>
-          </div>
-          <div className="mt-4 sm:ml-16 sm:mt-0 sm:flex-none">
-            <button
-              type="button"
-              className="block rounded-md bg-indigo-600 dark:bg-indigo-500 px-3 py-2 text-center text-sm font-semibold text-white shadow-sm hover:bg-indigo-500 dark:hover:bg-indigo-400 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600 dark:focus-visible:outline-indigo-400"
-            >
-              Add user
-            </button>
-          </div>
+        <div className="bg-grey-800 w-full bg-gray-100 dark:bg-gray-800 outline outline-white/15 lg:rounded-tl-[2rem] rounded-t-lg rounded-b-xl">
+            <table className="w-full text-left ml-4 mt-6">
+                <tr>
+                <th>Company</th>
+                <th>Contact</th>
+                <th>Country</th>
+                </tr>
+                <tr>
+                <td>Alfreds Futterkiste</td>
+                <td>Maria Anders</td>
+                <td>Germany</td>
+                </tr>
+                <tr>
+                <td>Centro comercial Moctezuma</td>
+                <td>Francisco Chang</td>
+                <td>Mexico</td>
+                </tr>
+            </table>
         </div>
-        <div className="mt-8 flow-root rounded-xl">
-          <div className="overflow-x-auto w-full">
-            <div className="inline-block min-w-full align-middle sm:px-6 lg:px-8">
-              <table className="min-w-full table-auto divide-y divide-gray-300 dark:divide-gray-600 rounded-xl">
-                <thead>
-                  <tr>
-                    <th scope="col" className="py-3.5 pl-4 pr-2 text-left text-xs sm:text-sm font-semibold text-gray-900 dark:text-white sm:pl-0">
-                      Name
-                    </th>
-                    <th scope="col" className="px-2 sm:px-3 py-3.5 text-left text-xs sm:text-sm font-semibold text-gray-900 dark:text-white">
-                      Title
-                    </th>
-                    <th scope="col" className="px-2 sm:px-3 py-3.5 text-left text-xs sm:text-sm font-semibold text-gray-900 dark:text-white">
-                      Status
-                    </th>
-                
-                  </tr>
-                </thead>
-             <tbody className="divide-y divide-gray-200 dark:divide-gray-700 bg-white dark:bg-gray-800 rounded-xl overflow-hidden">
-                  {people.map((person) => (
-                    <tr key={person.email}>
-                      <td className="whitespace-nowrap py-3 sm:py-5 pl-4 pr-2 text-xs sm:text-sm sm:pl-0">
-                        <div className="flex items-center">
-                          <div className="ml-4">
-                            <div className="font-medium text-gray-900 dark:text-white">{person.name}</div>
-                            <div className="mt-1 text-gray-500 dark:text-gray-400 break-words">{person.email}</div>
-                          </div>
-                        </div>
-                      </td>
-                      <td className="whitespace-nowrap px-2 sm:px-3 py-3 sm:py-5 text-xs sm:text-sm text-gray-500 dark:text-gray-400">
-                        <div className="text-gray-900 dark:text-white">{person.title}</div>
-                        <div className="mt-1 text-gray-500 dark:text-gray-400">{person.department}</div>
-                      </td>
-                      <td className="whitespace-nowrap px-2 sm:px-3 py-3 sm:py-5 text-xs sm:text-sm text-gray-500 dark:text-gray-400">
-                        <span className="inline-flex items-center rounded-md bg-green-50 dark:bg-green-900 px-2 py-1 text-xs font-medium text-green-700 dark:text-green-300 ring-1 ring-inset ring-green-600/20 dark:ring-green-700/40">
-                          Active
-                        </span>
-                      </td>
-                
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          </div>
-        </div>
-      </div>
     )
   }
   
