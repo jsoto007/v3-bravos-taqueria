@@ -17,7 +17,7 @@ export default function NavBar() {
               {/* Logo */}
               <div className="flex-shrink-0">
                 <Link
-                  to="/home"
+                  to="/dashboard"
                   className="text-xl font-bold text-gray-900 dark:text-white"
                 >
                   <img src={logo} alt="Logo" className="h-8 w-auto rounded-lg" />

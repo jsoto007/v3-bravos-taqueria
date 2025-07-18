@@ -4,7 +4,6 @@ import { BrowserRouter as Router, Routes,Route } from 'react-router-dom';
 import ProtactedRoutes from './utils/ProtectedRoutes';
 import Auth from './components/authentication/Auth'
 import CarsContainer from './components/cars/CarsContainer';
-import ClientsContainer from './components/ClientsContainer';
 import UserInventoryContainer from './components/inventory/UserInventoryContainer';
 import MasterInventoryContainer from './components/admin/MasterInventoryContainer';
 import MasterInventoryForm from './components/inventory/MasterInventoryForm';
@@ -13,6 +12,7 @@ import AdminInventoryReviewContainer from './components/admin/AdminInventoryRevi
 import AdminProtectedRoutes from './utils/AdminProtectedRoutes';
 import LandingPageContainer from './components/landingPage/LandingPageContainer';
 import NavBarContainer from './components/NavBarContainer';
+import Dashboard from './components/Dashboard';
 
 
 function App() {
@@ -26,7 +26,7 @@ function App() {
           <Route path="/" element={<LandingPageContainer />} />
           <Route path="/auth" element={<Auth />} />
           <Route element={<ProtactedRoutes />}>
-            <Route path="/dashboard" element={<CarsContainer />} />
+            <Route path="/dashboard" element={<Dashboard />} />
             <Route path="/inventory" element={<UserInventoryContainer />} />
             {/* <Route path="/client_outreach" element={<ClientsContainer />} /> */}
 
