@@ -13,6 +13,7 @@ import AdminProtectedRoutes from './utils/AdminProtectedRoutes';
 import LandingPageContainer from './components/landingPage/LandingPageContainer';
 import NavBarContainer from './components/NavBarContainer';
 import Dashboard from './components/Dashboard';
+import Footer from './shared/Footer';
 
 
 function App() {
@@ -41,6 +42,7 @@ function App() {
           </Route>
           
         </Routes>
+        <Footer />
       </div>
     </Router>
   )

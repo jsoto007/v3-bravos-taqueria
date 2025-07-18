@@ -1,19 +1,8 @@
-import { useEffect, useState } from 'react';
+// Removed useEffect and useState imports
 
 export default function LandingPageLogos() {
-  const [isDark, setIsDark] = useState(false);
-
-  useEffect(() => {
-    const matchMedia = window.matchMedia('(prefers-color-scheme: dark)');
-    setIsDark(matchMedia.matches);
-
-    const handler = (e) => setIsDark(e.matches);
-    matchMedia.addEventListener('change', handler);
-    return () => matchMedia.removeEventListener('change', handler);
-  }, []);
-
     return (
-      <div className={`py-6 sm:py-32 rounded-sm ${isDark ? 'bg-slate-500/10' : 'bg-white'}`}>
+      <div className="py-6 sm:py-32 rounded-sm bg-white dark:bg-slate-500/10">
         <div className="mx-auto max-w-7xl px-2 lg:px-8">
           <div className="-mx-6 grid grid-cols-2 gap-0.5 overflow-hidden sm:mx-0 sm:rounded-2xl md:grid-cols-3">
             <div className="bg-gray-400/5 p-6 sm:p-10">

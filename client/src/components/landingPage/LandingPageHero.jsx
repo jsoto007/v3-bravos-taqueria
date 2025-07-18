@@ -1,24 +1,12 @@
 import { ChevronRightIcon } from '@heroicons/react/20/solid'
-import { useEffect, useState } from 'react';
 import loginLogo from '../../assets/autoTracker-login-logo.png'
 
 export default function LandingPageHero() {
-  const [isDark, setIsDark] = useState(false);
-
-  useEffect(() => {
-    const matchMedia = window.matchMedia('(prefers-color-scheme: dark)');
-    setIsDark(matchMedia.matches);
-
-    const handler = (e) => setIsDark(e.matches);
-    matchMedia.addEventListener('change', handler);
-    return () => matchMedia.removeEventListener('change', handler);
-  }, []);
-
   return (
-    <div id="landing-page-hero" className={`relative isolate overflow-hidden ${isDark ? 'bg-gray-900' : 'bg-white'}`}>
+    <div id="landing-page-hero" className="relative isolate overflow-hidden bg-white dark:bg-gray-900">
       <svg
         aria-hidden="true"
-        className={`absolute inset-0 -z-10 size-full ${isDark ? 'stroke-white/10' : 'stroke-gray-200'} [mask-image:radial-gradient(100%_100%_at_top_right,white,transparent)]`}
+        className="absolute inset-0 -z-10 size-full stroke-gray-200 dark:stroke-white/10 [mask-image:radial-gradient(100%_100%_at_top_right,white,transparent)]"
       >
         <defs>
           <pattern
@@ -38,19 +26,19 @@ export default function LandingPageHero() {
         <div className="mx-auto max-w-2xl lg:mx-0 lg:shrink-0 lg:pt-8">
           <div className="mt-24 sm:mt-32 lg:mt-16">
             <a href="#" className="inline-flex space-x-6">
-              <span className={`rounded-full ${isDark ? 'bg-indigo-500/10 text-indigo-400 ring-indigo-500/20' : 'bg-indigo-600/10 text-indigo-600 ring-indigo-600/10'} px-3 py-1 text-sm/6 font-semibold ring-1 ring-inset`}>
+              <span className="rounded-full px-3 py-1 text-sm/6 font-semibold ring-1 ring-inset bg-indigo-600/10 text-indigo-600 ring-indigo-600/10 dark:bg-indigo-500/10 dark:text-indigo-400 dark:ring-indigo-500/20">
                 What's new
               </span>
-              <span className={`inline-flex items-center space-x-2 text-sm/6 font-medium ${isDark ? 'text-gray-300' : 'text-gray-600'}`}>
+              <span className="inline-flex items-center space-x-2 text-sm/6 font-medium text-gray-600 dark:text-gray-300">
                 <span>Just shipped v1.0</span>
                 <ChevronRightIcon aria-hidden="true" className="size-5 text-gray-400" />
               </span>
             </a>
           </div>
-          <h1 className={`mt-10 text-pretty text-5xl font-semibold tracking-tight ${isDark ? 'text-white' : 'text-gray-900'} sm:text-7xl`}>
+          <h1 className="mt-10 text-pretty text-5xl font-semibold tracking-tight text-gray-900 dark:text-white sm:text-7xl">
           Supercharge Your Dealership  
           </h1>
-          <p className={`mt-8 text-pretty text-lg font-medium ${isDark ? 'text-gray-400' : 'text-gray-500'} sm:text-xl/8`}>
+          <p className="mt-8 text-pretty text-lg font-medium text-gray-500 dark:text-gray-400 sm:text-xl/8">
             Streamline your inventory with real-time tracking and VIN decoding.
             Know where every car is, what’s selling fast, and auto-post to multiple dealer platforms.
             Get AI-powered insights and smart recommendations — even while you're on vacation.
@@ -67,7 +55,7 @@ export default function LandingPageHero() {
             </button>
             <a 
                 href="/auth" 
-                className={`text-sm/6 font-semibold ${isDark ? 'text-white' : 'text-gray-900'}`}
+                className="text-sm/6 font-semibold text-gray-900 dark:text-white"
             >
               Log In <span aria-hidden="true">→</span>
             </a>
@@ -75,7 +63,7 @@ export default function LandingPageHero() {
         </div>
         <div className="mx-auto mt-16 flex max-w-2xl sm:mt-24 lg:ml-10 lg:mr-0 lg:mt-0 lg:max-w-none lg:flex-none xl:ml-32">
           <div className="max-w-3xl flex-none sm:max-w-5xl lg:max-w-none">
-            <div className={`${isDark ? '' : '-m-2 rounded-xl bg-gray-900/5 p-2 ring-1 ring-inset ring-gray-900/10 lg:-m-4 lg:rounded-2xl lg:p-4'}`}>
+            <div className="-m-2 rounded-xl bg-gray-900/5 p-2 ring-1 ring-inset ring-gray-900/10 dark:bg-transparent lg:-m-4 lg:rounded-2xl lg:p-4">
                 <img
                     alt="Login"
                     src={loginLogo}

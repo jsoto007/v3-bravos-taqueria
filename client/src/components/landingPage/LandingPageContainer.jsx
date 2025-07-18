@@ -12,7 +12,6 @@ export default function LandingPageContainer() {
             <LandingPageHero />
             <LandingPageLogos />
             <LandingPagePricing />
-            <Footer />
         </>
     )
 }

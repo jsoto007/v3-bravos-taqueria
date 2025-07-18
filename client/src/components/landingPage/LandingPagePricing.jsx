@@ -1,5 +1,4 @@
 import { CheckIcon } from '@heroicons/react/20/solid'
-import { useEffect, useState } from 'react';
 
 const tiers = [
     {
@@ -56,27 +55,16 @@ function classNames(...classes) {
 }
 
 export default function LandingPagePricing() {
-  const [isDark, setIsDark] = useState(false);
-
-  useEffect(() => {
-    const matchMedia = window.matchMedia('(prefers-color-scheme: dark)');
-    setIsDark(matchMedia.matches);
-
-    const handler = (e) => setIsDark(e.matches);
-    matchMedia.addEventListener('change', handler);
-    return () => matchMedia.removeEventListener('change', handler);
-  }, []);
-
   return (
-    <div id='pricingDiv' className={`${isDark ? 'bg-blue-950/20' : 'bg-blue-900/10'} py-24 sm:py-32 rounded-sm`}>
+    <div id='pricingDiv' className="bg-blue-900/10 dark:bg-blue-950/20 py-24 sm:py-32 rounded-sm">
       <div className="mx-auto max-w-7xl px-6 lg:px-8">
         <div className="mx-auto max-w-4xl text-center">
           <h2 className="text-base/7 font-semibold text-indigo-600">Pricing</h2>
-          <p className={`mt-2 text-balance text-5xl font-semibold tracking-tight ${isDark ? 'text-white' : 'text-gray-900'} sm:text-6xl`}>
+          <p className="mt-2 text-balance text-5xl font-semibold tracking-tight text-gray-900 dark:text-white sm:text-6xl">
             Choose the right plan for you
           </p>
         </div>
-        <p className={`mx-auto mt-6 max-w-2xl text-pretty text-center text-lg font-medium ${isDark ? 'text-gray-400' : 'text-gray-600'} sm:text-xl/8`}>
+        <p className="mx-auto mt-6 max-w-2xl text-pretty text-center text-lg font-medium text-gray-600 dark:text-gray-400 sm:text-xl/8">
           Choose an affordable plan that’s packed with the best features for engaging your audience, creating customer
           loyalty, and driving sales.
         </p>
@@ -88,7 +76,7 @@ export default function LandingPagePricing() {
                 tier.mostPopular ? 'lg:z-10 lg:rounded-b-none' : 'lg:mt-8',
                 tierIdx === 0 ? 'lg:rounded-r-none' : '',
                 tierIdx === tiers.length - 1 ? 'lg:rounded-l-none' : '',
-                `${isDark ? 'bg-gray-800 ring-gray-700' : 'bg-white ring-gray-200'}`,
+                'bg-white dark:bg-gray-800 ring-gray-200 dark:ring-gray-700',
                 'flex flex-col justify-between rounded-3xl p-8 ring-1 xl:p-10',
               )}
             >
@@ -96,10 +84,7 @@ export default function LandingPagePricing() {
                 <div className="flex items-center justify-between gap-x-4">
                   <h3
                     id={tier.id}
-                    className={classNames(
-                      tier.mostPopular ? 'text-indigo-600' : (isDark ? 'text-white' : 'text-gray-900'),
-                      'text-lg/8 font-semibold',
-                    )}
+                    className="text-lg/8 font-semibold text-gray-900 dark:text-white"
                   >
                     {tier.name}
                   </h3>
@@ -109,12 +94,12 @@ export default function LandingPagePricing() {
                     </p>
                   ) : null}
                 </div>
-                <p className={`mt-4 text-sm/6 ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>{tier.description}</p>
+                <p className="mt-4 text-sm/6 text-gray-600 dark:text-gray-400">{tier.description}</p>
                 <p className="mt-6 flex items-baseline gap-x-1">
-                  <span className={`text-4xl font-semibold tracking-tight ${isDark ? 'text-white' : 'text-gray-900'}`}>{tier.priceMonthly}</span>
-                  <span className={`text-sm/6 font-semibold ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>/month</span>
+                  <span className="text-4xl font-semibold tracking-tight text-gray-900 dark:text-white">{tier.priceMonthly}</span>
+                  <span className="text-sm/6 font-semibold text-gray-600 dark:text-gray-400">/month</span>
                 </p>
-                <ul role="list" className={`mt-8 space-y-3 text-sm/6 ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>
+                <ul role="list" className="mt-8 space-y-3 text-sm/6 text-gray-600 dark:text-gray-400">
                   {tier.features.map((feature) => (
                     <li key={feature} className="flex gap-x-3">
                       <CheckIcon aria-hidden="true" className="h-6 w-5 flex-none text-indigo-600" />
@@ -129,9 +114,7 @@ export default function LandingPagePricing() {
                 className={classNames(
                   tier.mostPopular
                     ? 'bg-indigo-600 text-white shadow-sm hover:bg-indigo-500'
-                    : (isDark
-                        ? 'text-indigo-400 ring-1 ring-inset ring-indigo-400/30 hover:ring-indigo-400/50'
-                        : 'text-indigo-600 ring-1 ring-inset ring-indigo-200 hover:ring-indigo-300'),
+                    : 'text-indigo-600 dark:text-indigo-400 ring-1 ring-inset ring-indigo-200 dark:ring-indigo-400/30 hover:ring-indigo-300 dark:hover:ring-indigo-400/50',
                   'mt-8 block rounded-md px-3 py-2 text-center text-sm/6 font-semibold focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600',
                 )}
               >
