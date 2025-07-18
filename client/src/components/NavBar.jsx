@@ -53,9 +53,9 @@ export default function NavBar() {
             {/* Mobile menu */}
             <DisclosurePanel className="md:hidden">
               <div className="space-y-1 pb-3 pt-2 px-2 bg-slate-900/90">
-                {/* <DisclosureButton as={Link} to="/home" className="block rounded-md py-2 px-3 text-base font-medium text-gray-700 hover:bg-gray-100 dark:text-white dark:hover:bg-gray-700">
-                  Home
-                </DisclosureButton> */}
+                <DisclosureButton as={Link} to="/dashboard" className="block rounded-md py-2 px-3 text-base font-medium text-gray-700 hover:bg-gray-100 dark:text-white dark:hover:bg-gray-700">
+                  Dashboard
+                </DisclosureButton>
                 <DisclosureButton as={Link} to="/inventory" className="block rounded-md py-2 px-3 text-base font-medium text-gray-700 hover:bg-gray-100 dark:text-white dark:hover:bg-gray-700">
                   Inventory
                 </DisclosureButton>
