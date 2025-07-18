@@ -13,7 +13,7 @@ export default function Login() {
         e.preventDefault();
         const isLoggedIn = await login(username, password);
         if (isLoggedIn) {
-            navigate("/home");
+            navigate("/dashboard");
         }
     };
 
