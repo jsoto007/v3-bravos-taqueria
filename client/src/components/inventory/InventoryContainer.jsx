@@ -47,7 +47,7 @@ export default function InventoryContainer() {
 
         if (cars.some((car) => car.vin_number === vin)) {
             setDecodedVin({ vin: "", info: { modelYear: "", manufacturer: "" } });
-            alert("This car has already been added to the current inventory.");
+            // alert("This car has already been added to the current inventory.");
             
             return;
         }
