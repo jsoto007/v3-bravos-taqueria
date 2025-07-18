@@ -36,6 +36,14 @@ export default function BarcodeScanner({ onScan, setDecodedVin, decodedVin }) {
     };
   }, [onScan]);
 
+  useEffect(() => {
+    const intervalId = setInterval(() => {
+      captureFrame();
+    }, 1000); // 1000ms = 1 second
+
+    return () => clearInterval(intervalId);
+  }, []);
+
   const captureFrame = () => {
     const canvas = document.createElement("canvas");
     const video = videoRef.current;
