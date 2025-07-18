@@ -5,7 +5,7 @@ export default function Dashboard() {
   return (
     <div className="bg-white dark:bg-gray-900/30 text-gray-900 dark:text-white mt-20 rounded-xl">
       <div className="mx-auto">
-        <p className="mt-2 max-w-lg text-pretty text-4xl font-semibold tracking-tight text-gray-900 dark:text-white sm:text-5xl">
+        <p className="mt-2 max-w-lg text-pretty text-4xl font-serif font-semibold tracking-tight text-gray-900 dark:text-white sm:text-5xl">
           Dashboard
         </p>
         <div className="mt-10 grid grid-cols-1 gap-4 sm:mt-16 lg:grid-cols-6 lg:grid-rows-2">

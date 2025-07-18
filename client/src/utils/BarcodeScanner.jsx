@@ -95,19 +95,6 @@ export default function BarcodeScanner({ onScan, setDecodedVin, decodedVin }) {
   return (
     <>
       <video ref={videoRef} style={{ width: '100%' }} />
-      {/* <button
-        onClick={captureFrame}
-        style={{
-          marginTop: '1rem',
-          padding: '0.5rem 1rem',
-          backgroundColor: '#1E3A8A',
-          color: '#fff',
-          border: 'none',
-          borderRadius: '4px'
-        }}
-      >
-        Scan Img
-      </button> */}
     </>
   );
 }
