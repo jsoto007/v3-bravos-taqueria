@@ -39,7 +39,7 @@ export default function BarcodeScanner({ onScan, setDecodedVin, decodedVin }) {
   useEffect(() => {
     const intervalId = setInterval(() => {
       captureFrame();
-    }, 500); // 1000ms = 1 second
+    }, 2000); // Changed to 2000ms
 
     return () => clearInterval(intervalId);
   }, []);
@@ -53,14 +53,33 @@ export default function BarcodeScanner({ onScan, setDecodedVin, decodedVin }) {
     canvas.height = video.videoHeight;
     const ctx = canvas.getContext("2d");
     ctx.drawImage(video, 0, 0);
+    enhanceImage(canvas); // Enhance frame before OCR
     const dataUrl = canvas.toDataURL("image/png");
     setImageDataUrl(dataUrl);
+    // Run OCR on enhanced image
     runOCR(dataUrl);
+  };
+
+  const enhanceImage = (canvas) => {
+    const ctx = canvas.getContext("2d");
+    const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+    const data = imageData.data;
+
+    for (let i = 0; i < data.length; i += 4) {
+      const grayscale = data[i] * 0.3 + data[i + 1] * 0.59 + data[i + 2] * 0.11;
+      const value = grayscale > 128 ? 255 : 0;
+      data[i] = data[i + 1] = data[i + 2] = value;
+    }
+
+    ctx.putImageData(imageData, 0, 0);
   };
 
   const runOCR = (image) => {
     Tesseract.recognize(image, "eng", {
-      logger: m => console.log("OCR progress:", m.status, m.progress)
+      logger: m => console.log("OCR progress:", m.status, m.progress),
+      // Optional character whitelist (may require tweaks depending on environment)
+      // Not officially supported in browser-only setup
+      // charWhitelist: "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789"
     }).then(result => {
       console.log("**** Full OCR result:", result);
       let { text } = result.data;
