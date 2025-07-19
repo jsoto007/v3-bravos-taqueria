@@ -46,7 +46,7 @@ function classNames(...classes) {
 export default function InventoryFeed() {
   return (
     <div className="flow-root w-full px-2 sm:px-4 mt-4 font-mono">
-        <p>Recent Scans</p>
+        <p className="font-bold">Recent Scans</p>
       <ul role="list" className="-mb-8 w-full">
         {timeline.map((event, eventIdx) => (
           <li key={event.id}>
