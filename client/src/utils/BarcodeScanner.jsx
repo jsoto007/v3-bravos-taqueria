@@ -39,7 +39,7 @@ export default function BarcodeScanner({ onScan, setDecodedVin, decodedVin }) {
   useEffect(() => {
     const intervalId = setInterval(() => {
       captureFrame();
-    }, 1000); // 1000ms = 1 second
+    }, 500); // 1000ms = 1 second
 
     return () => clearInterval(intervalId);
   }, []);
