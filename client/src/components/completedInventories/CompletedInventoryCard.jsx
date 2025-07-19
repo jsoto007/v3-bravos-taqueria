@@ -1,9 +1,10 @@
-import React, { useContext } from "react";
+import React, { useContext, useState } from "react";
 import { CarDataContext } from "../../context/CarDataContextProvider";
 
 export default function CompletedInventoryCard() {
 
     const { carData } = useContext(CarDataContext)
+    const [searchTerm, setSearchTerm] = useState("");
     
   const events = carData
     ? carData.flatMap(({ vin, history }) =>
@@ -28,6 +29,15 @@ export default function CompletedInventoryCard() {
     (a, b) => new Date(b.created_at) - new Date(a.created_at)
   );
 
+  const filteredEvents = latestEvents.filter(({ vin, year, make }) => {
+    const term = searchTerm.toLowerCase();
+    return (
+      vin.toLowerCase().includes(term) ||
+      (year && year.toString().includes(term)) ||
+      (make && make.toLowerCase().includes(term))
+    );
+  });
+
   const formatDate = (dateStr) => {
     const date = new Date(dateStr);
     return date.toLocaleDateString(undefined, { month: 'short', day: 'numeric' });
@@ -36,6 +46,15 @@ export default function CompletedInventoryCard() {
     console.log(carData)
     return (
       <div className="w-full bg-gray-100 dark:bg-gray-800 outline outline-white/15 lg:rounded-tl-[2rem] rounded-t-lg rounded-b-xl overflow-hidden">
+        <div className="p-4">
+          <input
+            type="text"
+            placeholder="Search by VIN, year, or make"
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+            className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:outline-none focus:ring focus:border-blue-300"
+          />
+        </div>
         <div className="overflow-x-auto">
           <table className="min-w-full text-left font-mono divide-y-6 divide-gray-400 dark:divide-gray-700">
             <thead>
@@ -47,7 +66,7 @@ export default function CompletedInventoryCard() {
               </tr>
             </thead>
             <tbody className="divide-y-2 divide-gray-200/30">
-              {latestEvents.map((item, index) => {
+              {filteredEvents.map((item, index) => {
                 const addressParts = item.location?.split(" ") || [];
                 const number = addressParts[0] || "";
                 const street = addressParts.slice(1, 3).join(" ") || "";
