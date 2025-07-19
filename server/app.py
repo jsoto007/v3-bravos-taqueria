@@ -6,6 +6,8 @@ load_dotenv()
 from flask import Flask, jsonify, request, make_response, render_template, session
 from flask_migrate import Migrate
 from flask_restful import Api, Resource
+from flask import jsonify
+from sqlalchemy.orm import joinedload
 from sqlalchemy.exc import IntegrityError
 
 from config import db, bcrypt, app
@@ -294,6 +296,30 @@ class UploadPhoto(Resource):
         return make_response("", 204)
 
 
+class VinHistory(Resource):
+    def get(self):
+        car_inventories = db.session.query(CarInventory).options(joinedload(CarInventory.user)).all()
+
+        vin_map = {}
+
+        for car in car_inventories:
+            vin = car.vin_number
+
+            if vin not in vin_map:
+                vin_map[vin] = {
+                    "vin": vin,
+                    "history": []
+                }
+
+            vin_map[vin]["history"].append({
+                "user": car.user.email if car.user else None,
+                "location": car.location,
+                "created_at": car.created_at.isoformat() if car.created_at else None
+            })
+
+        result = [{"vin": vin_data["vin"], "history": vin_data["history"]} for vin_data in vin_map.values()]
+        return make_response(jsonify(result), 200)
+
 
 api.add_resource(Signup, '/api/signup', endpoint='signup')
 api.add_resource(CheckSession, '/api/check_session', endpoint='check_session')
@@ -318,6 +344,8 @@ api.add_resource(AdminUserInventoryCheck, '/api/admin/user_inventory_check/<int:
 api.add_resource(UploadPhoto, '/api/upload_photo', endpoint='upload_photo')
 api.add_resource(UploadPhoto, '/api/upload_photo/<int:id>', endpoint='upload_photo_by_id')
 
+# History of the VIN; location and users
+api.add_resource(VinHistory, '/api/vin_history', endpoint='vin_history')
 
 
 @app.route('/static/uploads/<filename>')
@@ -327,4 +355,5 @@ def serve_uploaded_file(filename):
 
 if __name__ == "__main__":
     app.run(host="0.0.0.0", port=int(os.environ.get("PORT", 5555)))
+
 
