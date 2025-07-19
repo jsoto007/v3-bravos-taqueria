@@ -1,4 +1,5 @@
 import CompletedInventoryCard from "./completedInventories/CompletedInventoryCard"
+import InventoryFeed from "./inventory/InventoryFeed"
 
 
 export default function Dashboard() {
@@ -15,18 +16,19 @@ export default function Dashboard() {
           </div>
           <div className="flex p-px lg:col-span-2">
             <div className="w-full overflow-hidden rounded-lg bg-gray-100 dark:bg-gray-800 outline outline-white/15 lg:rounded-tr-[2rem]">
-              <img
+            <InventoryFeed />
+              {/* <img
                 alt=""
                 src="https://tailwindcss.com/plus-assets/img/component-images/dark-bento-02-integrations.png"
                 className="h-80 object-cover"
-              />
-              <div className="p-10">
+              /> */}
+              {/* <div className="p-10">
                 <h3 className="text-sm/4 font-semibold text-gray-500 dark:text-gray-400">Integrations</h3>
                 <p className="mt-2 text-lg font-medium tracking-tight text-gray-900 dark:text-white">Connect your favorite tools</p>
                 <p className="mt-2 max-w-lg text-sm/6 text-gray-500 dark:text-gray-400">
                   Curabitur auctor, ex quis auctor venenatis, eros arcu rhoncus massa.
                 </p>
-              </div>
+              </div> */}
             </div>
           </div>
           <div className="flex p-px lg:col-span-2">

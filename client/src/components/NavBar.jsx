@@ -9,7 +9,7 @@ import logo  from '/logo.png'
 export default function NavBar() {
 
   return (
-    <div className="text-gray-900 dark:text-white bg-white dark:bg-gray-900">
+    <div className="text-gray-900 font-serif dark:text-white bg-white dark:bg-gray-900">
       <Disclosure as="nav" className="fixed top-0 left-0 right-0 z-50 bg-white/90 dark:bg-gray-900/90 shadow-md">
         {({ open }) => (
           <>
