@@ -2,10 +2,9 @@ import React, { useContext, useState } from "react";
 import { CarDataContext } from "../../context/CarDataContextProvider";
 
 export default function CompletedInventoryCard() {
+  const { carData } = useContext(CarDataContext);
+  const [searchTerm, setSearchTerm] = useState("");
 
-    const { carData } = useContext(CarDataContext)
-    const [searchTerm, setSearchTerm] = useState("");
-    
   const events = carData
     ? carData.flatMap(({ vin, history }) =>
         history.map(({ created_at, location, user }) => ({
@@ -18,7 +17,7 @@ export default function CompletedInventoryCard() {
     : [];
 
   const latestByVin = new Map();
-  events.forEach(event => {
+  events.forEach((event) => {
     const existing = latestByVin.get(event.vin);
     if (!existing || new Date(event.created_at) > new Date(existing.created_at)) {
       latestByVin.set(event.vin, event);
@@ -40,21 +39,23 @@ export default function CompletedInventoryCard() {
 
   const formatDate = (dateStr) => {
     const date = new Date(dateStr);
-    return date.toLocaleDateString(undefined, { month: 'short', day: 'numeric' });
+    return date.toLocaleDateString(undefined, { month: "short", day: "numeric" });
   };
 
-    console.log(carData)
-    return (
-      <div className="w-full bg-gray-100 dark:bg-gray-800 outline outline-white/15 lg:rounded-tl-[2rem] rounded-t-lg rounded-b-xl overflow-hidden overflow-y-scroll">
-        <div className="p-4">
-          <input
-            type="text"
-            placeholder="Search by VIN, year, or make"
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-            className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:outline-none focus:ring focus:border-blue-300"
-          />
-        </div>
+  return (
+    <div className="w-full bg-gray-100 dark:bg-gray-800 outline outline-white/15 lg:rounded-tl-[2rem] rounded-t-lg rounded-b-xl overflow-hidden">
+      <div className="p-4">
+        <input
+          type="text"
+          placeholder="Search by VIN, year, or make"
+          value={searchTerm}
+          onChange={(e) => setSearchTerm(e.target.value)}
+          className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:outline-none focus:ring focus:border-blue-300"
+        />
+      </div>
+
+      {/* Scrollable area with max height */}
+      <div className="overflow-y-auto max-h-[400px] sm:max-h-[500px]">
         <div className="overflow-x-auto">
           <table className="min-w-full text-left font-mono divide-y-6 divide-gray-400 dark:divide-gray-700">
             <thead>
@@ -74,7 +75,7 @@ export default function CompletedInventoryCard() {
                   <tr key={index}>
                     <td className="px-4 py-2">{item.vin}</td>
                     <td className="px-4 py-2">{`${number} ${street}`}</td>
-                    <td className="px-4 py-2">{item.user?.split('@')[0]}</td>
+                    <td className="px-4 py-2">{item.user?.split("@")[0]}</td>
                     <td className="px-4 py-2">{formatDate(item.created_at)}</td>
                   </tr>
                 );
@@ -83,5 +84,6 @@ export default function CompletedInventoryCard() {
           </table>
         </div>
       </div>
-    );
-  }
+    </div>
+  );
+}
