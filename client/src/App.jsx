@@ -3,7 +3,6 @@ import './App.css'
 import { BrowserRouter as Router, Routes,Route } from 'react-router-dom';
 import ProtactedRoutes from './utils/ProtectedRoutes';
 import Auth from './components/authentication/Auth'
-import CarsContainer from './components/cars/CarsContainer';
 import UserInventoryContainer from './components/inventory/UserInventoryContainer';
 import MasterInventoryContainer from './components/admin/MasterInventoryContainer';
 import MasterInventoryForm from './components/inventory/MasterInventoryForm';

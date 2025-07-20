@@ -14,7 +14,6 @@ export default function NavBar() {
         {({ open }) => (
           <>
             <div className="mx-auto flex max-w-7xl items-center justify-between px-4 py-4 sm:px-6 lg:px-8">
-              {/* Logo */}
               <div className="flex-shrink-0">
                 <Link
                   to="/dashboard"
@@ -67,9 +66,6 @@ export default function NavBar() {
                 >
                   Inventory
                 </DisclosureButton>
-                {/* <DisclosureButton as={Link} to="/client_outreach" className="block rounded-md py-2 px-3 text-base font-medium text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700 hover:text-indigo-600 dark:hover:text-indigo-400">
-                  Client Outreach
-                </DisclosureButton> */}
                 <DisclosureButton
                   as={Link}
                   to="/master_inventory"

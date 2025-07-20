@@ -10,7 +10,7 @@ function CarDataContextProvider( { children } ) {
 
 
     useEffect(() => {
-        fetch('http://localhost:5555/api/vin_history')
+        fetch('/api/vin_history')
             .then(resp => {
                 if (resp.ok) {
                     console.log("resp is OKAY")
