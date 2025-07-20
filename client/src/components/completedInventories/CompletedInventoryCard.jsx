@@ -45,7 +45,7 @@ export default function CompletedInventoryCard() {
 
     console.log(carData)
     return (
-      <div className="w-full bg-gray-100 dark:bg-gray-800 outline outline-white/15 lg:rounded-tl-[2rem] rounded-t-lg rounded-b-xl overflow-hidden">
+      <div className="w-full bg-gray-100 dark:bg-gray-800 outline outline-white/15 lg:rounded-tl-[2rem] rounded-t-lg rounded-b-xl overflow-hidden overflow-y-scroll">
         <div className="p-4">
           <input
             type="text"
