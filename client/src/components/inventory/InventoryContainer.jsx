@@ -4,6 +4,7 @@ import { UserContext } from "../../context/UserContextProvider";
 import InventoryForm from "./InventoryForm";
 import BarcodeScanner from "../../utils/BarcodeScanner";
 import { userLocation } from "../../utils/UserLocation";
+import ActionBtn from "../../shared/ActionBtn";
  
 export default function InventoryContainer() {
 
@@ -97,15 +98,14 @@ export default function InventoryContainer() {
         }
     }, [vin]);
 
+    {/* <ActionBtn label="Submit" onClick={() => console.log("Clicked!")} /> */}
     return (
         <div className="mt-10">
             {!showForm ? (
-                <button
-                    onClick={handleStartInventory}
-                    className="w-full py-2 px-4 bg-blue-600/60 text-white rounded hover:bg-blue-700 transition"
-                >
-                    Start Inventory
-                </button>
+                <div className="float-right -mb-6">
+                    <ActionBtn label="+ Car" onClick={handleStartInventory} />
+                </div>
+             
             ) : submitted ? (
                 <div className="text-green-600 dark:text-green-400 font-semibold text-center">
                     Inventory Submitted!

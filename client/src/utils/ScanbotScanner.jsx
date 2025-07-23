@@ -2,8 +2,9 @@
 
 import { useEffect, useState } from 'react';
 import ScanbotSDK from 'scanbot-web-sdk/ui';
+import ActionBtn from '../shared/ActionBtn';
 
-export default function ScanbotScanner() {
+export default function ScanbotScanner( { onScan, setDecodedVin } ) {
   const [initialized, setInitialized] = useState(false);
   const [scanResult, setScanResult] = useState(null);
 
@@ -33,10 +34,12 @@ export default function ScanbotScanner() {
 
   return (
     <div className='mt-20' style={{ padding: '1rem', fontFamily: 'sans-serif' }}>
-      <h1>Scanbot Barcode Scanner</h1>
-      <button onClick={startScan} disabled={!initialized}>
+
+      <ActionBtn label="Scan Barcode" onClick={startScan} />
+
+      {/* <button onClick={startScan} disabled={!initialized}>
         {initialized ? 'Start Scanning' : 'Initializing...'}
-      </button>
+      </button> */}
       {scanResult && <p><strong>Result:</strong> {scanResult}</p>}
     </div>
   );
