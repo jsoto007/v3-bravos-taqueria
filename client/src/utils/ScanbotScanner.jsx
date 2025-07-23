@@ -32,7 +32,7 @@ export default function ScanbotScanner() {
   };
 
   return (
-    <div style={{ padding: '1rem', fontFamily: 'sans-serif' }}>
+    <div className='mt-20' style={{ padding: '1rem', fontFamily: 'sans-serif' }}>
       <h1>Scanbot Barcode Scanner</h1>
       <button onClick={startScan} disabled={!initialized}>
         {initialized ? 'Start Scanning' : 'Initializing...'}
