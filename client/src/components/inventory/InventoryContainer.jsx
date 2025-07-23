@@ -5,6 +5,7 @@ import InventoryForm from "./InventoryForm";
 import BarcodeScanner from "../../utils/BarcodeScanner";
 import { userLocation } from "../../utils/UserLocation";
 import ActionBtn from "../../shared/ActionBtn";
+import ScanbotScanner from "../../utils/ScanbotScanner";
  
 export default function InventoryContainer() {
 
@@ -112,7 +113,9 @@ export default function InventoryContainer() {
                 </div>
             ) : (
                 <>
-                <BarcodeScanner decodedVin={decodedVin} setDecodedVin={setDecodedVin} />
+                {/* <BarcodeScanner decodedVin={decodedVin} setDecodedVin={setDecodedVin} /> */}
+                <ScanbotScanner decodedVin={decodedVin} setDecodedVin={setDecodedVin} />
+                
                 <InventoryForm
                     location={location}
                     addCar={addCar}
