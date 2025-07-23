@@ -14,6 +14,8 @@ import NavBarContainer from './components/NavBarContainer';
 import Dashboard from './components/Dashboard';
 import Footer from './shared/Footer';
 
+import ScanbotScanner from './utils/ScanbotScanner';
+
 
 function App() {
 
@@ -28,7 +30,8 @@ function App() {
           <Route element={<ProtactedRoutes />}>
             <Route path="/dashboard" element={<Dashboard />} />
             <Route path="/inventory" element={<UserInventoryContainer />} />
-            {/* <Route path="/client_outreach" element={<ClientsContainer />} /> */}
+
+            <Route path="/test_scanner" element={<ScanbotScanner />} />
 
             <Route path="/master_inventory/:id" element={<MasterCarContainer />} />
             <Route path="/master_inventory/create_master_inventory" element={<MasterInventoryForm />} />
