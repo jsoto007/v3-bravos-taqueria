@@ -12,7 +12,7 @@ export default function ScanbotScanner({ onScan, setDecodedVin }) {
   useEffect(() => {
     (async () => {
       await ScanbotSDK.initialize({
-        licenseKey: apiKey, // trial mode (60s/session)
+        licenseKey: apiKey,
         enginePath: '/wasm/'
       });
       setInitialized(true);
