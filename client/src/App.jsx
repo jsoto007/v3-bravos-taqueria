@@ -13,8 +13,9 @@ import LandingPageContainer from './components/landingPage/LandingPageContainer'
 import NavBarContainer from './components/NavBarContainer';
 import Dashboard from './components/Dashboard';
 import Footer from './shared/Footer';
-
 import ScanbotScanner from './utils/ScanbotScanner';
+
+import PageNotFound from './shared/PageNotFound';
 
 
 function App() {
@@ -41,8 +42,9 @@ function App() {
             <Route path="/master_inventory" element={<MasterInventoryContainer />} />
 
           <Route element={<AdminProtectedRoutes />}>
+
           </Route>
-          
+          <Route path="*" element={<PageNotFound />} />
         </Routes>
         <Footer />
       </div>
