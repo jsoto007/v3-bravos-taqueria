@@ -1,5 +1,5 @@
 from app import app
-from models import User, CarPhoto, CarInventory, MasterCarRecord, UserInventory
+from models import User, CarPhoto, CarInventory, MasterCarRecord, UserInventory, AccountGroup
 from config import db
 
 with app.app_context():
@@ -9,21 +9,42 @@ with app.app_context():
     db.session.query(MasterCarRecord).delete()
     db.session.query(UserInventory).delete()
     db.session.query(User).delete()
+    db.session.query(AccountGroup).delete()
     db.session.commit()
     print('✅ Old data deleted.')
 
+    print('👥 Creating account group...')
+    account_group = AccountGroup(group_key='group123')
+    db.session.add(account_group)
+    db.session.commit()
+
     print('👤 Creating users...')
-    user1 = User(email='user33@example.com', admin=False)
+    user1 = User(
+        email='user33@example.com',
+        admin=False,
+        is_owner_admin=False,
+        account_group=account_group
+    )
     user1.password_hash = 'password123'
 
-    user2 = User(email='test33@example.com', admin=True)
+    user2 = User(
+        email='admin33@example.com',
+        admin=True,
+        is_owner_admin=True,
+        account_group=account_group
+    )
     user2.password_hash = 'adminpass456'
 
     db.session.add_all([user1, user2])
     db.session.commit()
 
     print('📦 Creating user inventory...')
-    user_inventory1 = UserInventory(user=user1)
+    user_inventory1 = UserInventory(
+        user=user1,
+        account_group=account_group,
+        submitted=False,
+        reviewed=False
+    )
     db.session.add(user_inventory1)
     db.session.commit()
 
@@ -34,7 +55,8 @@ with app.app_context():
         year=2015,
         make='Honda',
         user=user1,
-        user_inventory=user_inventory1
+        user_inventory=user_inventory1,
+        account_group=account_group
     )
     car2 = CarInventory(
         location='Los Angeles Lot B',
@@ -42,7 +64,8 @@ with app.app_context():
         year=2017,
         make='Toyota',
         user=user1,
-        user_inventory=user_inventory1
+        user_inventory=user_inventory1,
+        account_group=account_group
     )
     db.session.add_all([car1, car2])
     db.session.commit()
