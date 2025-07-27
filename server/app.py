@@ -154,7 +154,8 @@ class CheckSession(Resource):
     def get(self):
         if session.get('user_id'):
             user = User.query.filter(User.id == session['user_id']).first()
-            return user.to_dict(), 200
+            if user:
+                return serialize_user(user), 200
         return {"error": "Please log in"}, 401
 
 class Login(Resource):
