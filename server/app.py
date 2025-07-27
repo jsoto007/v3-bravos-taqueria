@@ -154,7 +154,7 @@ class CheckSession(Resource):
     def get(self):
         if session.get('user_id'):
             user = User.query.filter(User.id == session['user_id']).first()
-            return serialize_user(user), 200
+            return user.to_dict(), 200
         return {"error": "Please log in"}, 401
 
 class Login(Resource):
@@ -414,4 +414,3 @@ def serve_uploaded_file(filename):
 if __name__ == "__main__":
     app.run(host="0.0.0.0", port=int(os.environ.get("PORT", 5555)))
 
-    
