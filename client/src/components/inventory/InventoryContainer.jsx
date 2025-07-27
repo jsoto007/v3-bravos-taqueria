@@ -2,7 +2,6 @@ import { useState, useContext, useEffect } from "react";
 import axios from "axios";
 import { UserContext } from "../../context/UserContextProvider";
 import InventoryForm from "./InventoryForm";
-import BarcodeScanner from "../../utils/BarcodeScanner";
 import { userLocation } from "../../utils/UserLocation";
 import ActionBtn from "../../shared/ActionBtn";
 import ScanbotScanner from "../../utils/ScanbotScanner";
@@ -107,6 +106,7 @@ export default function InventoryContainer() {
     useEffect(() => {
         if (vin) {
             const timer = setTimeout(() => {
+                console.log("Location being trigerred")
                 userLocation(vin, setLocation);
             }, 1000);
             return () => clearTimeout(timer);
