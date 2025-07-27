@@ -6,9 +6,8 @@ import BarcodeScanner from "../../utils/BarcodeScanner";
 import { userLocation } from "../../utils/UserLocation";
 import ActionBtn from "../../shared/ActionBtn";
 import ScanbotScanner from "../../utils/ScanbotScanner";
- 
-export default function InventoryContainer() {
 
+export default function InventoryContainer() {
     const [inventoryId, setInventoryId] = useState(null);
     const [vin, setVin] = useState("");
     const [location, setLocation] = useState("");
@@ -17,27 +16,30 @@ export default function InventoryContainer() {
     const [cars, setCars] = useState([]);
     const [submitted, setSubmitted] = useState(false);
     const [showForm, setShowForm] = useState(false);
-
     const [decodedVin, setDecodedVin] = useState({});
-    
-    const [errors, setErrors] = useState({})
+    const [errors, setErrors] = useState({});
 
-    const { currentUser } = useContext(UserContext)
-
+    const { currentUser } = useContext(UserContext);
 
     const createInventory = async () => {
         try {
-            const res = await axios.post("/api/user_inventories", { user_id: currentUser.id });
+            const res = await axios.post("/api/user_inventories", {
+                user_id: currentUser.id,
+                account_group_id: currentUser.account_group_id, // ✅ FIXED: Include account_group_id
+            });
             setInventoryId(res.data.id);
+            return res.data.id;
         } catch (err) {
+            console.error("Error creating inventory:", err.response?.data || err.message);
             setErrors(err);
         }
     };
 
-    const handleStartInventory = () => {
-        setShowForm(true);
-        // Run createInventory in the background
-        createInventory();
+    const handleStartInventory = async () => {
+        const id = await createInventory(); // wait for inventory to be created
+        if (id) {
+            setShowForm(true);
+        }
     };
 
     const addCar = async () => {
@@ -50,28 +52,40 @@ export default function InventoryContainer() {
         if (cars.some((car) => car.vin_number === vin)) {
             setDecodedVin({ vin: "", info: { modelYear: "", manufacturer: "" } });
             // alert("This car has already been added to the current inventory.");
-            
             return;
         }
-      
-        try {
-          const res = await axios.post("/api/cars", {
-            user_id: currentUser.id,
-            user_inventory_id: inventoryId,
+
+        console.log("Adding car with data:", {
             vin_number: vin,
-            location,
             year,
             make,
-          });
-          setCars([...cars, res.data]);
-          setVin("");
-          setYear("");
-          setMake("");
-          setDecodedVin({ vin: "", info: { modelYear: "", manufacturer: "" } });
+            location,
+            user_id: currentUser.id,
+            user_inventory_id: inventoryId,
+            account_group_id: currentUser.account_group_id,
+        });
+
+        try {
+            const res = await axios.post("/api/cars", {
+                user_id: currentUser.id,
+                user_inventory_id: inventoryId,
+                account_group_id: currentUser.account_group_id,
+                vin_number: vin,
+                location,
+                year,
+                make,
+            });
+
+            setCars([...cars, res.data]);
+            setVin("");
+            setYear("");
+            setMake("");
+            setDecodedVin({ vin: "", info: { modelYear: "", manufacturer: "" } });
         } catch (err) {
-          setErrors(err);
+            console.error("Error adding car:", err.response?.data || err.message);
+            setErrors(err);
         }
-      };
+    };
 
     const submitInventory = async () => {
         try {
@@ -84,12 +98,12 @@ export default function InventoryContainer() {
 
     useEffect(() => {
         if (decodedVin && Object.keys(decodedVin).length > 0) {
-          if (decodedVin.vin) setVin(decodedVin.vin);
-          if (decodedVin.info?.modelYear) setYear(decodedVin.info.modelYear);
-          if (decodedVin.info?.manufacturer) setMake(decodedVin.info.manufacturer);
+            if (decodedVin.vin) setVin(decodedVin.vin);
+            if (decodedVin.info?.modelYear) setYear(decodedVin.info.modelYear);
+            if (decodedVin.info?.manufacturer) setMake(decodedVin.info.manufacturer);
         }
-      }, [decodedVin]);
-      
+    }, [decodedVin]);
+
     useEffect(() => {
         if (vin) {
             const timer = setTimeout(() => {
@@ -99,32 +113,30 @@ export default function InventoryContainer() {
         }
     }, [vin]);
 
-    {/* <ActionBtn label="Submit" onClick={() => console.log("Clicked!")} /> */}
     return (
         <div className="mt-10">
             {!showForm ? (
                 <div className="float-right -mb-6">
                     <ActionBtn label="+ Car" onClick={handleStartInventory} />
                 </div>
-             
             ) : submitted ? (
                 <div className="text-green-600 dark:text-green-400 font-semibold text-center">
                     Inventory Submitted!
                 </div>
             ) : (
                 <>
-                {/* <BarcodeScanner decodedVin={decodedVin} setDecodedVin={setDecodedVin} /> */}
-                <ScanbotScanner decodedVin={decodedVin} setDecodedVin={setDecodedVin} />
-                
-                <InventoryForm
-                    location={location}
-                    addCar={addCar}
-                    cars={cars}
-                    submitInventory={submitInventory}
-                    decodedVin={decodedVin}
-                />
+                    <ScanbotScanner decodedVin={decodedVin} setDecodedVin={setDecodedVin} />
+
+                    <InventoryForm
+                        location={location}
+                        addCar={addCar}
+                        cars={cars}
+                        submitInventory={submitInventory}
+                        decodedVin={decodedVin}
+                    />
                 </>
             )}
         </div>
-    )
+    );
 }
+
