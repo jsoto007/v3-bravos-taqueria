@@ -20,7 +20,7 @@ const tiers = [
       name: 'Professional',
       id: 'tier-professional',
       href: '#',
-      priceMonthly: '$99.99',
+      priceMonthly: '$99.87',
       description: 'Best for growing dealerships managing higher volumes.',
       features: [
         '2 admin accounts',
@@ -36,7 +36,7 @@ const tiers = [
       name: 'Enterprise',
       id: 'tier-enterprise',
       href: '#',
-      priceMonthly: '$199.99',
+      priceMonthly: '$199.87',
       description: 'Full-scale solution with dedicated support for large dealer networks.',
       features: [
         'Unlimited admin and user accounts',

@@ -140,7 +140,7 @@ class Signup(Resource):
                 is_owner_admin=json.get('is_owner_admin', False),
                 account_group_id=json['account_group_id']
             )
-            user.password_hash = json['password']
+            user.password_hash = json['password']   
             db.session.add(user)
             db.session.commit()
             return serialize_user(user), 201
