@@ -1,26 +1,30 @@
+import React, { useContext, useState } from 'react'
 import { CheckIcon } from '@heroicons/react/20/solid'
+import { UserContext } from '../../context/UserContextProvider'
+import { useNavigate } from 'react-router-dom'
 
-const tiers = [
+const tiers = {
+  monthly: [
     {
       name: 'Starter',
       id: 'tier-starter',
-      href: '#',
-      priceMonthly: 'Free',
+      price: 'Free',
       description: 'Perfect for independent dealers getting started.',
       features: [
         '1 admin account',
-        '1 user accounts',
+        '1 user account',
         'Up to 15 vehicles',
         'Basic inventory tracking',
         'Email support (48-hour response time)',
       ],
+      href: '#',
+      link: '', // no Stripe link for free plan
       mostPopular: false,
     },
     {
       name: 'Professional',
-      id: 'tier-professional',
-      href: '#',
-      priceMonthly: '$99.87',
+      id: 'tier-professional-month',
+      price: '$99.87',
       description: 'Best for growing dealerships managing higher volumes.',
       features: [
         '2 admin accounts',
@@ -30,13 +34,17 @@ const tiers = [
         'VIN decoding + location tracking',
         '24-hour support response time',
       ],
+      href: '#',
+      link:
+        process.env.NODE_ENV === 'development'
+          ? 'https://buy.stripe.com/14A3cwe9E8PcaZY3oH2cg02'
+          : '',
       mostPopular: true,
     },
     {
       name: 'Enterprise',
-      id: 'tier-enterprise',
-      href: '#',
-      priceMonthly: '$199.87',
+      id: 'tier-enterprise-month',
+      price: '$199.87',
       description: 'Full-scale solution with dedicated support for large dealer networks.',
       features: [
         'Unlimited admin and user accounts',
@@ -46,73 +54,92 @@ const tiers = [
         'Real-time multi-location tracking',
         '1-hour priority support',
       ],
+      href: '#',
+      link:
+        process.env.NODE_ENV === 'development'
+          ? 'https://buy.stripe.com/3cI00k4z43uSaZYcZh2cg00'
+          : '',
       mostPopular: false,
     },
-  ]
-
-export const enterpricePlans = [
-  {
-    link: 
-      process.env.NODE_ENV === 'development'
-        ? 'https://buy.stripe.com/3cI00k4z43uSaZYcZh2cg00'
-        : "",
-
-    priceId:
-      process.env.NODE_ENV === 'development'
-      ? 'price_1RqehwJYsAuoeNt7IaJZLPaV'
-      : '',
-    price: 199.87, 
-    duration: '/moth',
-  },
-  {
-    link: 
-      process.env.NODE_ENV === 'development'
-        ? 'https://buy.stripe.com/4gM00k7Lgd5s1pogbt2cg01'
-        : "",
-
-    priceId:
-      process.env.NODE_ENV === 'development'
-      ? 'price_1RqfLrJYsAuoeNt70BjQvxCY'
-      : '',
-    price: 2398.44, 
-    duration: '/year',
-  }
-]
-
-export const professionalPlans = [
-  {
-    link: 
-      process.env.NODE_ENV === 'development'
-        ? 'https://buy.stripe.com/14A3cwe9E8PcaZY3oH2cg02'
-        : "",
-
-    priceId:
-      process.env.NODE_ENV === 'development'
-      ? 'price_1RqfnqJYsAuoeNt7cHoZeUcZ'
-      : '',
-    price: 99.87, 
-    duration: '/moth',
-  },
-  {
-    link: 
-      process.env.NODE_ENV === 'development'
-        ? 'https://buy.stripe.com/8x28wQfdIc1o9VUbVd2cg03'
-        : "",
-
-    priceId:
-      process.env.NODE_ENV === 'development'
-      ? 'price_1RqfogJYsAuoeNt7r0XUb0sC'
-      : '',
-    price: 1198.44, 
-    duration: '/year',
-  }
-]
+  ],
+  yearly: [
+    {
+      name: 'Starter',
+      id: 'tier-starter-year',
+      price: 'Free',
+      description: 'Perfect for independent dealers getting started.',
+      features: [
+        '1 admin account',
+        '1 user account',
+        'Up to 15 vehicles',
+        'Basic inventory tracking',
+        'Email support (48-hour response time)',
+      ],
+      href: '#',
+      link: '', // no Stripe link for free plan
+      mostPopular: false,
+    },
+    {
+      name: 'Professional',
+      id: 'tier-professional-year',
+      price: '$1,198.44',
+      description: 'Best for growing dealerships managing higher volumes.',
+      features: [
+        '2 admin accounts',
+        '10 user accounts',
+        'Up to 250 vehicles',
+        'Advanced reporting & analytics',
+        'VIN decoding + location tracking',
+        '24-hour support response time',
+      ],
+      href: '#',
+      link:
+        process.env.NODE_ENV === 'development'
+          ? 'https://buy.stripe.com/8x28wQfdIc1o9VUbVd2cg03'
+          : '',
+      mostPopular: true,
+    },
+    {
+      name: 'Enterprise',
+      id: 'tier-enterprise-year',
+      price: '$2,398.44',
+      description: 'Full-scale solution with dedicated support for large dealer networks.',
+      features: [
+        'Unlimited admin and user accounts',
+        'Unlimited vehicle listings',
+        'Custom integrations (e.g. DMS, CRM)',
+        'AI-powered recommendations & analytics',
+        'Real-time multi-location tracking',
+        '1-hour priority support',
+      ],
+      href: '#',
+      link:
+        process.env.NODE_ENV === 'development'
+          ? 'https://buy.stripe.com/4gM00k7Lgd5s1pogbt2cg01'
+          : '',
+      mostPopular: false,
+    },
+  ],
+}
 
 function classNames(...classes) {
   return classes.filter(Boolean).join(' ')
 }
 
 export default function LandingPagePricing() {
+  const { currentUser } = useContext(UserContext)
+  const [billingCycle, setBillingCycle] = useState('monthly')
+  const navigate = useNavigate()
+
+  const handleBuy = (link) => {
+    if (!link) return
+    if (!currentUser) {
+      navigate('/auth')
+    } else {
+      window.open(link, '_blank')
+    }
+  }
+
   return (
     <div id='pricingDiv' className="bg-blue-900/10 dark:bg-blue-950/20 py-24 sm:py-32 rounded-sm">
       <div className="mx-auto max-w-7xl px-6 lg:px-8">
@@ -121,19 +148,45 @@ export default function LandingPagePricing() {
           <p className="mt-2 text-balance text-5xl font-semibold tracking-tight text-gray-900 dark:text-white sm:text-6xl">
             Choose the right plan for you
           </p>
+          <p className="mx-auto mt-6 max-w-2xl text-pretty text-center text-lg font-medium text-gray-600 dark:text-gray-400 sm:text-xl/8">
+            Choose an affordable plan that’s packed with the best features for engaging your audience, creating customer
+            loyalty, and driving sales.
+          </p>
+          <fieldset aria-label="Payment frequency" className="mt-6 flex justify-center">
+            <div className="grid grid-cols-2 gap-x-1 rounded-full p-1 text-center text-sm font-semibold ring-1 ring-inset ring-gray-200 dark:ring-gray-700">
+              <label className="group relative rounded-full px-3 py-1 has-[:checked]:bg-indigo-600 cursor-pointer">
+                <input
+                  type="radio"
+                  name="frequency"
+                  value="monthly"
+                  checked={billingCycle === 'monthly'}
+                  onChange={() => setBillingCycle('monthly')}
+                  className="absolute inset-0 appearance-none rounded-full cursor-pointer"
+                />
+                <span className="text-gray-500 dark:text-gray-300 group-has-[:checked]:text-white">Monthly</span>
+              </label>
+              <label className="group relative rounded-full px-3 py-1 has-[:checked]:bg-indigo-600 cursor-pointer">
+                <input
+                  type="radio"
+                  name="frequency"
+                  value="yearly"
+                  checked={billingCycle === 'yearly'}
+                  onChange={() => setBillingCycle('yearly')}
+                  className="absolute inset-0 appearance-none rounded-full cursor-pointer"
+                />
+                <span className="text-gray-500 dark:text-gray-300 group-has-[:checked]:text-white">Yearly</span>
+              </label>
+            </div>
+        </fieldset>
         </div>
-        <p className="mx-auto mt-6 max-w-2xl text-pretty text-center text-lg font-medium text-gray-600 dark:text-gray-400 sm:text-xl/8">
-          Choose an affordable plan that’s packed with the best features for engaging your audience, creating customer
-          loyalty, and driving sales.
-        </p>
         <div className="isolate mx-auto mt-16 grid max-w-md grid-cols-1 gap-y-8 sm:mt-20 lg:mx-0 lg:max-w-none lg:grid-cols-3">
-          {tiers.map((tier, tierIdx) => (
+          {tiers[billingCycle].map((tier, tierIdx) => (
             <div
               key={tier.id}
               className={classNames(
                 tier.mostPopular ? 'lg:z-10 lg:rounded-b-none' : 'lg:mt-8',
                 tierIdx === 0 ? 'lg:rounded-r-none' : '',
-                tierIdx === tiers.length - 1 ? 'lg:rounded-l-none' : '',
+                tierIdx === tiers[billingCycle].length - 1 ? 'lg:rounded-l-none' : '',
                 'bg-white dark:bg-gray-800 ring-gray-200 dark:ring-gray-700',
                 'flex flex-col justify-between rounded-3xl p-8 ring-1 xl:p-10',
               )}
@@ -147,15 +200,19 @@ export default function LandingPagePricing() {
                     {tier.name}
                   </h3>
                   {tier.mostPopular ? (
-                    <p className={`rounded-full bg-indigo-600/10 px-2.5 py-1 text-xs/5 font-semibold text-indigo-600`}>
+                    <p className="rounded-full bg-indigo-600/10 px-2.5 py-1 text-xs/5 font-semibold text-indigo-600">
                       Most popular
                     </p>
                   ) : null}
                 </div>
                 <p className="mt-4 text-sm/6 text-gray-600 dark:text-gray-400">{tier.description}</p>
                 <p className="mt-6 flex items-baseline gap-x-1">
-                  <span className="text-4xl font-semibold tracking-tight text-gray-900 dark:text-white">{tier.priceMonthly}</span>
-                  <span className="text-sm/6 font-semibold text-gray-600 dark:text-gray-400">/month</span>
+                  <span className="text-4xl font-semibold tracking-tight text-gray-900 dark:text-white">{tier.price}</span>
+                  {tier.name !== 'Starter' && (
+                    <span className="text-sm/6 font-semibold text-gray-600 dark:text-gray-400">
+                      {billingCycle === 'monthly' ? '/month' : '/year'}
+                    </span>
+                  )}
                 </p>
                 <ul role="list" className="mt-8 space-y-3 text-sm/6 text-gray-600 dark:text-gray-400">
                   {tier.features.map((feature) => (
@@ -166,18 +223,18 @@ export default function LandingPagePricing() {
                   ))}
                 </ul>
               </div>
-              <a
-                href={tier.href}
+              <button
+                onClick={() => handleBuy(tier.link)}
                 aria-describedby={tier.id}
                 className={classNames(
                   tier.mostPopular
                     ? 'bg-indigo-600 text-white shadow-sm hover:bg-indigo-500'
                     : 'text-indigo-600 dark:text-indigo-400 ring-1 ring-inset ring-indigo-200 dark:ring-indigo-400/30 hover:ring-indigo-300 dark:hover:ring-indigo-400/50',
-                  'mt-8 block rounded-md px-3 py-2 text-center text-sm/6 font-semibold focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600',
+                  'mt-8 block rounded-md px-3 py-2 text-center text-sm/6 font-semibold focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600 w-full',
                 )}
               >
-                Buy plan
-              </a>
+                {tier.name === 'Starter' ? 'Get Started' : 'Buy Plan'}
+              </button>
             </div>
           ))}
         </div>
