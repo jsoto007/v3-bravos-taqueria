@@ -21,7 +21,8 @@ with app.app_context():
     print('👤 Creating users...')
     user1 = User(
         email='user33@example.com',
-        full_name="Fernandito Perreo", 
+        first_name="Fernandito", 
+        last_name="Perreo", 
         admin=False,
         is_owner_admin=False,
         account_group=account_group
@@ -30,7 +31,8 @@ with app.app_context():
 
     user2 = User(
         email='admin33@example.com',
-        full_name="Jone Doe", 
+        first_name="Jone", 
+        last_name="Doe", 
         admin=True,
         is_owner_admin=True,
         account_group=account_group
