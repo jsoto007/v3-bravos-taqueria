@@ -7,9 +7,7 @@ from sqlalchemy.orm import relationship, backref
 
 from config import db, bcrypt
 
-# --------------------
-# AccountGroup model
-# --------------------
+
 class AccountGroup(db.Model, SerializerMixin):
     __tablename__ = 'account_groups'
 
@@ -29,9 +27,6 @@ class AccountGroup(db.Model, SerializerMixin):
     users = relationship('User', backref='account_group', cascade='all, delete-orphan')
 
 
-# --------------------
-# User model
-# --------------------
 class User(db.Model, SerializerMixin):
     __tablename__ = 'users'
 
@@ -76,9 +71,7 @@ class User(db.Model, SerializerMixin):
         return f'User {self.email}, ID: {self.id}'
 
 
-# --------------------
-# UserInventory model
-# --------------------
+
 class UserInventory(db.Model, SerializerMixin):
     __tablename__ = 'user_inventories'
 
@@ -102,9 +95,7 @@ class UserInventory(db.Model, SerializerMixin):
     account_group = relationship('AccountGroup', backref=backref('user_inventories', cascade='all, delete-orphan'))
 
 
-# --------------------
-# CarInventory model
-# --------------------
+
 class CarInventory(db.Model, SerializerMixin):
     __tablename__ = 'car_inventories'
 
@@ -150,9 +141,7 @@ class CarInventory(db.Model, SerializerMixin):
         return f'<CarInventory VIN: {self.vin_number}>'
 
 
-# --------------------
-# CarPhoto model
-# --------------------
+
 class CarPhoto(db.Model, SerializerMixin):
     __tablename__ = 'car_photos'
 
@@ -171,9 +160,6 @@ class CarPhoto(db.Model, SerializerMixin):
     master_car_record = relationship('MasterCarRecord', backref=backref('photos', cascade='all, delete-orphan'))
 
 
-# --------------------
-# MasterCarRecord model
-# --------------------
 class MasterCarRecord(db.Model, SerializerMixin):
     __tablename__ = 'master_car_records'
 
