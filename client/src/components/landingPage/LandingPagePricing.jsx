@@ -9,8 +9,8 @@ const tiers = [
       description: 'Perfect for independent dealers getting started.',
       features: [
         '1 admin account',
-        '3 user accounts',
-        'Up to 25 vehicles',
+        '1 user accounts',
+        'Up to 15 vehicles',
         'Basic inventory tracking',
         'Email support (48-hour response time)',
       ],
@@ -49,6 +49,64 @@ const tiers = [
       mostPopular: false,
     },
   ]
+
+export const enterpricePlans = [
+  {
+    link: 
+      process.env.NODE_ENV === 'development'
+        ? 'https://buy.stripe.com/3cI00k4z43uSaZYcZh2cg00'
+        : "",
+
+    priceId:
+      process.env.NODE_ENV === 'development'
+      ? 'price_1RqehwJYsAuoeNt7IaJZLPaV'
+      : '',
+    price: 199.87, 
+    duration: '/moth',
+  },
+  {
+    link: 
+      process.env.NODE_ENV === 'development'
+        ? 'https://buy.stripe.com/4gM00k7Lgd5s1pogbt2cg01'
+        : "",
+
+    priceId:
+      process.env.NODE_ENV === 'development'
+      ? 'price_1RqfLrJYsAuoeNt70BjQvxCY'
+      : '',
+    price: 2398.44, 
+    duration: '/year',
+  }
+]
+
+export const professionalPlans = [
+  {
+    link: 
+      process.env.NODE_ENV === 'development'
+        ? 'https://buy.stripe.com/14A3cwe9E8PcaZY3oH2cg02'
+        : "",
+
+    priceId:
+      process.env.NODE_ENV === 'development'
+      ? 'price_1RqfnqJYsAuoeNt7cHoZeUcZ'
+      : '',
+    price: 99.87, 
+    duration: '/moth',
+  },
+  {
+    link: 
+      process.env.NODE_ENV === 'development'
+        ? 'https://buy.stripe.com/8x28wQfdIc1o9VUbVd2cg03'
+        : "",
+
+    priceId:
+      process.env.NODE_ENV === 'development'
+      ? 'price_1RqfogJYsAuoeNt7r0XUb0sC'
+      : '',
+    price: 1198.44, 
+    duration: '/year',
+  }
+]
 
 function classNames(...classes) {
   return classes.filter(Boolean).join(' ')
