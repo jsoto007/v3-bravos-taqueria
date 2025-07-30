@@ -40,7 +40,8 @@ class User(db.Model, SerializerMixin):
     email = db.Column(db.String, unique=True, nullable=False)
     _password_hash = db.Column(db.String, nullable=False)
 
-    full_name = db.Column(db.String, unique=False, nullable=True)
+    first_name = db.Column(db.String, unique=False, nullable=True)
+    last_name = db.Column(db.String, unique=False, nullable=True)
 
     admin = db.Column(db.Boolean, default=False)
     is_owner_admin = db.Column(db.Boolean, default=False)
