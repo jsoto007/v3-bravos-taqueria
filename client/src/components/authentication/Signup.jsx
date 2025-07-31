@@ -31,7 +31,7 @@ export default function Signup({ setUser }) {
         headers: {
           "Content-Type": "application/json",
         },
-        credentials: "include", // Required for cookies/session
+        credentials: "include",
         body: JSON.stringify({
           username,
           password,
@@ -59,7 +59,7 @@ export default function Signup({ setUser }) {
       console.log("User created:", userData);
       setCurrentUser(userData);
   
-      // Force a full reload so the session cookie is respected
+  
       window.location.href = "/dashboard";
     } catch (err) {
       console.error("Unexpected signup error:", err);
@@ -76,7 +76,6 @@ export default function Signup({ setUser }) {
           </h2>
 
           <form onSubmit={handleSubmit} className="mt-10 space-y-6">
-            {/* Email */}
             <div>
               <label htmlFor="username" className="block text-sm font-medium text-gray-900 dark:text-white">
                 Email
@@ -92,8 +91,6 @@ export default function Signup({ setUser }) {
                 className="mt-2 block w-full rounded-md bg-white dark:bg-gray-800 px-3 py-1.5 text-base text-gray-900 dark:text-white border border-gray-300 dark:border-gray-600 placeholder:text-gray-400 dark:placeholder:text-gray-500 focus:outline-none focus:ring-2 focus:ring-indigo-600"
               />
             </div>
-
-            {/* First Name */}
             <div>
               <label htmlFor="firstName" className="block text-sm font-medium text-gray-900 dark:text-white">
                 First Name
@@ -109,8 +106,6 @@ export default function Signup({ setUser }) {
                 className="mt-2 block w-full rounded-md bg-white dark:bg-gray-800 px-3 py-1.5 text-base text-gray-900 dark:text-white border border-gray-300 dark:border-gray-600 placeholder:text-gray-400 dark:placeholder:text-gray-500 focus:outline-none focus:ring-2 focus:ring-indigo-600"
               />
             </div>
-
-            {/* Last Name */}
             <div>
               <label htmlFor="lastName" className="block text-sm font-medium text-gray-900 dark:text-white">
                 Last Name
@@ -128,7 +123,7 @@ export default function Signup({ setUser }) {
             </div>
 
             {/* Optional Group Key */}
-            <div>
+            {/* <div>
               <label htmlFor="groupKey" className="block text-sm font-medium text-gray-900 dark:text-white">
                 Group Key <span className="text-gray-400">(optional)</span>
               </label>
@@ -141,9 +136,8 @@ export default function Signup({ setUser }) {
                 onChange={(e) => setGroupKey(e.target.value.toUpperCase())}
                 className="mt-2 block w-full rounded-md bg-white dark:bg-gray-800 px-3 py-1.5 text-base text-gray-900 dark:text-white border border-gray-300 dark:border-gray-600 placeholder:text-gray-400 dark:placeholder:text-gray-500 focus:outline-none focus:ring-2 focus:ring-indigo-600"
               />
-            </div>
+            </div> */}
 
-            {/* Password */}
             <div>
               <label htmlFor="password" className="block text-sm font-medium text-gray-900 dark:text-white">
                 Password
@@ -159,8 +153,6 @@ export default function Signup({ setUser }) {
                 className="mt-2 block w-full rounded-md bg-white dark:bg-gray-800 px-3 py-1.5 text-base text-gray-900 dark:text-white border border-gray-300 dark:border-gray-600 placeholder:text-gray-400 dark:placeholder:text-gray-500 focus:outline-none focus:ring-2 focus:ring-indigo-600"
               />
             </div>
-
-            {/* Confirm Password */}
             <div>
               <label htmlFor="confirmPassword" className="block text-sm font-medium text-gray-900 dark:text-white">
                 Confirm Password
@@ -176,8 +168,6 @@ export default function Signup({ setUser }) {
                 className="mt-2 block w-full rounded-md bg-white dark:bg-gray-800 px-3 py-1.5 text-base text-gray-900 dark:text-white border border-gray-300 dark:border-gray-600 placeholder:text-gray-400 dark:placeholder:text-gray-500 focus:outline-none focus:ring-2 focus:ring-indigo-600"
               />
             </div>
-
-            {/* Submit */}
             <div>
               <button
                 type="submit"
@@ -187,8 +177,6 @@ export default function Signup({ setUser }) {
               </button>
             </div>
           </form>
-
-          {/* Error Message */}
           {error && <p className="mt-4 text-sm text-red-600 dark:text-red-400">{error}</p>}
         </div>
       </div>
