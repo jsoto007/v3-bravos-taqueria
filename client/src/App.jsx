@@ -15,6 +15,8 @@ import Dashboard from './components/Dashboard';
 import Footer from './shared/Footer';
 import ScanbotScanner from './utils/ScanbotScanner';
 
+import SubscriptionDashboard from './components/subscription/subscriptionDashboard';
+
 import PageNotFound from './shared/PageNotFound';
 
 
@@ -34,6 +36,7 @@ function App() {
 
             <Route path="/test_scanner" element={<ScanbotScanner />} />
 
+            <Route path="/subscriptions" element={<SubscriptionDashboard />} />
             <Route path="/master_inventory/:id" element={<MasterCarContainer />} />
             <Route path="/master_inventory/create_master_inventory" element={<MasterInventoryForm />} />
             <Route path="/admin/user_inventory_check/:id" element={<AdminInventoryReviewContainer />} />
