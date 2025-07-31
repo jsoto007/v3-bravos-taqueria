@@ -419,7 +419,25 @@ class UploadPhoto(Resource):
 
 class VinHistory(Resource):
     def get(self):
-        car_inventories = db.session.query(CarInventory).options(joinedload(CarInventory.user)).all()
+        user_id = session.get('user_id')
+        if not user_id:
+            return {"error": "Unauthorized"}, 401
+
+        user = User.query.filter_by(id=user_id).first()
+        if not user:
+            return {"error": "User not found"}, 404
+
+        account_group_id = user.account_group_id
+        if not account_group_id:
+            return {"error": "No account group associated with user"}, 403
+
+        car_inventories = (
+            db.session.query(CarInventory)
+            .options(joinedload(CarInventory.user))
+            .filter(CarInventory.account_group_id == account_group_id)
+            .all()
+        )
+
         vin_map = {}
 
         for car in car_inventories:
