@@ -12,12 +12,13 @@ const tiers = {
       description: 'Perfect for independent dealers getting started.',
       features: [
         '1 admin account',
+        '1 user account',
         'Up to 15 vehicles',
         'Basic inventory tracking',
         'Email support (48-hour response time)',
       ],
-      href: '#',
-      link: '', // no Stripe link for free plan
+      href: '/auth',
+      link: '/auth', // no Stripe link for free plan
       mostPopular: false,
     },
     {
