@@ -21,6 +21,9 @@ class AccountGroup(db.Model, SerializerMixin):
     group_key = db.Column(db.String, unique=True, nullable=False)
     is_active = db.Column(db.Boolean, default=True)
     paid_until = db.Column(db.DateTime, nullable=True)
+
+    stripe_customer_id = db.Column(db.String, unique=True)
+    stripe_subscription_id = db.Column(db.String, unique=True)
     created_at = db.Column(db.DateTime, server_default=db.func.now())
 
     # Relationships
