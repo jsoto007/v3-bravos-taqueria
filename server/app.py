@@ -444,23 +444,25 @@ class StripeWebhook(Resource):
         customer_id = data.get('customer')
         subscription_id = data.get('id')
 
-        group = AccountGroup.query.filter_by(stripe_customer_id=customer_id).first()
-        if not group:
-            return {"error": "AccountGroup not found for customer"}, 404
+        group = None
+        if customer_id:
+            group = AccountGroup.query.filter_by(stripe_customer_id=customer_id).first()
 
         if event_type in ['customer.subscription.created', 'customer.subscription.updated']:
-            status = data.get('status')
-            current_period_end = data.get('current_period_end')
-            group.is_active = (status == 'active')
-            group.paid_until = datetime.fromtimestamp(current_period_end, tz=timezone.utc)
-            group.stripe_subscription_id = subscription_id
-            db.session.commit()
-
+            if group:
+                status = data.get('status')
+                current_period_end = data.get('current_period_end')
+                group.is_active = (status == 'active')
+                group.paid_until = datetime.fromtimestamp(current_period_end, tz=timezone.utc)
+                group.stripe_subscription_id = subscription_id
+                db.session.commit()
         elif event_type == 'customer.subscription.deleted':
-            group.is_active = False
-            db.session.commit()
+            if group:
+                group.is_active = False
+                db.session.commit()
 
-        return {"status": "success"}, 200
+        # ✅ Always return 200 to acknowledge receipt, even for unhandled events
+        return {"status": "received"}, 200
     
 
 

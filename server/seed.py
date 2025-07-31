@@ -25,7 +25,7 @@ with app.app_context():
         last_name="Perreo", 
         admin=False,
         is_owner_admin=False,
-        account_group=account_group
+        account_group_id=account_group.id
     )
     user1.password_hash = 'password123'
 
@@ -35,7 +35,7 @@ with app.app_context():
         last_name="Doe", 
         admin=True,
         is_owner_admin=True,
-        account_group=account_group
+        account_group_id=account_group.id
     )
     user2.password_hash = 'adminpass456'
 
@@ -44,8 +44,8 @@ with app.app_context():
 
     print('📦 Creating user inventory...')
     user_inventory1 = UserInventory(
-        user=user1,
-        account_group=account_group,
+        user_id=user1.id,
+        account_group_id=account_group.id,
         submitted=False,
         reviewed=False
     )
@@ -58,18 +58,18 @@ with app.app_context():
         vin_number='1HGCM82633A004352',
         year=2015,
         make='Honda',
-        user=user1,
-        user_inventory=user_inventory1,
-        account_group=account_group
+        user_id=user1.id,
+        user_inventory_id=user_inventory1.id,
+        account_group_id=account_group.id
     )
     car2 = CarInventory(
         location='Los Angeles Lot B',
         vin_number='2T1BURHE0JC123456',
         year=2017,
         make='Toyota',
-        user=user1,
-        user_inventory=user_inventory1,
-        account_group=account_group
+        user_id=user1.id,
+        user_inventory_id=user_inventory1.id,
+        account_group_id=account_group.id
     )
     db.session.add_all([car1, car2])
     db.session.commit()
