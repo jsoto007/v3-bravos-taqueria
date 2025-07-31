@@ -7,6 +7,7 @@ from flask_cors import CORS
 from sqlalchemy.orm import joinedload
 from sqlalchemy.exc import IntegrityError
 from werkzeug.utils import secure_filename
+import uuid
 
 from config import db, bcrypt, app
 from models import User, CarInventory, CarPhoto, MasterCarRecord, UserInventory, AccountGroup
@@ -136,6 +137,8 @@ class AccountGroups(Resource):
         groups = AccountGroup.query.all()
         return make_response(jsonify([serialize_account_group(g) for g in groups]), 200)
 
+
+
 class Signup(Resource):
     def post(self):
         json = request.get_json()
@@ -152,8 +155,12 @@ class Signup(Resource):
                 if not group:
                     return {"error": "Account group does not exist"}, 400
 
-            # If no group ID, and user is owner admin, allow auto-creation
-            elif is_owner_admin and group_key:
+            # If no group ID, and user is owner admin, handle group creation
+            elif is_owner_admin:
+                # If group_key not provided, generate one from uuid
+                if not group_key:
+                    group_key = self._generate_unique_group_key()
+
                 group = AccountGroup.query.filter_by(group_key=group_key).first()
                 if not group:
                     group = AccountGroup(group_key=group_key)
@@ -172,6 +179,9 @@ class Signup(Resource):
             user.password_hash = json['password']
             db.session.add(user)
             db.session.commit()
+
+            session['user_id'] = user.id 
+    
             return serialize_user(user), 201
 
         except IntegrityError:
@@ -179,7 +189,14 @@ class Signup(Resource):
             return {"error": "Username already exists."}, 422
         except KeyError as e:
             return {"error": f"Missing field: {str(e)}"}, 400
-        
+
+    def _generate_unique_group_key(self, length=15, max_attempts=10):
+        for _ in range(max_attempts):
+            # Use first `length` characters of a UUIDv4 (removing hyphens)
+            candidate = str(uuid.uuid4()).replace('-', '')[:length].upper()
+            if not AccountGroup.query.filter_by(group_key=candidate).first():
+                return candidate
+        raise Exception("Failed to generate unique group_key after several attempts.")
 
 
 class CheckSession(Resource):
