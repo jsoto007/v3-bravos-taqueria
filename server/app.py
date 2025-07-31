@@ -11,6 +11,12 @@ from werkzeug.utils import secure_filename
 from config import db, bcrypt, app
 from models import User, CarInventory, CarPhoto, MasterCarRecord, UserInventory, AccountGroup
 
+# ---------- Stripe ---------- #
+import stripe
+from datetime import timezone, datetime
+
+stripe.api_key = os.getenv('STRIPE_SECRET_KEY')
+
 # SQLAlchemy pre-ping setting
 app.config['SQLALCHEMY_ENGINE_OPTIONS'] = {'pool_pre_ping': True}
 
@@ -134,21 +140,47 @@ class Signup(Resource):
     def post(self):
         json = request.get_json()
         try:
+            group_id = json.get('account_group_id')
+            group_key = json.get('group_key')
+            is_owner_admin = json.get('is_owner_admin', False)
+
+            group = None
+
+            # If group ID is provided, check it exists
+            if group_id:
+                group = AccountGroup.query.get(group_id)
+                if not group:
+                    return {"error": "Account group does not exist"}, 400
+
+            # If no group ID, and user is owner admin, allow auto-creation
+            elif is_owner_admin and group_key:
+                group = AccountGroup.query.filter_by(group_key=group_key).first()
+                if not group:
+                    group = AccountGroup(group_key=group_key)
+                    db.session.add(group)
+                    db.session.commit()
+
+            if not group:
+                return {"error": "You must provide a valid account_group_id or group_key"}, 400
+
             user = User(
                 email=json['username'],
                 admin=json.get('admin', False),
-                is_owner_admin=json.get('is_owner_admin', False),
-                account_group_id=json['account_group_id']
+                is_owner_admin=is_owner_admin,
+                account_group_id=group.id
             )
-            user.password_hash = json['password']   
+            user.password_hash = json['password']
             db.session.add(user)
             db.session.commit()
             return serialize_user(user), 201
+
         except IntegrityError:
             db.session.rollback()
             return {"error": "Username already exists."}, 422
         except KeyError as e:
             return {"error": f"Missing field: {str(e)}"}, 400
+        
+
 
 class CheckSession(Resource):
     def get(self):
@@ -389,6 +421,49 @@ class VinHistory(Resource):
 
         result = [{"vin": vin_data["vin"], "history": vin_data["history"]} for vin_data in vin_map.values()]
         return make_response(jsonify(result), 200)
+    
+
+# -------- Stripe -------- #
+class StripeWebhook(Resource):
+    def post(self):
+        payload = request.data
+        sig_header = request.headers.get('stripe-signature')
+        endpoint_secret = os.getenv('STRIPE_WEBHOOK_SECRET')
+
+        try:
+            event = stripe.Webhook.construct_event(
+                payload, sig_header, endpoint_secret
+            )
+        except ValueError:
+            return {"error": "Invalid payload"}, 400
+        except stripe.error.SignatureVerificationError:
+            return {"error": "Invalid signature"}, 400
+
+        event_type = event['type']
+        data = event['data']['object']
+        customer_id = data.get('customer')
+        subscription_id = data.get('id')
+
+        group = AccountGroup.query.filter_by(stripe_customer_id=customer_id).first()
+        if not group:
+            return {"error": "AccountGroup not found for customer"}, 404
+
+        if event_type in ['customer.subscription.created', 'customer.subscription.updated']:
+            status = data.get('status')
+            current_period_end = data.get('current_period_end')
+            group.is_active = (status == 'active')
+            group.paid_until = datetime.fromtimestamp(current_period_end, tz=timezone.utc)
+            group.stripe_subscription_id = subscription_id
+            db.session.commit()
+
+        elif event_type == 'customer.subscription.deleted':
+            group.is_active = False
+            db.session.commit()
+
+        return {"status": "success"}, 200
+    
+
+
 
 # -------- Routes -------- #
 api.add_resource(AccountGroups, '/api/account_groups', endpoint='account_groups')
@@ -408,9 +483,23 @@ api.add_resource(UploadPhoto, '/api/upload_photo', endpoint='upload_photo')
 api.add_resource(UploadPhoto, '/api/upload_photo/<int:id>', endpoint='upload_photo_by_id')
 api.add_resource(VinHistory, '/api/vin_history', endpoint='vin_history')
 
+api.add_resource(StripeWebhook, '/api/webhook/stripe', endpoint='stripe_webhook')
+
 @app.route('/static/uploads/<filename>')
 def serve_uploaded_file(filename):
     return send_from_directory(app.config['UPLOAD_FOLDER'], filename)
+
+@app.route('/api/protected-resource')
+def protected_resource():
+    user_id = session.get("user_id")
+    if not user_id:
+        return {"error": "Unauthorized"}, 401
+
+    user = User.query.filter_by(id=user_id).first()
+    if not user or not user.account_group or not user.account_group.is_active:
+        return {"error": "Subscription inactive"}, 403
+
+    return {"message": "Access granted"}
 
 if __name__ == "__main__":
     app.run(host="0.0.0.0", port=int(os.environ.get("PORT", 5555)))
