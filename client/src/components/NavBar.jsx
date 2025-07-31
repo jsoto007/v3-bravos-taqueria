@@ -15,12 +15,12 @@ export default function NavBar() {
           <>
             <div className="mx-auto flex max-w-7xl items-center justify-between px-4 py-4 sm:px-6 lg:px-8">
               <div className="flex-shrink-0">
-                <Link
-                  to="/dashboard"
-                  className="text-xl font-bold text-gray-900 dark:text-white"
-                >
-                  <img src={logo} alt="Logo" className="h-8 w-auto rounded-lg" />
-                </Link>
+              <Link
+                to="/dashboard"
+                className="flex items-center text-xl font-bold text-gray-900 dark:text-white"
+              >
+                <img src={logo} alt="Logo" className="h-8 w-auto rounded-lg cursor-pointer" />
+              </Link>
               </div>
 
               {/* Navigation Links */}

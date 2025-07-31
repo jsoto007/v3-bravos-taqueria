@@ -9,15 +9,14 @@ export default function LandingPageNav() {
       <div className="scroll-smooth mx-auto flex max-w-7xl items-center justify-between px-4 py-4 sm:px-6 lg:px-8">
         {/* Logo */}
       <div className="flex-shrink-0">
-        <button
-          onClick={() => {
-            const el = document.getElementById('landing-page-hero');
-            if (el) el.scrollIntoView({ behavior: 'smooth' });
-          }}
-          className="text-xl font-bold text-gray-900 dark:text-white"
-        >
-          <img src={logo} alt="Logo" className="h-8 w-auto rounded-lg" />
-        </button>
+      <button
+        onClick={() => {
+        window.location.href = '/';
+        }}
+        className="text-xl font-bold text-gray-900 dark:text-white"
+      >
+        <img src={logo} alt="Logo" className="h-8 w-auto rounded-lg" />
+      </button>
       </div>
 
         {/* Navigation Links */}
