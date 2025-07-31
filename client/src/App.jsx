@@ -15,7 +15,7 @@ import Dashboard from './components/Dashboard';
 import Footer from './shared/Footer';
 import ScanbotScanner from './utils/ScanbotScanner';
 
-import SubscriptionDashboard from './components/subscription/subscriptionDashboard';
+import SubscriptionDashboard from './components/subscription/SubscriptionDashboard';
 
 import PageNotFound from './shared/PageNotFound';
 
