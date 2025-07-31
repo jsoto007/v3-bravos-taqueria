@@ -12,7 +12,6 @@ const tiers = {
       description: 'Perfect for independent dealers getting started.',
       features: [
         '1 admin account',
-        '1 user account',
         'Up to 15 vehicles',
         'Basic inventory tracking',
         'Email support (48-hour response time)',
