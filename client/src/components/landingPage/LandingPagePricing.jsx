@@ -35,10 +35,7 @@ const tiers = {
         '24-hour support response time',
       ],
       href: '#',
-      link:
-        process.env.NODE_ENV === 'development'
-          ? 'https://buy.stripe.com/14A3cwe9E8PcaZY3oH2cg02'
-          : '',
+      link: 'https://buy.stripe.com/14A3cwe9E8PcaZY3oH2cg02',
       mostPopular: true,
     },
     {
@@ -55,10 +52,7 @@ const tiers = {
         '1-hour priority support',
       ],
       href: '#',
-      link:
-        process.env.NODE_ENV === 'development'
-          ? 'https://buy.stripe.com/3cI00k4z43uSaZYcZh2cg00'
-          : '',
+      link: 'https://buy.stripe.com/3cI00k4z43uSaZYcZh2cg00',
       mostPopular: false,
     },
   ],
@@ -93,10 +87,7 @@ const tiers = {
         '24-hour support response time',
       ],
       href: '#',
-      link:
-        process.env.NODE_ENV === 'development'
-          ? 'https://buy.stripe.com/8x28wQfdIc1o9VUbVd2cg03'
-          : '',
+      link: 'https://buy.stripe.com/8x28wQfdIc1o9VUbVd2cg03',
       mostPopular: true,
     },
     {
@@ -113,10 +104,7 @@ const tiers = {
         '1-hour priority support',
       ],
       href: '#',
-      link:
-        process.env.NODE_ENV === 'development'
-          ? 'https://buy.stripe.com/4gM00k7Lgd5s1pogbt2cg01'
-          : '',
+      link: 'https://buy.stripe.com/4gM00k7Lgd5s1pogbt2cg01',
       mostPopular: false,
     },
   ],
