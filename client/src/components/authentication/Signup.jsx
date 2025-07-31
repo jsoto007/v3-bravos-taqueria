@@ -1,5 +1,7 @@
-import React, { useState } from "react";
+import React, { useState, useContext } from "react";
 import { useNavigate } from "react-router-dom"
+import { UserContext } from "../../context/UserContextProvider";
+
 
 export default function Signup({ setUser }) {
   const [username, setUsername] = useState("");
@@ -10,44 +12,58 @@ export default function Signup({ setUser }) {
   const [groupKey, setGroupKey] = useState(""); // Optional
   const [error, setError] = useState("");
 
-
+  const { setCurrentUser } = useContext(UserContext);
+  
   const navigate = useNavigate();
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError("");
-
+  
     if (password !== confirmPassword) {
       setError("Passwords do not match.");
       return;
     }
-
+  
     try {
       const response = await fetch("/api/signup", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
         },
+        credentials: "include", // Required for cookies/session
         body: JSON.stringify({
           username,
           password,
           first_name: firstName,
           last_name: lastName,
-          group_key: groupKey || undefined, // omit if empty
-          is_owner_admin: true, // Default to true for free accounts
+          group_key: groupKey || undefined,
+          is_owner_admin: true,
         }),
       });
-
-      if (response.ok) {
-        const userData = await response.json();
-        setUser(userData);
-        navigate("/dashboard")
-      } else {
-        const errorData = await response.json();
-        setError(errorData.error || "Signup failed.");
+  
+      if (!response.ok) {
+        // Try to parse the error response
+        let errorMessage = "Signup failed.";
+        try {
+          const errorData = await response.json();
+          errorMessage = errorData?.error || errorMessage;
+        } catch (_) {
+          // fallback in case response isn't JSON
+        }
+        setError(errorMessage);
+        return;
       }
+  
+      const userData = await response.json();
+      console.log("User created:", userData);
+      setCurrentUser(userData);
+  
+      // Force a full reload so the session cookie is respected
+      window.location.href = "/dashboard";
     } catch (err) {
-      setError("An unexpected error occurred.");
+      console.error("Unexpected signup error:", err);
+      setError("An unexpected error occurred. Please try again.");
     }
   };
 
