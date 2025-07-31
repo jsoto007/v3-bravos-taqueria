@@ -156,7 +156,7 @@ export default function SubscriptionDashboard() {
       case "usage":
         return <p className="text-gray-600 dark:text-gray-400">Detailed usage coming soon.</p>;
       case "settings":
-        return <p className="text-gray-600 dark:text-gray-400">Settings tab under construction.</p>;
+        return <p className="text-gray-600 dark:text-gray-400">Settings tab under construction. Note that this option will allow the admin to crate user accounts</p>;
     }
   };
 
