@@ -36,12 +36,12 @@ export default function LandingPageHero() {
             </a>
           </div>
           <h1 className="mt-10 text-pretty text-5xl font-semibold tracking-tight text-gray-900 dark:text-white sm:text-7xl">
-          Supercharge Your Dealership  
+          Supercharge Your Dealership
           </h1>
           <p className="mt-8 text-pretty text-lg font-medium text-gray-500 dark:text-gray-400 sm:text-xl/8">
-            Streamline your inventory with real-time tracking and VIN decoding.
-            Know where every car is, what’s selling fast, and auto-post to multiple dealer platforms.
-            Get AI-powered insights and smart recommendations — even while you're on vacation.
+            Easily conduct and manage your car inventory with powerful tracking tools. 
+            Monitor each vehicle's last known location, assigned user, and status in real time. 
+            Simplify audits, reduce errors, and stay in control — wherever you are.
           </p>
           <div className="mt-10 flex items-center gap-x-6">
             <button

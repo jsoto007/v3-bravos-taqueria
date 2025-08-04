@@ -30,8 +30,9 @@ const tiers = {
         '2 admin accounts',
         '10 user accounts',
         'Up to 250 vehicles',
-        'Advanced reporting & analytics',
-        'VIN decoding + location tracking',
+        'Smart VIN decoding with location capture',
+        'Instant inventory logs to reduce human error',
+        'Advanced reports and performance metrics',
         '24-hour support response time',
       ],
       href: '#',
@@ -45,10 +46,10 @@ const tiers = {
       description: 'Full-scale solution with dedicated support for large dealer networks.',
       features: [
         'Unlimited admin and user accounts',
-        'Unlimited vehicle listings',
+        'Unlimited vehicle tacking',
         'Custom integrations (e.g. DMS, CRM)',
-        'AI-powered recommendations & analytics',
-        'Real-time multi-location tracking',
+        'AI-powered insights & VIN-based inventory automation',
+        'Location-aware tracking of last known user',
         '1-hour priority support',
       ],
       href: '#',
@@ -204,7 +205,7 @@ export default function LandingPagePricing() {
                 </p>
                 <ul role="list" className="mt-8 space-y-3 text-sm/6 text-gray-600 dark:text-gray-400">
                   {tier.features.map((feature) => (
-                    <li key={feature} className="flex gap-x-3">
+                    <li key={feature} className="flex gap-x-3 text-pretty text-left">
                       <CheckIcon aria-hidden="true" className="h-6 w-5 flex-none text-indigo-600" />
                       {feature}
                     </li>
