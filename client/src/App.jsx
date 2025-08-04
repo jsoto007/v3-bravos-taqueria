@@ -19,6 +19,8 @@ import SubscriptionDashboard from './components/subscription/SubscriptionDashboa
 
 import PageNotFound from './shared/PageNotFound';
 
+import InventoryFeed from './components/inventory/InventoryFeed';
+
 
 function App() {
 
@@ -35,6 +37,7 @@ function App() {
             <Route path="/inventory" element={<UserInventoryContainer />} />
 
             <Route path="/test_scanner" element={<ScanbotScanner />} />
+            <Route path="/test_inventory" element={<InventoryFeed />} />
 
             <Route path="/subscriptions" element={<SubscriptionDashboard />} />
             <Route path="/master_inventory/:id" element={<MasterCarContainer />} />

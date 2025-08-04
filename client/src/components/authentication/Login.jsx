@@ -14,6 +14,7 @@ export default function Login() {
         const isLoggedIn = await login(username, password);
         if (isLoggedIn) {
             navigate("/dashboard");
+            window.location.reload();
         }
     };
 

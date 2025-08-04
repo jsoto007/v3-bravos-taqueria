@@ -57,8 +57,8 @@ export default function InventoryFeed() {
               <div className="relative flex space-x-3">
                 <div>
                 <span className="inline-block size-8 rounded-full overflow-hidden ring-8 ring-white dark:ring-gray-900 flex items-center justify-center">
-  <span className="text-2xl leading-none">📍</span>
-</span>
+                <span className="text-2xl leading-none">📍</span>
+                </span>
                 </div>
                 <div className="flex min-w-0 flex-1 justify-between space-x-4 pt-1.5">
                   <div>
