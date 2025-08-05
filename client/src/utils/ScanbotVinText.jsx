@@ -1,6 +1,7 @@
 import { useCallback } from "react";
 import ScanbotSDK from "scanbot-web-sdk/ui";
 
+
 export default function ScanbotVinText() {
   const apiKey = import.meta.env.VITE_SCANBOT_LICENSE_KEY;
 
