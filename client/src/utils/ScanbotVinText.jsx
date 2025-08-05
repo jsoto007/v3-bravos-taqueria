@@ -1,9 +1,9 @@
-import { useCallback } from "react";
+import { useCallback, useState } from "react";
 import ScanbotSDK from "scanbot-web-sdk/ui";
-
 
 export default function ScanbotVinText() {
   const apiKey = import.meta.env.VITE_SCANBOT_LICENSE_KEY;
+  const [vin, setVin] = useState(""); // Step 1: Add state
 
   const startVinScanner = useCallback(async () => {
     try {
@@ -13,25 +13,26 @@ export default function ScanbotVinText() {
       });
 
       const configuration = {
-        containerId: "vin-scanner-container", // Ensure this div exists in your component's render
+        containerId: "vin-scanner-container",
         onVinDetected: (result) => {
-            console.log("SCAN RESULT:", result)
-            if (result?.textResult?.rawText) {
-                console.log('Scanned VIN:', result.textResult.rawText);
-              } else if (result?.barcodeResult?.extractedVIN) {
-                console.log('Scanned VIN from barcode:', result.barcodeResult.extractedVIN);
-              } else {
-                console.log('VIN scanning canceled or failed.');
-              }
+          console.log("SCAN RESULT:", result);
+
+          if (result?.textResult?.rawText) {
+            console.log("Scanned VIN:", result.textResult.rawText);
+            setVin(result.textResult.rawText); // Step 2: Update state
+          } else if (result?.barcodeResult?.extractedVIN) {
+            console.log("Scanned VIN from barcode:", result.barcodeResult.extractedVIN);
+            setVin(result.barcodeResult.extractedVIN); // Optional: fall back to barcode VIN
+          } else {
+            console.log("VIN scanning canceled or failed.");
+          }
         },
         onError: (error) => {
           console.error("VIN scanner error:", error);
         },
-        // Add further configuration as needed (styling, videoConstraints, etc)
       };
 
       await sdk.createVinScanner(configuration);
-      // You may wish to save the scanner instance for later disposal
     } catch (error) {
       console.error("VIN scanner error:", error);
     }
@@ -45,6 +46,7 @@ export default function ScanbotVinText() {
       >
         Start VIN Scan
       </button>
+      <h1>{vin}</h1> {/* Step 3: Render VIN */}
       <div id="vin-scanner-container" style={{ width: "100%", height: "500px" }} />
     </div>
   );
