@@ -38,7 +38,7 @@ export default function LandingPageHero() {
           <h1 className="mt-10 text-pretty text-5xl font-semibold tracking-tight text-gray-900 dark:text-white sm:text-7xl">
           Supercharge Your Dealership
           </h1>
-          <p className="mt-8 text-pretty text-lg font-medium text-gray-500 dark:text-gray-400 sm:text-xl/8">
+          <p className="mt-8 text-balance text-lg font-medium text-gray-500 dark:text-gray-400 sm:text-xl/8">
             Easily conduct and manage your car inventory with powerful tracking tools. 
             Monitor each vehicle's last known location, assigned user, and status in real time. 
             Simplify audits, reduce errors, and stay in control — wherever you are.
