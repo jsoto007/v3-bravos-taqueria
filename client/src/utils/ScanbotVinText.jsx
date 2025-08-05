@@ -14,11 +14,14 @@ export default function ScanbotVinText() {
       const configuration = {
         containerId: "vin-scanner-container", // Ensure this div exists in your component's render
         onVinDetected: (result) => {
-          if (result && result.vin) {
-            console.log("Scanned VIN:", result.vin);
-          } else {
-            console.log("VIN scanning canceled or failed.");
-          }
+            console.log("SCAN RESULT:", result)
+            if (result?.textResult?.rawText) {
+                console.log('Scanned VIN:', result.textResult.rawText);
+              } else if (result?.barcodeResult?.extractedVIN) {
+                console.log('Scanned VIN from barcode:', result.barcodeResult.extractedVIN);
+              } else {
+                console.log('VIN scanning canceled or failed.');
+              }
         },
         onError: (error) => {
           console.error("VIN scanner error:", error);
