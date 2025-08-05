@@ -12,9 +12,9 @@ export default function Auth() {
            <h1 className="text-4xl font-bold text-center text-gray-900 dark:text-white my-8">Auto Tracker</h1>
             {isLogin ? <Login /> : <Signup />}
             <hr className="my-15"/>
-            <ActionBtn label="Create Account" onClick={() => setIsLogin(!isLogin)}>
-                {isLogin ? "Create an Account" : "Log In"}
-            </ActionBtn>
+            <ActionBtn label={isLogin ? "Create Account" : "Back to Login"} onClick={() => setIsLogin(!isLogin)}>
+  
+</ActionBtn>
         </>
     );
 }
