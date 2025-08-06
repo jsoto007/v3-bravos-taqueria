@@ -172,7 +172,7 @@ class Signup(Resource):
 
             user = User(
                 email=json['username'],
-                admin=json.get('admin', False),
+                admin=json.get('admin', True),
                 is_owner_admin=is_owner_admin,
                 account_group_id=group.id
             )
