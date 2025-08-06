@@ -197,7 +197,50 @@ class Signup(Resource):
             if not AccountGroup.query.filter_by(group_key=candidate).first():
                 return candidate
         raise Exception("Failed to generate unique group_key after several attempts.")
+    
 
+# Admin can create user account; testing route
+class AdminCreateUser(Resource):
+    def post(self):
+        admin_id = session.get('user_id')
+        if not admin_id:
+            return {"error": "Unauthorized"}, 401
+
+        admin = User.query.get(admin_id)
+        if not admin or not (admin.admin and admin.is_owner_admin):
+            return {"error": "Forbidden: Only owner admins can create users"}, 403
+
+        data = request.get_json()
+
+        # Validate required fields
+        required_fields = ['email', 'password']
+        for field in required_fields:
+            if field not in data:
+                return {"error": f"Missing required field: {field}"}, 400
+
+        try:
+            new_user = User(
+                email=data['email'],
+                admin=data.get('admin', False),
+                is_owner_admin=False,
+                first_name=data.get('first_name'),
+                last_name=data.get('last_name'),
+                account_group_id=admin.account_group_id
+            )
+            new_user.password_hash = data['password']  # ✅ Secure and correct
+
+            db.session.add(new_user)
+            db.session.commit()
+
+            return serialize_user(new_user), 201  # or use serialize_user(new_user)
+        except IntegrityError:
+            db.session.rollback()
+            return {"error": "Email already exists."}, 422
+        except Exception as e:
+            db.session.rollback()
+            return {"error": str(e)}, 500
+        
+# end of testing route
 
 class CheckSession(Resource):
     def get(self):
@@ -521,6 +564,8 @@ api.add_resource(UploadPhoto, '/api/upload_photo/<int:id>', endpoint='upload_pho
 api.add_resource(VinHistory, '/api/vin_history', endpoint='vin_history')
 
 api.add_resource(StripeWebhook, '/api/webhook/stripe', endpoint='stripe_webhook')
+
+api.add_resource(AdminCreateUser, '/api/admin/create_user', endpoint='admin_create_user')
 
 @app.route('/static/uploads/<filename>')
 def serve_uploaded_file(filename):

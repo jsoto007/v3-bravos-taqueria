@@ -1,3 +1,5 @@
+import AdminSignupUser from "../authentication/AdminSignupUser";
+
 import { useState } from "react";
 import {
   CreditCard,
@@ -32,7 +34,7 @@ export default function SubscriptionDashboard() {
   const tabs = [
     { id: "overview", name: "Overview", icon: BarChart3 },
     { id: "billing", name: "Billing", icon: CreditCard },
-    { id: "usage", name: "Usage", icon: Users },
+    { id: "accounts", name: "Accounts", icon: Users },
     { id: "settings", name: "Settings", icon: Settings },
   ];
 
@@ -153,8 +155,9 @@ export default function SubscriptionDashboard() {
             </div>
           </div>
         );
-      case "usage":
-        return <p className="text-gray-600 dark:text-gray-400">Detailed usage coming soon.</p>;
+      case "accounts":
+        return <div> <AdminSignupUser /></div>;
+        
       case "settings":
         return <p className="text-gray-600 dark:text-gray-400">Settings tab under construction. Note that this option will allow the admin to crate user accounts</p>;
     }

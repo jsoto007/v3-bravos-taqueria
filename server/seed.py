@@ -37,7 +37,7 @@ with app.app_context():
         is_owner_admin=True,
         account_group_id=account_group.id
     )
-    user2.password_hash = 'adminpass456'
+    user2.password_hash = 'c'
 
     db.session.add_all([user1, user2])
     db.session.commit()
