@@ -6,17 +6,24 @@ export default function AdminSignupUser() {
     last_name: "",
     email: "",
     password: "",
+    confirm_password: "",
     admin: false,
   });
 
   const [status, setStatus] = useState(null);
+  const [passwordsMatch, setPasswordsMatch] = useState(true);
 
   const handleChange = (e) => {
     const { name, value, type, checked } = e.target;
-    setFormData({
+    const updatedForm = {
       ...formData,
       [name]: type === "checkbox" ? checked : value,
-    });
+    };
+    setFormData(updatedForm);
+
+    if (name === "password" || name === "confirm_password") {
+      setPasswordsMatch(updatedForm.password === updatedForm.confirm_password);
+    }
   };
 
   const handleSubmit = async (e) => {
@@ -41,6 +48,7 @@ export default function AdminSignupUser() {
           last_name: "",
           email: "",
           password: "",
+          confirm_password: "",
           admin: false,
         });
       } else {
@@ -101,6 +109,22 @@ export default function AdminSignupUser() {
               className="w-full border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-700 text-gray-900 dark:text-white px-3 py-2 rounded"
               required
             />
+          </div>
+          <div>
+            <label className="block mb-1 font-medium text-gray-900 dark:text-gray-200">Confirm Password</label>
+            <input
+              type="password"
+              name="confirm_password"
+              value={formData.confirm_password}
+              onChange={handleChange}
+              className="w-full border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-700 text-gray-900 dark:text-white px-3 py-2 rounded"
+              required
+            />
+            {formData.confirm_password && (
+              <p className={`text-sm ${passwordsMatch ? "text-green-600" : "text-red-600"}`}>
+                {passwordsMatch ? "Passwords match" : "Passwords do not match"}
+              </p>
+            )}
           </div>
           <div className="flex items-center">
             <input
