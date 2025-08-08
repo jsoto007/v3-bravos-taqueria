@@ -106,14 +106,7 @@ export default function InventoryContainer() {
 
   return (
     <div className="mt-10">
-        <div className="text-center mb-6">
-          <p className="text-sm text-gray-600 dark:text-gray-300">
-            <strong>Add Cars to Inventory</strong>
-          </p>
-          <p className="mt-2 text-xs text-gray-500 dark:text-gray-400 italic">
-            Select a scan method → Scan VIN → Add Car → Submit Inventory to save all at once.
-          </p>
-        </div>
+        
       {!showForm ? (
         <div className="float-right -mb-6">
           <ActionBtn label="+ Car" onClick={handleStartInventory} />
@@ -124,6 +117,14 @@ export default function InventoryContainer() {
         </div>
       ) : (
         <>
+            <div className="text-center mb-6">
+                <p className="text-sm text-gray-600 dark:text-gray-300">
+                    <strong>Add Cars to Inventory</strong>
+                </p>
+                <p className="mt-2 text-xs text-gray-500 dark:text-gray-400 italic">
+                    Select a scan method → Scan VIN → Add Car → Submit Inventory to save all at once.
+                </p>
+            </div>
           <fieldset aria-label="VIN input method" className="mt-2 flex justify-center">
             <div className="grid grid-cols-2 gap-x-1 rounded-full p-1 text-center text-sm font-semibold ring-1 ring-inset ring-gray-200 dark:ring-gray-700">
               <label className="group relative rounded-full px-3 py-1 has-[:checked]:bg-indigo-600 cursor-pointer">
