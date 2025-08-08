@@ -28,7 +28,7 @@ export default function NavBar() {
                 <Link to="/dashboard" className="text-gray-700 dark:text-gray-200 hover:text-indigo-600 dark:hover:text-indigo-400">Dashboard</Link>
                 <Link to="/inventory" className="text-gray-700 dark:text-gray-200 hover:text-indigo-600 dark:hover:text-indigo-400">Inventory</Link>
                 <Link to="/subscriptions" className="text-gray-700 dark:text-gray-200 hover:text-indigo-600 dark:hover:text-indigo-400">Subscriptions</Link> 
-                <Link to="/master_inventory" className="text-gray-700 dark:text-gray-200 hover:text-indigo-600 dark:hover:text-indigo-400">Master Inventory</Link>
+                {/* <Link to="/master_inventory" className="text-gray-700 dark:text-gray-200 hover:text-indigo-600 dark:hover:text-indigo-400">Master Inventory</Link> */}
               </div>
 
               {/* Logout Button */}
@@ -73,13 +73,13 @@ export default function NavBar() {
                 >
                   Subscriptions
                 </DisclosureButton>
-                <DisclosureButton
+                {/* <DisclosureButton
                   as={Link}
                   to="/master_inventory"
                   className="block rounded-md py-2 px-3 text-base font-medium text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700 hover:text-indigo-600 dark:hover:text-indigo-400"
                 >
                   Master Inventory
-                </DisclosureButton>
+                </DisclosureButton> */}
                 <div className="border-t border-gray-200 dark:border-gray-700 pb-3 pt-4">
                   <div className="px-4">
                     <Logout />
