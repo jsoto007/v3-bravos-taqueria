@@ -22,7 +22,7 @@ import PageNotFound from './shared/PageNotFound';
 import InventoryFeed from './components/inventory/InventoryFeed';
 
 // Testing routes:
-import VINScanner from './utils/ScanbotVinText';
+import VinScanner from './utils/VinScanner';
 
 function App() {
 
@@ -38,7 +38,7 @@ function App() {
             <Route path="/dashboard" element={<Dashboard />} />
             <Route path="/inventory" element={<UserInventoryContainer />} />
 
-            <Route path="/test_scanner" element={<VINScanner />} />
+            <Route path="/test_scanner" element={<VinScanner />} />
             <Route path="/test_inventory" element={<InventoryFeed />} />
 
             <Route path="/subscriptions" element={<SubscriptionDashboard />} />
