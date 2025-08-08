@@ -1,14 +1,13 @@
-
 import React from 'react';
 
 {/* <ActionBtn label="Submit" onClick={() => console.log("Clicked!")} /> */}
 
 
-export default function ActionBtn({ label = "Hold Me", onClick }) {
+export default function ActionBtn({ label = "Hold Me", onClick, color = "bg-indigo-600 hover:bg-indigo-700 active:bg-indigo-800" }) {
   return (
     <button
       onClick={onClick}
-      className="cursor-pointer w-32 h-8 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 active:bg-indigo-800 hover:shadow-md transition-all group active:w-11 active:h-11 active:rounded-full active:duration-300 ease-in-out"
+      className={`cursor-pointer w-32 h-8 ${color} text-white rounded-lg hover:shadow-md transition-all group active:w-11 active:h-11 active:rounded-full active:duration-300 ease-in-out`}
     >
       <svg
         className="animate-spin hidden group-active:block mx-auto"

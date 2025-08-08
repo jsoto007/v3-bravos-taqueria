@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import ActionBtn from '../../shared/ActionBtn';
 
 export default function InventoryForm( { 
     location, 
@@ -27,55 +28,53 @@ export default function InventoryForm( {
     }, [location]);
 
     return (
-        <div className="p-6 max-w-md mx-auto mt-12 bg-white dark:bg-gray-800 shadow-md rounded-md">
+        <div className="p-6 text-left max-w-md mx-auto mt-12 bg-white dark:bg-gray-800 shadow-md rounded-md">
                 <>
-                    <h3 className="text-xl font-semibold mb-4 text-gray-800 dark:text-gray-200">Add Car</h3>
+                    <h3 className="text-xl font-semibold mb-4 text-center text-gray-800 dark:text-gray-200">Vehicle Details</h3>
+                    <label className="block mb-1 text-sm font-medium text-gray-700 dark:text-gray-300">VIN Number</label>
                     <input
                         value={decodedVin?.vin}
                         placeholder="VIN Number"
                         className="w-full mb-2 p-2 border border-gray-300 dark:border-gray-700 rounded bg-white dark:bg-gray-700 text-gray-800 dark:text-gray-200"
                     />
+                    <label className="block mb-1 text-sm font-medium text-gray-700 dark:text-gray-300">Location</label>
                     <input
                         value={loadingLocation ? 'Getting location...' : location}
                         readOnly
                         placeholder="Location"
                         className="w-full mb-2 p-2 border border-gray-300 dark:border-gray-700 rounded bg-white dark:bg-gray-700 text-gray-800 dark:text-gray-200 italic"
                     />
+                    <label className="block mb-1 text-sm font-medium text-gray-700 dark:text-gray-300">Year</label>
                     <input
                         type="number"
                         min="1886"
                         max={new Date().getFullYear()}
                         value={decodedVin?.info?.modelYear}
-                        placeholder="Year"
+                        placeholder="Car's Year"
                         className="w-full mb-2 p-2 border border-gray-300 dark:border-gray-700 rounded bg-white dark:bg-gray-700 text-gray-800 dark:text-gray-200"
                     />
+                    <label className="block mb-1 text-sm font-medium text-gray-700 dark:text-gray-300">Make</label>
                     <input
                         value={decodedVin?.info?.manufacturer}
-                        placeholder="Make"
+                        placeholder="Manufacturer"
                         className="w-full mb-2 p-2 border border-gray-300 dark:border-gray-700 rounded bg-white dark:bg-gray-700 text-gray-800 dark:text-gray-200"
-                    />
-                    <button
-                        onClick={addCar}
-                        className="w-full py-2 px-4 bg-green-600/80 text-white rounded hover:bg-green-700 transition mb-4"
-                    >
-                        Add Car
-                    </button>
-                    <ul className="mb-4 text-gray-700 dark:text-gray-300">
-                        {cars.map((car) => (
-                            <li
-                                key={car.id}
-                                className={`mb-1 rounded-md ${car.id === justAddedId ? 'bg-green-200/30 dark:bg-green-900' : ''}`}
-                            >
-                                {car.vin_number} - {car.make} ({car.year})
-                            </li>
-                        ))}
-                    </ul>
-                    <button
-                        onClick={submitInventory}
-                        className="w-full py-2 px-4 bg-indigo-600/80 text-white rounded hover:bg-indigo-700 transition"
-                    >
-                        Submit Inventory
-                    </button>
+                    /> 
+                    <div className='text-center mt-2'>
+                        <ActionBtn label='Add Car' onClick={addCar} color='bg-green-600/80 hover:db-green-700 active:bg-indigo-800' />
+
+                        <ul className="mb-4 text-gray-700 dark:text-gray-300">
+                            {cars.map((car) => (
+                                <li
+                                    key={car.id}
+                                    className={`mb-1 rounded-md ${car.id === justAddedId ? 'bg-green-200/30 dark:bg-green-900' : ''}`}
+                                >
+                                    {car.vin_number} - {car.make} ({car.year})
+                                </li>
+                            ))}
+                        </ul>
+                        <hr className='mt-8 mb-4 dark:text-slate-600 text-slate-300'/>
+                        <ActionBtn label='Submit Inventory' onClick={submitInventory} />
+                    </div>
                 </>
         </div>
     );

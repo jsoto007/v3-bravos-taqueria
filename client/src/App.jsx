@@ -13,16 +13,17 @@ import LandingPageContainer from './components/landingPage/LandingPageContainer'
 import NavBarContainer from './components/NavBarContainer';
 import Dashboard from './components/Dashboard';
 import Footer from './shared/Footer';
-import ScanbotScanner from './utils/ScanbotScanner';
+import PageNotFound from './shared/PageNotFound';
 
 import SubscriptionDashboard from './components/subscription/SubscriptionDashboard';
 
-import PageNotFound from './shared/PageNotFound';
 
 import InventoryFeed from './components/inventory/InventoryFeed';
 
 // Testing routes:
-import VINScanner from './utils/ScanbotVinText';
+import ScanbotScanner from './utils/ScanbotScanner';
+import VinScanner from './utils/VinScanner';
+import ScanbotVinText from './utils/ScanbotVinText';
 
 function App() {
 
@@ -38,7 +39,7 @@ function App() {
             <Route path="/dashboard" element={<Dashboard />} />
             <Route path="/inventory" element={<UserInventoryContainer />} />
 
-            <Route path="/test_scanner" element={<VINScanner />} />
+            <Route path="/test_scanner" element={<ScanbotVinText />} />
             <Route path="/test_inventory" element={<InventoryFeed />} />
 
             <Route path="/subscriptions" element={<SubscriptionDashboard />} />
