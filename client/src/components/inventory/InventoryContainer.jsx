@@ -106,6 +106,14 @@ export default function InventoryContainer() {
 
   return (
     <div className="mt-10">
+        <div className="text-center mb-6">
+          <p className="text-sm text-gray-600 dark:text-gray-300">
+            <strong>Add Cars to Inventory</strong>
+          </p>
+          <p className="mt-2 text-xs text-gray-500 dark:text-gray-400 italic">
+            Select a scan method → Scan VIN → Add Car → Submit Inventory to save all at once.
+          </p>
+        </div>
       {!showForm ? (
         <div className="float-right -mb-6">
           <ActionBtn label="+ Car" onClick={handleStartInventory} />

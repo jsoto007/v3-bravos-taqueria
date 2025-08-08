@@ -30,7 +30,7 @@ export default function InventoryForm( {
     return (
         <div className="p-6 text-left max-w-md mx-auto mt-12 bg-white dark:bg-gray-800 shadow-md rounded-md">
                 <>
-                    <h3 className="text-xl font-semibold mb-4 text-center text-gray-800 dark:text-gray-200">Add Car</h3>
+                    <h3 className="text-xl font-semibold mb-4 text-center text-gray-800 dark:text-gray-200">Vehicle Details</h3>
                     <label className="block mb-1 text-sm font-medium text-gray-700 dark:text-gray-300">VIN Number</label>
                     <input
                         value={decodedVin?.vin}
