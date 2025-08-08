@@ -44,6 +44,7 @@ export default function SubscriptionDashboard() {
         return (
           <div className="space-y-6">
             {/* Current Plan */}
+            <h1>* Component under construction</h1>
             <div className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl p-6">
               <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between">
                 <div className="mb-4 sm:mb-0">

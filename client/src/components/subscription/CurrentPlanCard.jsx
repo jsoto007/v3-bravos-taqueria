@@ -6,6 +6,7 @@ export default function CurrentPlanCard({ currentPlan, plans, setShowUpgradeModa
   return (
     <div className="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 p-6">
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between">
+      <h1>* component under construction</h1>
         <div className="mb-4 sm:mb-0">
           <div className="flex items-center space-x-3 mb-2">
             <div className="w-3 h-3 bg-purple-500 rounded-full"></div>
