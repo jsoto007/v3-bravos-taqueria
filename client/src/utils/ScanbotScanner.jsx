@@ -43,7 +43,7 @@ export default function ScanbotScanner({ onScan, setDecodedVin }) {
   };
 
   return (
-    <div className='mt-20' style={{ padding: '1rem', fontFamily: 'sans-serif' }}>
+    <div className='mt-10' style={{ padding: '1rem', fontFamily: 'sans-serif' }}>
       <ActionBtn label="Scan Barcode" onClick={startScan} />
       {scanResult && <p><strong>Result:</strong> {scanResult}</p>}
     </div>
