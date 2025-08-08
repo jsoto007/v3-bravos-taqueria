@@ -1,5 +1,6 @@
 import { useCallback, useState } from "react";
 import ScanbotSDK from "scanbot-web-sdk/ui";
+import ActionBtn from "../shared/ActionBtn";
 
 export default function ScanbotVinText() {
   const apiKey = import.meta.env.VITE_SCANBOT_LICENSE_KEY;
@@ -40,12 +41,14 @@ export default function ScanbotVinText() {
 
   return (
     <div className="mt-10 flex flex-col items-center space-y-4">
-      <button
+        {/* <ActionBtn label="Scan Barcode" onClick={startScan} /> */}
+        <ActionBtn label="Scan Text" onClick={startVinScanner} />
+      {/* <button
         onClick={startVinScanner}
         className="px-6 py-3 text-white bg-blue-600 rounded hover:bg-blue-700"
       >
         Start VIN Scan
-      </button>
+      </button> */}
       <h1>{vin}</h1> {/* Step 3: Render VIN */}
       <div id="vin-scanner-container" style={{ width: "100%", height: "500px" }} />
     </div>

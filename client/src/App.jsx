@@ -23,6 +23,7 @@ import InventoryFeed from './components/inventory/InventoryFeed';
 
 // Testing routes:
 import VinScanner from './utils/VinScanner';
+import ScanbotVinText from './utils/ScanbotVinText';
 
 function App() {
 
@@ -38,7 +39,7 @@ function App() {
             <Route path="/dashboard" element={<Dashboard />} />
             <Route path="/inventory" element={<UserInventoryContainer />} />
 
-            <Route path="/test_scanner" element={<VinScanner />} />
+            <Route path="/test_scanner" element={<ScanbotVinText />} />
             <Route path="/test_inventory" element={<InventoryFeed />} />
 
             <Route path="/subscriptions" element={<SubscriptionDashboard />} />
