@@ -13,15 +13,15 @@ import LandingPageContainer from './components/landingPage/LandingPageContainer'
 import NavBarContainer from './components/NavBarContainer';
 import Dashboard from './components/Dashboard';
 import Footer from './shared/Footer';
-import ScanbotScanner from './utils/ScanbotScanner';
+import PageNotFound from './shared/PageNotFound';
 
 import SubscriptionDashboard from './components/subscription/SubscriptionDashboard';
 
-import PageNotFound from './shared/PageNotFound';
 
 import InventoryFeed from './components/inventory/InventoryFeed';
 
 // Testing routes:
+import ScanbotScanner from './utils/ScanbotScanner';
 import VinScanner from './utils/VinScanner';
 import ScanbotVinText from './utils/ScanbotVinText';
 

@@ -5,6 +5,8 @@ import InventoryForm from "./InventoryForm";
 import { userLocation } from "../../utils/UserLocation";
 import ActionBtn from "../../shared/ActionBtn";
 import ScanbotScanner from "../../utils/ScanbotScanner";
+import ScanbotVinText from "../../utils/ScanbotVinText";
+
 
 export default function InventoryContainer() {
     const [inventoryId, setInventoryId] = useState(null);
@@ -126,6 +128,7 @@ export default function InventoryContainer() {
             ) : (
                 <>
                     <ScanbotScanner decodedVin={decodedVin} setDecodedVin={setDecodedVin} />
+                    <ScanbotVinText decodedVin={decodedVin} setDecodedVin={setDecodedVin} />
 
                     <InventoryForm
                         location={location}
