@@ -19,7 +19,6 @@ export default function InventoryFeed() {
       )
     : [];
 
-  // Create a Map to track the most recent scan per VIN
   const latestByVin = new Map();
   events.forEach(event => {
     const existing = latestByVin.get(event.vin);
@@ -28,7 +27,7 @@ export default function InventoryFeed() {
     }
   });
 
-  // Get the most recent scan per VIN and sort by date descending
+
   const latestEvents = Array.from(latestByVin.values()).sort(
     (a, b) => new Date(b.created_at) - new Date(a.created_at)
   );
