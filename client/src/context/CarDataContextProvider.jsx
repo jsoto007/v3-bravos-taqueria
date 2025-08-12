@@ -13,15 +13,13 @@ function CarDataContextProvider( { children } ) {
         fetch('/api/vin_history')
             .then(resp => {
                 if (resp.ok) {
-                    console.log("resp is OKAY")
                     return resp.json();
                 } else {
-                    console.log("RESP not okay")
                     throw new Error("Failed to fetch VIN history.");
                 }
             })
             .then(car => {
-                console.log("API Response:", car);
+                console.log("API Response:", {car});
                 setCarData(car);
                 setLoading(false);
             })
