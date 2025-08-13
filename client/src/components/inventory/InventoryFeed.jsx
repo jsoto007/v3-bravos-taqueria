@@ -39,7 +39,7 @@ export default function InventoryFeed() {
 
   return (
     <div className="flow-root w-full px-2 sm:px-4 mt-4 font-mono max-h-[500px] overflow-y-auto">
-      <p className="font-bold">Recent Scans</p>
+      <p className="font-bold py-2">Recent Scans</p>
       <ul role="list" className="-mb-8 w-full">
         {latestEvents.length === 0 && (
           <li className="text-gray-500 dark:text-gray-400">No recent scans available.</li>
