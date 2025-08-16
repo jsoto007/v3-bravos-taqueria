@@ -1,3 +1,4 @@
+
 from flask_sqlalchemy import SQLAlchemy
 from sqlalchemy_serializer import SerializerMixin
 
@@ -6,6 +7,19 @@ from sqlalchemy.ext.hybrid import hybrid_property
 from sqlalchemy.orm import relationship, backref
 
 from config import db, bcrypt
+
+
+# Association model for owner_dealers
+class OwnerDealer(db.Model, SerializerMixin):
+    __tablename__ = 'owner_dealers'
+
+    user_id = db.Column(db.Integer, db.ForeignKey('users.id'), primary_key=True)
+    account_group_id = db.Column(db.Integer, db.ForeignKey('account_groups.id'), primary_key=True)
+
+    created_at = db.Column(db.DateTime, server_default=db.func.now())
+
+    user = relationship('User', backref=backref('owner_dealer_links', cascade='all, delete-orphan'))
+    account_group = relationship('AccountGroup', backref=backref('owner_dealer_links', cascade='all, delete-orphan'))
 
 
 class AccountGroup(db.Model, SerializerMixin):
@@ -25,6 +39,8 @@ class AccountGroup(db.Model, SerializerMixin):
     stripe_customer_id = db.Column(db.String, unique=True)
     stripe_subscription_id = db.Column(db.String, unique=True)
     created_at = db.Column(db.DateTime, server_default=db.func.now())
+    latitude = db.Column(db.Float, nullable=True)
+    longitude = db.Column(db.Float, nullable=True)
 
     # Relationships
     users = relationship('User', backref='account_group', cascade='all, delete-orphan')
@@ -52,6 +68,12 @@ class User(db.Model, SerializerMixin):
 
     created_at = db.Column(db.DateTime, server_default=db.func.now())
     updated_at = db.Column(db.DateTime, onupdate=db.func.now())
+
+    owned_account_groups = relationship(
+        'AccountGroup',
+        secondary='owner_dealers',
+        backref='owner_admins'
+    )
 
     @validates("email")
     def validate_email(self, key, email):
