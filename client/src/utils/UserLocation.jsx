@@ -39,10 +39,38 @@ export async function userLocation(vin, setLocation, location) {
           const { latitude, longitude } = position.coords;
           console.log("Latitude:", latitude, "Longitude:", longitude);
 
-          const address = await getAddressFromCoordinates(latitude, longitude);
+          // Dealer coordinates
+          const dealerLat = 40.850278;
+          const dealerLon = -74.087500;
+          // Haversine formula (returns distance in miles)
+          function haversine(lat1, lon1, lat2, lon2) {
+            const toRad = (x) => (x * Math.PI) / 180;
+            const R = 3958.8; // Earth radius in miles
+            const dLat = toRad(lat2 - lat1);
+            const dLon = toRad(lon2 - lon1);
+            const a =
+              Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+              Math.cos(toRad(lat1)) * Math.cos(toRad(lat2)) *
+              Math.sin(dLon / 2) * Math.sin(dLon / 2);
+            const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+            return R * c;
+          }
+
+          const distanceToDealer = haversine(latitude, longitude, dealerLat, dealerLon);
+          console.log("Distance to dealer (miles):", distanceToDealer);
+
+          let address;
+          if (distanceToDealer <= 0.4) {
+            // Snap to dealer location
+            address = "480 River Dr, Garfield, NJ 07026, USA"; // Dealer's main address
+            console.log("User is within 0.4 miles, snapping to dealer address:", address);
+          } else {
+            // Use actual user location
+            address = await getAddressFromCoordinates(latitude, longitude);
+            console.log("Address:", address);
+          }
           cachedAddress = address;
           setLocation && setLocation(address);
-          console.log("Address:", address);
 
           setTimeout(() => {
             cachedAddress = null;
