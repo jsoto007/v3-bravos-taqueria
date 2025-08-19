@@ -21,7 +21,7 @@ stripe.api_key = os.getenv('STRIPE_SECRET_KEY')
 # SQLAlchemy pre-ping setting
 app.config['SQLALCHEMY_ENGINE_OPTIONS'] = {'pool_pre_ping': True}
 
-# CORS
+
 CORS(app)
 
 # Upload configuration
@@ -123,7 +123,7 @@ def serialize_account_group(group):
         "created_at": group.created_at.isoformat() if group.created_at else None,
     }
 
-# ---- Car Note Serializer ---- #
+
 def serialize_car_note(note):
     return {
         "id": note.id,
@@ -131,7 +131,7 @@ def serialize_car_note(note):
         "content": note.content,
         "created_at": note.created_at.isoformat() if note.created_at else None,
     }
-# -------- Car Notes Resource -------- #
+
 
 class CarNotes(Resource):
     def get(self, id=None):
@@ -197,7 +197,7 @@ class CarNotes(Resource):
         db.session.commit()
         return '', 204
 
-# -------- Resources -------- #
+
 
 class AccountGroups(Resource):
     def post(self):
@@ -273,7 +273,7 @@ class Signup(Resource):
         raise Exception("Failed to generate unique group_key after several attempts.")
     
 
-# Admin can create user account; testing route
+
 class AdminCreateUser(Resource):
     def post(self):
         admin_id = session.get('user_id')
@@ -301,12 +301,12 @@ class AdminCreateUser(Resource):
                 last_name=data.get('last_name'),
                 account_group_id=admin.account_group_id
             )
-            new_user.password_hash = data['password']  # ✅ Secure and correct
+            new_user.password_hash = data['password'] 
 
             db.session.add(new_user)
             db.session.commit()
 
-            return serialize_user(new_user), 201  # or use serialize_user(new_user)
+            return serialize_user(new_user), 201 
         except IntegrityError:
             db.session.rollback()
             return {"error": "Email already exists."}, 422
@@ -314,7 +314,7 @@ class AdminCreateUser(Resource):
             db.session.rollback()
             return {"error": str(e)}, 500
         
-# end of testing route
+
 
 class CheckSession(Resource):
     def get(self):
@@ -564,16 +564,17 @@ class VinHistory(Resource):
                     "vin": vin,
                     "history": []
                 }
-
+# Car notes are included in this resource; might be deleted. It could be it's own resource since a user will not want to see all notes at once. Trying separating first. 
             vin_map[vin]["history"].append({
                 "user": car.user.email if car.user else None,
                 "location": car.location,
-                "created_at": car.created_at.isoformat() if car.created_at else None
+                "created_at": car.created_at.isoformat() if car.created_at else None,
+                "notes": [serialize_car_note(n) for n in car.notes]
             })
 
         result = [{"vin": vin_data["vin"], "history": vin_data["history"]} for vin_data in vin_map.values()]
         return make_response(jsonify(result), 200)
-    
+
 
 # -------- Stripe -------- #
 class StripeWebhook(Resource):
