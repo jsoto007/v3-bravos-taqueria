@@ -85,11 +85,11 @@ with app.app_context():
 
     note1 = CarNote(
         car_inventory_id=car1.id,
-        note_text='This car has a minor scratch on the rear bumper.'
+        content='This car has a minor scratch on the rear bumper.'
     )
     note2 = CarNote(
         car_inventory_id=car2.id,
-        note_text='Oil changed recently.'
+        content='Oil changed recently.'
     )
     db.session.add_all([note1, note2])
     db.session.commit()

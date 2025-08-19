@@ -21,6 +21,7 @@ import InventoryFeed from './components/inventory/InventoryFeed';
 // Testing routes:
 import CarVinScanHistoryCard from './components/inventory/CarVinScanHistoryCard';
 import ScanbotVinText from './utils/ScanbotVinText';
+import CarNotes from './components/carNotes/CarNotes';
 
 function App() {
 
@@ -36,8 +37,12 @@ function App() {
             <Route path="/dashboard" element={<Dashboard />} />
             <Route path="/inventory" element={<UserInventoryContainer />} />
 
+{/* TEST routes */}
             <Route path="/test_scanner" element={<ScanbotVinText />} />
             <Route path="/test_inventory" element={<CarVinScanHistoryCard />} />
+            <Route path="/test_notes" element={<CarNotes />} />
+
+{/* End of test routes */}
 
             <Route path="/subscriptions" element={<SubscriptionDashboard />} />
             <Route path="/master_inventory/:id" element={<MasterCarContainer />} />
