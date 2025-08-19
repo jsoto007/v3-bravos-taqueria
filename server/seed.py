@@ -1,9 +1,11 @@
 from app import app
-from models import User, CarPhoto, CarInventory, MasterCarRecord, UserInventory, AccountGroup
+from models import User, CarPhoto, CarInventory, MasterCarRecord, UserInventory, AccountGroup, OwnerDealer, CarNote
 from config import db
 
 with app.app_context():
     print('🧹 Deleting old data...')
+    db.session.query(CarNote).delete()
+    db.session.query(OwnerDealer).delete()
     db.session.query(CarPhoto).delete()
     db.session.query(CarInventory).delete()
     db.session.query(MasterCarRecord).delete()
@@ -42,6 +44,13 @@ with app.app_context():
     db.session.add_all([user1, user2])
     db.session.commit()
 
+    owner_dealer = OwnerDealer(
+        user_id=user2.id,
+        account_group_id=account_group.id
+    )
+    db.session.add(owner_dealer)
+    db.session.commit()
+
     print('📦 Creating user inventory...')
     user_inventory1 = UserInventory(
         user_id=user1.id,
@@ -72,6 +81,17 @@ with app.app_context():
         account_group_id=account_group.id
     )
     db.session.add_all([car1, car2])
+    db.session.commit()
+
+    note1 = CarNote(
+        car_inventory_id=car1.id,
+        note_text='This car has a minor scratch on the rear bumper.'
+    )
+    note2 = CarNote(
+        car_inventory_id=car2.id,
+        note_text='Oil changed recently.'
+    )
+    db.session.add_all([note1, note2])
     db.session.commit()
 
     print('📸 Creating car photos...')

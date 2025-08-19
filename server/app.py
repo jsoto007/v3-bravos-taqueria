@@ -10,7 +10,7 @@ from werkzeug.utils import secure_filename
 import uuid
 
 from config import db, bcrypt, app
-from models import User, CarInventory, CarPhoto, MasterCarRecord, UserInventory, AccountGroup
+from models import User, CarInventory, CarPhoto, MasterCarRecord, UserInventory, AccountGroup, CarNote
 
 # ---------- Stripe ---------- #
 import stripe
@@ -122,6 +122,80 @@ def serialize_account_group(group):
         "paid_until": group.paid_until.isoformat() if group.paid_until else None,
         "created_at": group.created_at.isoformat() if group.created_at else None,
     }
+
+# ---- Car Note Serializer ---- #
+def serialize_car_note(note):
+    return {
+        "id": note.id,
+        "car_inventory_id": note.car_inventory_id,
+        "content": note.content,
+        "created_at": note.created_at.isoformat() if note.created_at else None,
+    }
+# -------- Car Notes Resource -------- #
+
+class CarNotes(Resource):
+    def get(self, id=None):
+        user_id = session.get('user_id')
+        if not user_id:
+            return {"error": "Unauthorized"}, 401
+        user = User.query.get(user_id)
+        if not user or not getattr(user, 'admin', False):
+            return {"error": "Forbidden: Admins only"}, 403
+        if id is not None:
+            note = CarNote.query.get(id)
+            if not note:
+                return {"error": "CarNote not found"}, 404
+            return serialize_car_note(note), 200
+        notes = CarNote.query.all()
+        return [serialize_car_note(n) for n in notes], 200
+
+    def post(self):
+        user_id = session.get('user_id')
+        if not user_id:
+            return {"error": "Unauthorized"}, 401
+        user = User.query.get(user_id)
+        if not user or not getattr(user, 'admin', False):
+            return {"error": "Forbidden: Admins only"}, 403
+        data = request.get_json()
+        car_inventory_id = data.get('car_inventory_id')
+        content = data.get('content')
+        if not car_inventory_id or not content:
+            return {"error": "Missing car_inventory_id or content"}, 400
+        note = CarNote(car_inventory_id=car_inventory_id, content=content)
+        db.session.add(note)
+        db.session.commit()
+        return serialize_car_note(note), 201
+
+    def patch(self, id):
+        user_id = session.get('user_id')
+        if not user_id:
+            return {"error": "Unauthorized"}, 401
+        user = User.query.get(user_id)
+        if not user or not getattr(user, 'admin', False):
+            return {"error": "Forbidden: Admins only"}, 403
+        note = CarNote.query.get(id)
+        if not note:
+            return {"error": "CarNote not found"}, 404
+        data = request.get_json()
+        content = data.get('content')
+        if content is not None:
+            note.content = content
+        db.session.commit()
+        return serialize_car_note(note), 200
+
+    def delete(self, id):
+        user_id = session.get('user_id')
+        if not user_id:
+            return {"error": "Unauthorized"}, 401
+        user = User.query.get(user_id)
+        if not user or not getattr(user, 'admin', False):
+            return {"error": "Forbidden: Admins only"}, 403
+        note = CarNote.query.get(id)
+        if not note:
+            return {"error": "CarNote not found"}, 404
+        db.session.delete(note)
+        db.session.commit()
+        return '', 204
 
 # -------- Resources -------- #
 
@@ -566,6 +640,9 @@ api.add_resource(VinHistory, '/api/vin_history', endpoint='vin_history')
 api.add_resource(StripeWebhook, '/api/webhook/stripe', endpoint='stripe_webhook')
 
 api.add_resource(AdminCreateUser, '/api/admin/create_user', endpoint='admin_create_user')
+
+# ----- Car Notes Route -----
+api.add_resource(CarNotes, '/api/car_notes', '/api/car_notes/<int:id>', endpoint='car_notes')
 
 @app.route('/static/uploads/<filename>')
 def serve_uploaded_file(filename):

@@ -1,4 +1,3 @@
-
 from flask_sqlalchemy import SQLAlchemy
 from sqlalchemy_serializer import SerializerMixin
 
@@ -130,6 +129,7 @@ class CarInventory(db.Model, SerializerMixin):
         '-user_inventory.car_inventories',
         '-account_group.car_inventories',
         '-photos.car_inventory',
+        '-notes.car_inventory',
     )
 
     id = db.Column(db.Integer, primary_key=True)
@@ -148,6 +148,7 @@ class CarInventory(db.Model, SerializerMixin):
     user = relationship('User', backref=backref('car_inventories'))
     user_inventory = relationship('UserInventory', backref=backref('car_inventories', cascade='all, delete-orphan'))
     account_group = relationship('AccountGroup', backref=backref('car_inventories', cascade='all, delete-orphan'))
+    notes = relationship('CarNote', backref='car_inventory', cascade='all, delete-orphan')
 
     def to_dict(self):
         return {
@@ -166,6 +167,18 @@ class CarInventory(db.Model, SerializerMixin):
     def __repr__(self):
         return f'<CarInventory VIN: {self.vin_number}>'
 
+
+class CarNote(db.Model, SerializerMixin):
+    __tablename__ = 'car_notes'
+
+    serialize_rules = (
+        '-car_inventory.notes',
+    )
+
+    id = db.Column(db.Integer, primary_key=True)
+    car_inventory_id = db.Column(db.Integer, db.ForeignKey('car_inventories.id'), nullable=False)
+    content = db.Column(db.Text, nullable=False)
+    created_at = db.Column(db.DateTime, server_default=db.func.now())
 
 
 class CarPhoto(db.Model, SerializerMixin):
