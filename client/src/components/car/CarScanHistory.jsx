@@ -40,7 +40,7 @@ export default function CarScanHistory({ scanHistory }) {
                 <td className="whitespace-nowrap border-b border-slate-300 dark:border-slate-700 px-3 py-4 text-xs sm:text-sm text-slate-950 dark:text-slate-50 sm:pl-6">
                   <div className="flex items-center gap-1">
                     <Calendar className="h-4 w-4 flex-shrink-0 text-slate-500 dark:text-slate-400" />
-                    <time dateTime={scan.date}>{scan.date}</time>
+                    <time dateTime={scan.dateTime}>{scan.dateTime}</time>
                   </div>
                 </td>
                 <td className="whitespace-nowrap border-b border-slate-300 dark:border-slate-700 px-3 py-4 text-xs sm:text-sm text-slate-950 dark:text-slate-50">
