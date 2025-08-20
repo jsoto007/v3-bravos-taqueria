@@ -105,7 +105,9 @@ export default function CarDetails() {
                 <KeySquare className="h-4 w-4 text-white" />
               </div>
               <div>
-                <p className="text-slate-700 dark:text-slate-200 text-2xl font-bold font-mono"><span className='dark:text-slate-400 text-slate-400'>VIN:</span> {carData.vin}</p>
+                <p className="text-slate-700 dark:text-slate-200 text-lg md:text-2xl font-bold font-mono">
+                  <span className='dark:text-slate-400 text-slate-400 text-sm md:text-base'>VIN:</span> {carData.vin}
+                </p>
               </div>
             </div>
             <button

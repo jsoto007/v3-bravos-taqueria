@@ -16,7 +16,13 @@ export default function CarContainer() {
 
 
     return (
-        <div className="mt-20">
+        <div className="mt-20 text-left">
+            <div>
+                <h1 className="text-4xl font-bold text-slate-950 dark:text-slate-50">Vehicle Dashboard</h1>
+                <h3 className="text-slate-500 dark:text-slate-400 mb-4">
+                  Manage car records with full scan history. Add, edit, and delete notes or delete the car entirely.
+                </h3>
+            </div>
             <CarDetails />
             <CarNotes />
             <CarScanHistory scanHistory={scanHistory} />
