@@ -102,11 +102,10 @@ export default function CarDetails() {
           <div className="flex items-center justify-between mb-6">
             <div className="flex items-center space-x-4">
               <div className="p-3 bg-indigo-600 dark:bg-indigo-500 rounded-xl">
-                <KeySquare className="h-8 w-8 text-white" />
+                <KeySquare className="h-4 w-4 text-white" />
               </div>
               <div>
-                <h1 className="text-3xl font-bold text-slate-950 dark:text-slate-50">Vehicle Dashboard</h1>
-                <p className="text-slate-500 dark:text-slate-400">VIN: {carData.vin}</p>
+                <p className="text-slate-700 dark:text-slate-200 text-2xl font-bold font-mono"><span className='dark:text-slate-400 text-slate-400'>VIN:</span> {carData.vin}</p>
               </div>
             </div>
             <button
