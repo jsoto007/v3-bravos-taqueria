@@ -111,7 +111,7 @@ export default function CarDetails() {
             </div>
             <button
               onClick={() => setShowDeleteConfirm(true)}
-              className="flex items-center space-x-2 px-4 py-2 bg-indigo-600 hover:bg-indigo-500 dark:bg-indigo-500 dark:hover:bg-indigo-400 text-white rounded-lg transition-colors"
+              className="p-1 rounded hover:bg-slate-700 text-red-400"
             >
               <Trash2 className="h-4 w-4" />
             </button>

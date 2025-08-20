@@ -9,9 +9,9 @@ export default function CarContainer() {
     const [scanHistory, setScanHistory] = useState([
         { id: 1, vin: 'JH4KA8260MC000000', location: 'Main Street Garage', user: 'Mike Johnson', dateTime: '2024-08-17T09:15:00Z' },
         { id: 2, vin: 'JH4KA8260MC000000', location: 'Downtown Service Center', user: 'Sarah Wilson', dateTime: '2024-08-16T16:45:00Z' },
-        { id: 2, vin: 'JH4KA8260MC000000', location: 'Downtown Service Center', user: 'Sarah Wilson', dateTime: '2024-08-16T16:45:00Z' },
-        { id: 2, vin: 'JH4KA8260MC000000', location: 'Downtown Service Center', user: 'Sarah Wilson', dateTime: '2024-08-16T16:45:00Z' },
-        { id: 3, vin: 'JH4KA8260MC000000', location: 'Express Auto Check', user: 'David Brown', dateTime: '2024-08-15T11:30:00Z' },
+        { id: 3, vin: 'JH4KA8260MC000000', location: 'Downtown Service Center', user: 'Sarah Wilson', dateTime: '2024-08-16T16:45:00Z' },
+        { id: 4, vin: 'JH4KA8260MC000000', location: 'Downtown Service Center', user: 'Sarah Wilson', dateTime: '2024-08-16T16:45:00Z' },
+        { id: 5, vin: 'JH4KA8260MC000000', location: 'Express Auto Check', user: 'David Brown', dateTime: '2024-08-15T11:30:00Z' },
       ]);
 
 
