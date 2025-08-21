@@ -2,18 +2,19 @@ import { Calendar, MapPin, User } from "lucide-react";
 
 export default function CarScanHistory({ scanHistory }) {
 
-
     function formatDateTime(dateString) {
         const date = new Date(dateString);
-        return date.toLocaleString(undefined, {
-          month: 'short',
-          day: '2-digit',
-          year: 'numeric',
-          hour: 'numeric',
-          minute: '2-digit',
-          hour12: true,
+        return date.toLocaleString("en-US", {
+            month: "short",
+            day: "numeric",
+            year: "numeric",
+            hour: "numeric",
+            minute: "2-digit",
+            hour12: true
         });
-      }
+    }
+
+    console.log(scanHistory)
 
   return (
     <div className="overflow-hidden rounded-md border border-slate-300 dark:border-slate-700 bg-white dark:bg-[#1A2235] mt-6">

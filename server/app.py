@@ -623,6 +623,7 @@ class CarById(Resource):
         )
         for scan in scan_cars:
             scan_history.append({
+                "id": scan.id,
                 "user": scan.user.email if scan.user else None,
                 "first_name": scan.user.first_name if scan.user else None,
                 "last_name": scan.user.last_name if scan.user else None,
