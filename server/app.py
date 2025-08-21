@@ -644,14 +644,14 @@ api.add_resource(UserInventoryHistory, '/api/user_inventories/history/<int:user_
 api.add_resource(AdminUserInventoryCheck, '/api/admin/user_inventory_check/<int:user_inventory_id>', endpoint='admin_user_inventory_check')
 api.add_resource(UploadPhoto, '/api/upload_photo', endpoint='upload_photo')
 api.add_resource(UploadPhoto, '/api/upload_photo/<int:id>', endpoint='upload_photo_by_id')
-api.add_resource(VinHistory, '/api/vin_history', endpoint='vin_history')
 
 api.add_resource(StripeWebhook, '/api/webhook/stripe', endpoint='stripe_webhook')
 
 api.add_resource(AdminCreateUser, '/api/admin/create_user', endpoint='admin_create_user')
 
-# ----- Car Notes Route -----
+api.add_resource(VinHistory, '/api/vin_history', endpoint='vin_history')
 api.add_resource(CarNotes, '/api/car_notes', '/api/car_notes/<int:id>', endpoint='car_notes')
+
 
 @app.route('/static/uploads/<filename>')
 def serve_uploaded_file(filename):
