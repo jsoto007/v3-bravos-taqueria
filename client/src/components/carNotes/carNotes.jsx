@@ -60,7 +60,7 @@ export default function CarNotes() {
   if (error) return <p className="text-red-500 mt-20">Error: {error}</p>;
 
   return (
-    <div className="max-w-6xl mx-auto p-6 bg-white dark:bg-[#1A2235] border border-slate-300 dark:border-slate-700 rounded-lg shadow-lg">
+    <div className="max-w-6xl mx-auto p-6 bg-white dark:bg-[#1A2235] border border-slate-300 dark:border-slate-700 rounded-lg shadow-lg max-h-[600px] overflow-y-auto">
       <h2 className="text-2xl font-bold mb-6 text-slate-950 dark:text-slate-50 flex items-center gap-2">
         <span>Car Notes</span>
       </h2>
