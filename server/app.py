@@ -588,7 +588,7 @@ class VinHistory(Resource):
     
 
 
-
+# Search for car by ID and return Scan history, Scanner info,
 class CarById(Resource):
     def get(self, id):
         user_id = session.get('user_id')
@@ -624,6 +624,8 @@ class CarById(Resource):
         for scan in scan_cars:
             scan_history.append({
                 "user": scan.user.email if scan.user else None,
+                "first_name": scan.user.first_name if scan.user else None,
+                "last_name": scan.user.last_name if scan.user else None,
                 "location": scan.location,
                 "created_at": scan.created_at.isoformat() if scan.created_at else None,
             })
@@ -639,7 +641,7 @@ class CarById(Resource):
         return response, 200
     
 
-    
+
 
 
 # -------- Stripe -------- #

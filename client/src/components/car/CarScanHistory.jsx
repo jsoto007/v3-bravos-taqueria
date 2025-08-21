@@ -39,12 +39,6 @@ export default function CarScanHistory({ scanHistory }) {
               >
                 User
               </th>
-              {/* <th
-                scope="col"
-                className="border-b border-slate-300 dark:border-slate-700 bg-slate-400 dark:bg-slate-800 px-3 py-3 text-left text-xs sm:text-sm font-semibold text-slate-950 dark:text-slate-50"
-              >
-                Notes
-              </th> */}
             </tr>
           </thead>
           <tbody>
@@ -65,12 +59,9 @@ export default function CarScanHistory({ scanHistory }) {
                 <td className="whitespace-nowrap border-b border-slate-300 dark:border-slate-700 px-3 py-4 text-xs sm:text-sm text-slate-950 dark:text-slate-50">
                   <div className="flex items-center gap-1">
                     <User className="h-4 w-4 flex-shrink-0 text-slate-500 dark:text-slate-400" />
-                    {scan.user}
+                    {scan.first_name} {scan.last_name}
                   </div>
                 </td>
-                {/* <td className="whitespace-nowrap border-b border-slate-300 dark:border-slate-700 px-3 py-4 text-xs sm:text-sm text-slate-950 dark:text-slate-50">
-                  {scan.notes}
-                </td> */}
               </tr>
             ))}
           </tbody>
