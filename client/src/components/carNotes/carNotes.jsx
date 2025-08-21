@@ -1,12 +1,14 @@
 import { Edit3, Plus, Save, X, Trash2 } from "lucide-react";
 import { useState, useEffect } from "react";
 
-export default function CarNotes() {
+export default function CarNotes( { notes } ) {
+
   const [carNotes, setCarNotes] = useState([]);
   const [error, setError] = useState(null);
   const [newNote, setNewNote] = useState("");
   const [editingNote, setEditingNote] = useState(null);
   const [editText, setEditText] = useState("");
+
 
   useEffect(() => {
     fetch("/api/car_notes")
@@ -17,6 +19,7 @@ export default function CarNotes() {
       .then(notes => setCarNotes(notes))
       .catch(err => setError(err.message));
   }, []);
+
 
   // Helper to format date
   function formatDate(dateString) {
