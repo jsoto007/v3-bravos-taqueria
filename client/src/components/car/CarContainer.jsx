@@ -46,7 +46,7 @@ export default function CarContainer() {
                 </h3>
             </div>
             <CarDetails car={car} />
-            <CarNotes notes={notes} />
+            <CarNotes notes={notes} car={car} />
             <CarScanHistory scanHistory={scanHistory} />
         </div>
     )

@@ -1,7 +1,9 @@
 import { Edit3, Plus, Save, X, Trash2 } from "lucide-react";
 import { useState, useEffect } from "react";
 
-export default function CarNotes( { notes } ) {
+export default function CarNotes( { notes, car } ) {
+
+  console.log("carNotes:", notes)
 
   const [carNotes, setCarNotes] = useState([]);
   const [error, setError] = useState(null);
@@ -30,14 +32,22 @@ export default function CarNotes( { notes } ) {
   // Add a new note
   function addNote() {
     if (!newNote.trim()) return;
-    // For demo, just update state locally
-    const note = {
-      id: Date.now(),
-      content: newNote,
-      created_at: new Date().toISOString(),
-    };
-    setCarNotes([note, ...carNotes]);
-    setNewNote("");
+    fetch("/api/car_notes", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify({ car_inventory_id: car?.id, content: newNote })
+    })
+    .then(resp => {
+      if (!resp.ok) throw new Error("Failed to add note");
+      return resp.json();
+    })
+    .then(note => {
+      setCarNotes([note, ...carNotes]);
+      setNewNote("");
+    })
+    .catch(err => setError(err.message));
   }
 
   // Start editing a note
@@ -48,16 +58,37 @@ export default function CarNotes( { notes } ) {
 
   // Save edited note
   function saveEdit(noteId) {
-    setCarNotes(carNotes.map(n =>
-      n.id === noteId ? { ...n, content: editText } : n
-    ));
-    setEditingNote(null);
-    setEditText("");
+    fetch(`/api/car_notes/${noteId}`, {
+      method: "PATCH",
+      headers: {
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify({ content: editText })
+    })
+    .then(resp => {
+      if (!resp.ok) throw new Error("Failed to update note");
+      return resp.json();
+    })
+    .then(updatedNote => {
+      setCarNotes(carNotes.map(n =>
+        n.id === noteId ? updatedNote : n
+      ));
+      setEditingNote(null);
+      setEditText("");
+    })
+    .catch(err => setError(err.message));
   }
 
   // Delete note
   function deleteNote(noteId) {
-    setCarNotes(carNotes.filter(n => n.id !== noteId));
+    fetch(`/api/car_notes/${noteId}`, {
+      method: "DELETE"
+    })
+    .then(resp => {
+      if (!resp.ok) throw new Error("Failed to delete note");
+      setCarNotes(carNotes.filter(n => n.id !== noteId));
+    })
+    .catch(err => setError(err.message));
   }
 
   if (error) return <p className="text-red-500 mt-20">Error: {error}</p>;
