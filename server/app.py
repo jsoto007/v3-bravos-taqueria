@@ -564,21 +564,22 @@ class VinHistory(Resource):
                     "vin": vin,
                     "year": car.year,
                     "make": car.make,
-                    "history": []
+                    "history": [],
+                    "notes": [serialize_car_note(n) for n in car.notes]
                 }
 # Car notes are included in this resource; might be deleted. It could be it's own resource since a user will not want to see all notes at once. Trying separating first. 
             vin_map[vin]["history"].append({
                 "user": car.user.email if car.user else None,
                 "location": car.location,
-                "created_at": car.created_at.isoformat() if car.created_at else None,
-                "notes": [serialize_car_note(n) for n in car.notes]
+                "created_at": car.created_at.isoformat() if car.created_at else None
             })
 
         result = [{
             "vin": vin_data["vin"],
             "year": vin_data.get("year"),
             "make": vin_data.get("make"),
-            "history": vin_data["history"]
+            "history": vin_data["history"],
+            "notes": vin_data["notes"],
         } for vin_data in vin_map.values()]
         return make_response(jsonify(result), 200)
 
