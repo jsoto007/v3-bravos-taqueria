@@ -1,7 +1,10 @@
 import React, { useState } from 'react';
 import { Car, Trash2, KeySquare } from 'lucide-react';
 
-export default function CarDetails() {
+export default function CarDetails( { car } ) {
+
+
+console.log("carData", {car})
   // Sample car data
   const [carData, setCarData] = useState({
     vin: 'JH4KA8260MC000000',
@@ -13,18 +16,7 @@ export default function CarDetails() {
     owner: 'John Smith'
   });
 
-  // Notes state
-  const [notes, setNotes] = useState([
-    { id: 1, text: 'Oil change due at 50,000 miles', createdAt: '2024-08-15T10:30:00Z' },
-    { id: 2, text: 'Minor scratch on rear bumper', createdAt: '2024-08-10T14:20:00Z' },
-  ]);
 
-  // Scan history state
-  const [scanHistory, setScanHistory] = useState([
-    { id: 1, vin: 'JH4KA8260MC000000', location: 'Main Street Garage', user: 'Mike Johnson', dateTime: '2024-08-17T09:15:00Z' },
-    { id: 2, vin: 'JH4KA8260MC000000', location: 'Downtown Service Center', user: 'Sarah Wilson', dateTime: '2024-08-16T16:45:00Z' },
-    { id: 3, vin: 'JH4KA8260MC000000', location: 'Express Auto Check', user: 'David Brown', dateTime: '2024-08-15T11:30:00Z' },
-  ]);
 
   // UI state
   const [newNote, setNewNote] = useState('');
@@ -32,37 +24,7 @@ export default function CarDetails() {
   const [editText, setEditText] = useState('');
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
 
-  // Note operations
-  const addNote = () => {
-    if (newNote.trim()) {
-      const note = {
-        id: Date.now(),
-        text: newNote.trim(),
-        createdAt: new Date().toISOString()
-      };
-      setNotes([note, ...notes]);
-      setNewNote('');
-    }
-  };
 
-  const startEdit = (note) => {
-    setEditingNote(note.id);
-    setEditText(note.text);
-  };
-
-  const saveEdit = () => {
-    setNotes(notes.map(note => 
-      note.id === editingNote 
-        ? { ...note, text: editText }
-        : note
-    ));
-    setEditingNote(null);
-    setEditText('');
-  };
-
-  const deleteNote = (id) => {
-    setNotes(notes.filter(note => note.id !== id));
-  };
 
   const deleteCar = () => {
     // Reset all data
@@ -72,18 +34,9 @@ export default function CarDetails() {
     setShowDeleteConfirm(false);
   };
 
-  const formatDate = (dateString) => {
-    return new Date(dateString).toLocaleDateString('en-US', {
-      month: 'short',
-      day: 'numeric',
-      year: 'numeric',
-      hour: '2-digit',
-      minute: '2-digit'
-    });
-  };
 
   // If car is deleted, show empty state
-  if (!carData) {
+  if (!car) {
     return (
       <div className="min-h-screen bg-gradient-to-b from-slate-100 via-slate-200 to-slate-300 dark:bg-[#121A2A] p-6 flex items-center justify-center">
         <div className="text-center">
@@ -106,7 +59,7 @@ export default function CarDetails() {
               </div>
               <div>
                 <p className="text-slate-700 dark:text-slate-200 text-lg md:text-2xl font-bold font-mono">
-                  <span className='dark:text-slate-400 text-slate-400 text-sm md:text-base'>VIN:</span> {carData.vin}
+                  <span className='dark:text-slate-400 text-slate-400 text-sm md:text-base'>VIN:</span> {car.vin_number}
                 </p>
               </div>
             </div>
@@ -122,19 +75,19 @@ export default function CarDetails() {
           <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
             <div className="bg-slate-300/50 dark:bg-slate-800 p-4 rounded-xl">
               <p className="text-slate-500 dark:text-slate-400 text-sm font-medium">Make & Model</p>
-              <p className="text-xl font-bold text-slate-950 dark:text-slate-50">{carData.make} {carData.model}</p>
+              <p className="text-xl font-bold text-slate-950 dark:text-slate-50">{car.make}</p>
             </div>
             <div className="bg-slate-300/50 dark:bg-slate-800 p-4 rounded-xl">
               <p className="text-slate-500 dark:text-slate-400 text-sm font-medium">Year</p>
-              <p className="text-xl font-bold text-slate-950 dark:text-slate-50">{carData.year}</p>
+              <p className="text-xl font-bold text-slate-950 dark:text-slate-50">{car.year}</p>
             </div>
             <div className="bg-slate-300/50 dark:bg-slate-800 p-4 rounded-xl">
               <p className="text-slate-500 dark:text-slate-400 text-sm font-medium">Color</p>
-              <p className="text-xl font-bold text-slate-950 dark:text-slate-50">{carData.color}</p>
+              <p className="text-xl font-bold text-slate-950 dark:text-slate-50">Pending feature</p>
             </div>
             <div className="bg-slate-300/50 dark:bg-slate-800 p-4 rounded-xl">
-              <p className="text-slate-500 dark:text-slate-400 text-sm font-medium">Mileage</p>
-              <p className="text-xl font-bold text-slate-950 dark:text-slate-50">{carData.mileage.toLocaleString()}</p>
+              <p className="text-slate-500 dark:text-slate-400 text-sm font-medium">Body style</p>
+              <p className="text-xl font-bold text-slate-950 dark:text-slate-50">pending feature</p>
             </div>
           </div>
         </div>
