@@ -1,4 +1,4 @@
-import { Edit3, Plus, Save, X, Trash2 } from "lucide-react";
+import { Edit3, Plus, X, Trash2, CheckCheck, Check } from "lucide-react";
 import { useState, useEffect } from "react";
 
 export default function CarNotes( { notes, car } ) {
@@ -26,7 +26,14 @@ export default function CarNotes( { notes, car } ) {
   // Helper to format date
   function formatDate(dateString) {
     const date = new Date(dateString);
-    return date.toLocaleString();
+    return date.toLocaleString("en-US", {
+      month: "short",
+      day: "numeric",
+      year: "numeric",
+      hour: "numeric",
+      minute: "2-digit",
+      hour12: true
+    });
   }
 
   // Add a new note
@@ -141,14 +148,14 @@ export default function CarNotes( { notes, car } ) {
                         onClick={() => saveEdit(note.id)}
                         aria-label="Save"
                       >
-                        <Save size={16} />
+                        <Check size={16}/>
                       </button>
                       <button
-                        className="p-1 rounded bg-slate-200 dark:bg-slate-700 text-white flex items-center"
+                        className="p-1 font-bold ml-2 rounded bg-slate-400 dark:bg-slate-700 text-white flex items-center"
                         onClick={() => { setEditingNote(null); setEditText(""); }}
                         aria-label="Cancel"
                       >
-                        <X size={16} />
+                        <X Can size={16} />
                       </button>
                     </div>
                   </div>
@@ -167,7 +174,7 @@ export default function CarNotes( { notes, car } ) {
                       onClick={() => startEdit(note)}
                       aria-label="Edit"
                     >
-                      <Edit3 size={16} />
+                      <Edit3 size={16} /> 
                     </button>
                     <button
                       className="p-1 rounded hover:bg-slate-700 text-red-400"

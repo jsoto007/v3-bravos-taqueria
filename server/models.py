@@ -15,7 +15,7 @@ class OwnerDealer(db.Model, SerializerMixin):
     user_id = db.Column(db.Integer, db.ForeignKey('users.id'), primary_key=True)
     account_group_id = db.Column(db.Integer, db.ForeignKey('account_groups.id'), primary_key=True)
 
-    created_at = db.Column(db.DateTime, server_default=db.func.now())
+    created_at = db.Column(db.DateTime(timezone=True), server_default=db.func.now())
 
     user = relationship('User', backref=backref('owner_dealer_links', cascade='all, delete-orphan'))
     account_group = relationship('AccountGroup', backref=backref('owner_dealer_links', cascade='all, delete-orphan'))
@@ -33,11 +33,11 @@ class AccountGroup(db.Model, SerializerMixin):
     id = db.Column(db.Integer, primary_key=True)
     group_key = db.Column(db.String, unique=True, nullable=False)
     is_active = db.Column(db.Boolean, default=True)
-    paid_until = db.Column(db.DateTime, nullable=True)
+    paid_until = db.Column(db.DateTime(timezone=True), nullable=True)
 
     stripe_customer_id = db.Column(db.String, unique=True)
     stripe_subscription_id = db.Column(db.String, unique=True)
-    created_at = db.Column(db.DateTime, server_default=db.func.now())
+    created_at = db.Column(db.DateTime(timezone=True), server_default=db.func.now())
     latitude = db.Column(db.Float, nullable=True)
     longitude = db.Column(db.Float, nullable=True)
 
@@ -65,8 +65,8 @@ class User(db.Model, SerializerMixin):
     is_owner_admin = db.Column(db.Boolean, default=False)
     account_group_id = db.Column(db.Integer, db.ForeignKey('account_groups.id'), nullable=False)
 
-    created_at = db.Column(db.DateTime, server_default=db.func.now())
-    updated_at = db.Column(db.DateTime, onupdate=db.func.now())
+    created_at = db.Column(db.DateTime(timezone=True), server_default=db.func.now())
+    updated_at = db.Column(db.DateTime(timezone=True), onupdate=db.func.now())
 
     owned_account_groups = relationship(
         'AccountGroup',
@@ -114,7 +114,7 @@ class UserInventory(db.Model, SerializerMixin):
 
     submitted = db.Column(db.Boolean, default=False)
     reviewed = db.Column(db.Boolean, default=False)
-    created_at = db.Column(db.DateTime, server_default=db.func.now())
+    created_at = db.Column(db.DateTime(timezone=True), server_default=db.func.now())
 
     user = relationship('User', backref=backref('user_inventories', cascade='all, delete-orphan'))
     account_group = relationship('AccountGroup', backref=backref('user_inventories', cascade='all, delete-orphan'))
@@ -142,8 +142,8 @@ class CarInventory(db.Model, SerializerMixin):
     user_inventory_id = db.Column(db.Integer, db.ForeignKey('user_inventories.id'), nullable=True)
     account_group_id = db.Column(db.Integer, db.ForeignKey('account_groups.id'), nullable=False)
 
-    created_at = db.Column(db.DateTime, server_default=db.func.now())
-    updated_at = db.Column(db.DateTime, onupdate=db.func.now())
+    created_at = db.Column(db.DateTime(timezone=True), server_default=db.func.now())
+    updated_at = db.Column(db.DateTime(timezone=True), onupdate=db.func.now())
 
     user = relationship('User', backref=backref('car_inventories'))
     user_inventory = relationship('UserInventory', backref=backref('car_inventories', cascade='all, delete-orphan'))
@@ -178,7 +178,7 @@ class CarNote(db.Model, SerializerMixin):
     id = db.Column(db.Integer, primary_key=True)
     car_inventory_id = db.Column(db.Integer, db.ForeignKey('car_inventories.id'), nullable=False)
     content = db.Column(db.Text, nullable=False)
-    created_at = db.Column(db.DateTime, server_default=db.func.now())
+    created_at = db.Column(db.DateTime(timezone=True), server_default=db.func.now())
 
 
 class CarPhoto(db.Model, SerializerMixin):
@@ -216,13 +216,13 @@ class MasterCarRecord(db.Model, SerializerMixin):
     drivetrain = db.Column(db.String, nullable=True)
     engine = db.Column(db.String, nullable=True)
     fuel_type = db.Column(db.String, nullable=True)
-    date_acquired = db.Column(db.DateTime, nullable=True)
-    date_sold = db.Column(db.DateTime, nullable=True)
+    date_acquired = db.Column(db.DateTime(timezone=True), nullable=True)
+    date_sold = db.Column(db.DateTime(timezone=True), nullable=True)
     mileage = db.Column(db.Float, nullable=True)
     purchase_price = db.Column(db.Float, nullable=True)
     selling_price = db.Column(db.Float, nullable=True)
     is_sold = db.Column(db.Boolean, default=False)
     sold_price = db.Column(db.Float, nullable=True)
 
-    created_at = db.Column(db.DateTime, server_default=db.func.now())
-    updated_at = db.Column(db.DateTime, onupdate=db.func.now())
+    created_at = db.Column(db.DateTime(timezone=True), server_default=db.func.now())
+    updated_at = db.Column(db.DateTime(timezone=True), onupdate=db.func.now())
