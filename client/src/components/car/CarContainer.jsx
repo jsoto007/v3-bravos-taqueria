@@ -1,22 +1,41 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
+import { useParams } from "react-router-dom";
 import CarDetails from "./CarDetails"
 import CarNotes from "../carNotes/CarNotes"
 import CarScanHistory from "./CarScanHistory"
 
 export default function CarContainer() {
+    // const { id } = useParams();
 
-    // Car Scan Vin data
-    // Car Notes
-    // 
+    let id = 1012
 
-    const [scanHistory, setScanHistory] = useState([
-        { id: 1, vin: 'JH4KA8260MC000000', location: 'Main Street Garage', user: 'Mike Johnson', dateTime: '2024-08-17T09:15:00Z' },
-        { id: 2, vin: 'JH4KA8260MC000000', location: 'Downtown Service Center', user: 'Sarah Wilson', dateTime: '2024-08-16T16:45:00Z' },
-        { id: 3, vin: 'JH4KA8260MC000000', location: 'Downtown Service Center', user: 'Sarah Wilson', dateTime: '2024-08-16T16:45:00Z' },
-        { id: 4, vin: 'JH4KA8260MC000000', location: 'Downtown Service Center', user: 'Sarah Wilson', dateTime: '2024-08-16T16:45:00Z' },
-        { id: 5, vin: 'JH4KA8260MC000000', location: 'Express Auto Check', user: 'David Brown', dateTime: '2024-08-15T11:30:00Z' },
-      ]);
+    const [car, setCar] = useState(null);
+    const [scanHistory, setScanHistory] = useState([]);
+    const [notes, setNotes] = useState([]);
 
+    useEffect(() => {
+        async function fetchCarData() {
+            try {
+                const response = await fetch(`/api/cars/${id}`);
+                if (!response.ok) {
+                    throw new Error('Network response was not ok');
+                }
+                const data = await response.json();
+                console.log("data'", data)
+                setCar(data.car);
+                setScanHistory(data.scan_history);
+                setNotes(data.notes);
+            } catch (error) {
+                console.error('Failed to fetch car data:', error);
+            }
+        }
+        fetchCarData();
+    }, [id]);
+
+
+    console.log("CAR from test routes", {car})
+    console.log("HISTORY from test routes", {scanHistory})
+    console.log("NOTES from test routes", {notes})
 
     return (
         <div className="mt-20 text-left">
@@ -26,8 +45,8 @@ export default function CarContainer() {
                   Manage car records with full scan history. Add, edit, and delete notes or delete the car entirely.
                 </h3>
             </div>
-            <CarDetails />
-            <CarNotes />
+            <CarDetails car={car} />
+            <CarNotes notes={notes} />
             <CarScanHistory scanHistory={scanHistory} />
         </div>
     )

@@ -1,3 +1,4 @@
+
 import os
 import uuid
 from flask import Flask, jsonify, request, make_response, render_template, session, send_from_directory, url_for
@@ -561,6 +562,7 @@ class VinHistory(Resource):
             vin = car.vin_number
             if vin not in vin_map:
                 vin_map[vin] = {
+                    "id": car.id,
                     "vin": vin,
                     "year": car.year,
                     "make": car.make,
@@ -576,12 +578,68 @@ class VinHistory(Resource):
 
         result = [{
             "vin": vin_data["vin"],
+            "id": vin_data["id"],
             "year": vin_data.get("year"),
             "make": vin_data.get("make"),
             "history": vin_data["history"],
             "notes": vin_data["notes"],
         } for vin_data in vin_map.values()]
         return make_response(jsonify(result), 200)
+    
+
+
+
+class CarById(Resource):
+    def get(self, id):
+        user_id = session.get('user_id')
+        if not user_id:
+            return {"error": "Unauthorized"}, 401
+        user = User.query.get(user_id)
+        if not user or not user.account_group_id:
+            return {"error": "Forbidden: User not in an account group"}, 403
+
+        car = (
+            CarInventory.query.options(joinedload(CarInventory.user))
+            .filter_by(id=id, account_group_id=user.account_group_id)
+            .first()
+        )
+        if not car:
+            return {"error": "Car not found"}, 404
+
+        car_info = {
+            "id": car.id,
+            "vin_number": car.vin_number,
+            "year": car.year,
+            "make": car.make,
+        }
+
+        # Scan history: all CarInventory records with the same vin_number in the same account group
+        scan_history = []
+        scan_cars = (
+            CarInventory.query.options(joinedload(CarInventory.user))
+            .filter_by(vin_number=car.vin_number, account_group_id=user.account_group_id)
+            .order_by(CarInventory.created_at.asc())
+            .all()
+        )
+        for scan in scan_cars:
+            scan_history.append({
+                "user": scan.user.email if scan.user else None,
+                "location": scan.location,
+                "created_at": scan.created_at.isoformat() if scan.created_at else None,
+            })
+
+        # All notes for this car (by car.id)
+        notes = [serialize_car_note(n) for n in car.notes]
+
+        response = {
+            "car": car_info,
+            "scan_history": scan_history,
+            "notes": notes,
+        }
+        return response, 200
+    
+
+    
 
 
 # -------- Stripe -------- #
@@ -651,6 +709,9 @@ api.add_resource(AdminCreateUser, '/api/admin/create_user', endpoint='admin_crea
 
 api.add_resource(VinHistory, '/api/vin_history', endpoint='vin_history')
 api.add_resource(CarNotes, '/api/car_notes', '/api/car_notes/<int:id>', endpoint='car_notes')
+
+
+api.add_resource(CarById, '/api/cars/<int:id>', endpoint='car_by_id')
 
 
 @app.route('/static/uploads/<filename>')
