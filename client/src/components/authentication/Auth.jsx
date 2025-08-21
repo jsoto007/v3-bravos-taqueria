@@ -9,12 +9,12 @@ export default function Auth() {
 
     return (
         <>
-           <h1 className="text-4xl font-bold text-center text-gray-900 dark:text-white my-8">Auto Tracker</h1>
+           <h1 className="text-4xl font-bold text-center text-gray-900 dark:text-white mt-20">Car Monitr</h1>
             {isLogin ? <Login /> : <Signup />}
             <hr className="my-15"/>
             <ActionBtn label={isLogin ? "Create Account" : "Back to Login"} onClick={() => setIsLogin(!isLogin)}>
   
-</ActionBtn>
+            </ActionBtn>
         </>
     );
 }

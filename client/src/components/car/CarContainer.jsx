@@ -5,6 +5,9 @@ import CarScanHistory from "./CarScanHistory"
 
 export default function CarContainer() {
 
+    // Car Scan Vin data
+    // Car Notes
+    // 
 
     const [scanHistory, setScanHistory] = useState([
         { id: 1, vin: 'JH4KA8260MC000000', location: 'Main Street Garage', user: 'Mike Johnson', dateTime: '2024-08-17T09:15:00Z' },
