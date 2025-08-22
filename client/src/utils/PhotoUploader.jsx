@@ -2,6 +2,8 @@ import React, { useState } from "react";
 import { Dialog, DialogBackdrop, DialogPanel, DialogTitle } from "@headlessui/react";
 import { PhotoIcon } from "@heroicons/react/24/outline";
 
+
+// NOT in use
 export default function PhotoUploader({ carInventoryId, open, setOpen }) {
   const [files, setFiles] = useState([]);
   const [message, setMessage] = useState("");
