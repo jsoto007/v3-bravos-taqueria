@@ -41,7 +41,7 @@ export default function ScanbotScanner({ onScan, setDecodedVin }) {
   const [initialized, setInitialized] = useState(false);
   const [scanResult, setScanResult] = useState(null);
 
-  const apiKey = import.meta.env.VITE_SCANDIT_KEY;
+  const apiKey = import.meta.env.VITE_LICENSE_KEY;
 
   useEffect(() => {
     (async () => {

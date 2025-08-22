@@ -4,7 +4,7 @@ import ActionBtn from "../shared/ActionBtn";
 import { decodeVinData } from "./VinDecoder"; // import if needed
 
 export default function ScanbotVinText({ onScan, setDecodedVin }) {
-  const apiKey = import.meta.env.VITE_SCANDIT_KEY;
+  const apiKey = import.meta.env.VITE_LICENSE_KEY;
   const [vin, setVin] = useState("");
 
   // ISO 3779 VIN validation
