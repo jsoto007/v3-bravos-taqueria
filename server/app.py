@@ -135,22 +135,18 @@ def serialize_car_note(note):
 
 
 class CarNotes(Resource):
-    def get(self, id=None):
+    def get(self, car_id):
         user_id = session.get('user_id')
         if not user_id:
             return {"error": "Unauthorized"}, 401
         user = User.query.get(user_id)
         if not user or not getattr(user, 'admin', False):
             return {"error": "Forbidden: Admins only"}, 403
-        if id is not None:
-            note = CarNote.query.get(id)
-            if not note:
-                return {"error": "CarNote not found"}, 404
-            return serialize_car_note(note), 200
-        notes = CarNote.query.all()
+        # Return all notes for a given car_id
+        notes = CarNote.query.filter_by(car_inventory_id=car_id).all()
         return [serialize_car_note(n) for n in notes], 200
 
-    def post(self):
+    def post(self, car_id):
         user_id = session.get('user_id')
         if not user_id:
             return {"error": "Unauthorized"}, 401
@@ -158,11 +154,10 @@ class CarNotes(Resource):
         if not user or not getattr(user, 'admin', False):
             return {"error": "Forbidden: Admins only"}, 403
         data = request.get_json()
-        car_inventory_id = data.get('car_inventory_id')
         content = data.get('content')
-        if not car_inventory_id or not content:
-            return {"error": "Missing car_inventory_id or content"}, 400
-        note = CarNote(car_inventory_id=car_inventory_id, content=content)
+        if not content:
+            return {"error": "Missing content"}, 400
+        note = CarNote(car_inventory_id=car_id, content=content)
         db.session.add(note)
         db.session.commit()
         return serialize_car_note(note), 201
@@ -735,7 +730,13 @@ api.add_resource(StripeWebhook, '/api/webhook/stripe', endpoint='stripe_webhook'
 api.add_resource(AdminCreateUser, '/api/admin/create_user', endpoint='admin_create_user')
 
 api.add_resource(VinHistory, '/api/vin_history', endpoint='vin_history')
-api.add_resource(CarNotes, '/api/car_notes', '/api/car_notes/<int:id>', endpoint='car_notes')
+# CarNotes routes:
+# GET and POST: /api/car_notes/<int:car_id>
+# PATCH and DELETE: /api/car_notes/note/<int:id>
+api.add_resource(CarNotes,
+                 '/api/car_notes/<int:car_id>',  # GET, POST
+                 '/api/car_notes/note/<int:id>',  # PATCH, DELETE
+                 endpoint='car_notes')
 
 
 api.add_resource(CarById, '/api/cars/<int:id>', endpoint='car_by_id')

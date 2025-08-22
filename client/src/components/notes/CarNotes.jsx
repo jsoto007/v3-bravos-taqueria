@@ -1,4 +1,4 @@
-import { Edit3, Plus, X, Trash2, CheckCheck, Check } from "lucide-react";
+import { Edit3, Plus, X, Trash2, Check } from "lucide-react";
 import { useState, useEffect } from "react";
 
 export default function CarNotes( { notes, car } ) {
@@ -12,14 +12,15 @@ export default function CarNotes( { notes, car } ) {
 
 
   useEffect(() => {
-    fetch("/api/car_notes")
+    if (!car?.id) return;
+    fetch(`/api/car_notes/${car.id}`)
       .then(resp => {
         if (!resp.ok) throw new Error("Failed to fetch car notes");
         return resp.json();
       })
       .then(notes => setCarNotes(notes))
       .catch(err => setError(err.message));
-  }, []);
+  }, [car?.id]);
 
 
   // Helper to format date
@@ -38,12 +39,12 @@ export default function CarNotes( { notes, car } ) {
   // Add a new note
   function addNote() {
     if (!newNote.trim()) return;
-    fetch("/api/car_notes", {
+    fetch(`/api/car_notes/${car.id}`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json"
       },
-      body: JSON.stringify({ car_inventory_id: car?.id, content: newNote })
+      body: JSON.stringify({ content: newNote })
     })
     .then(resp => {
       if (!resp.ok) throw new Error("Failed to add note");
