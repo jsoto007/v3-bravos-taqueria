@@ -15,12 +15,13 @@ from models import User, CarInventory, CarPhoto, MasterCarRecord, UserInventory,
 
 # ---------- Stripe ---------- #
 import stripe
-from datetime import timezone, datetime
+from datetime import timezone, datetime, timedelta
 
 stripe.api_key = os.getenv('STRIPE_SECRET_KEY')
 
 # SQLAlchemy pre-ping setting
 app.config['SQLALCHEMY_ENGINE_OPTIONS'] = {'pool_pre_ping': True}
+app.config['PERMANENT_SESSION_LIFETIME'] = timedelta(days=7)
 
 
 CORS(app)
@@ -322,14 +323,16 @@ class CheckSession(Resource):
 
 class Login(Resource):
     def post(self):
-        email = request.get_json()['username']
-        password = request.get_json()['password']
+        data = request.get_json()
+        email = data['username']
+        password = data['password']
 
         user = User.query.filter(User.email == email).first()
         if user and user.authenticate(password):
             session['user_id'] = user.id
+            session.permanent = True
             return serialize_user(user), 200
-        return {'error': "401 Unauthorized"}, 401
+        return {"error": "401 Unauthorized"}, 401
 
 class Logout(Resource):
     def delete(self):
