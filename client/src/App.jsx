@@ -23,7 +23,7 @@ import CarContainer from './components/car/CarContainer';
 import CarVinScanHistoryCard from './components/inventory/CarVinScanHistoryCard';
 import ScanbotVinText from './utils/ScanbotVinText';
 import CarNotes from './components/carNotes/CarNotes';
-import InventoryFeed from './components/inventory/InventoryFeed';
+
 
 function App() {
 
