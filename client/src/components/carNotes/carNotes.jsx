@@ -3,7 +3,6 @@ import { useState, useEffect } from "react";
 
 export default function CarNotes( { notes, car } ) {
 
-  console.log("carNotes:", notes)
 
   const [carNotes, setCarNotes] = useState([]);
   const [error, setError] = useState(null);

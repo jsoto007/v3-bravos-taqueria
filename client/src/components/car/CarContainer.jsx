@@ -18,7 +18,6 @@ export default function CarContainer() {
                     throw new Error('Network response was not ok');
                 }
                 const data = await response.json();
-                console.log("data'", data)
                 setCar(data.car);
                 setScanHistory(data.scan_history);
                 setNotes(data.notes);

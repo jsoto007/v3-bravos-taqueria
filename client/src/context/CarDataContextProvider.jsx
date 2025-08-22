@@ -19,7 +19,6 @@ function CarDataContextProvider( { children } ) {
                 }
             })
             .then(car => {
-                console.log("API Response:", {car});
                 setCarData(car);
                 setLoading(false);
             })
