@@ -19,8 +19,15 @@ from datetime import timezone, datetime, timedelta
 
 stripe.api_key = os.getenv('STRIPE_SECRET_KEY')
 
-# SQLAlchemy pre-ping setting
-app.config['SQLALCHEMY_ENGINE_OPTIONS'] = {'pool_pre_ping': True}
+from sqlalchemy.pool import QueuePool
+
+# SQLAlchemy production-ready engine options
+app.config['SQLALCHEMY_ENGINE_OPTIONS'] = {
+    'pool_pre_ping': True,
+    'pool_recycle': 280,  # recycle connections every 280 seconds
+    'pool_size': 10,       # adjust based on expected concurrent requests
+    'max_overflow': 20     # allows extra temporary connections
+}
 app.config['PERMANENT_SESSION_LIFETIME'] = timedelta(days=7)
 
 
@@ -763,6 +770,12 @@ def protected_resource():
         return {"error": "Subscription inactive"}, 403
 
     return {"message": "Access granted"}
+
+
+# Ensure sessions are properly removed after each request
+@app.teardown_appcontext
+def shutdown_session(exception=None):
+    db.session.remove()
 
 if __name__ == "__main__":
     app.run(host="0.0.0.0", port=int(os.environ.get("PORT", 5555)))
