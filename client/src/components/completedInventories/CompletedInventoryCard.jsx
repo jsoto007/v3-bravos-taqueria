@@ -11,7 +11,6 @@ export default function CompletedInventoryCard() {
 
   const navigate = useNavigate();
 
-  console.log(carData)
   const events = carData
     ? carData.flatMap(({ vin, history, id }) =>
         history.map(({ created_at, location, user }) => ({
@@ -24,7 +23,6 @@ export default function CompletedInventoryCard() {
       )
     : [];
 
-  console.log(currentUser)
 
   const latestByVin = new Map();
   events.forEach((event) => {
