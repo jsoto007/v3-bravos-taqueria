@@ -22,7 +22,6 @@ import CarContainer from './components/car/CarContainer';
 // Testing routes:
 import CarVinScanHistoryCard from './components/inventory/CarVinScanHistoryCard';
 import ScanbotVinText from './utils/ScanbotVinText';
-import CarNotes from './components/carNotes/CarNotes';
 
 
 function App() {
@@ -43,7 +42,6 @@ function App() {
 {/* TEST routes++++++++++++ */}
             <Route path="/test/scanner" element={<ScanbotVinText />} />
             <Route path="/test/inventory" element={<CarVinScanHistoryCard />} />
-            <Route path="/test/notes" element={<CarNotes />} />
             <Route path="/test/cars" element={<CarContainer />} />
 
 {/* End of test routes+++++ */}
