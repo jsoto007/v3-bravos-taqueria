@@ -39,9 +39,9 @@ function App() {
             <Route path="/dashboard" element={<Dashboard />} />
             <Route path="/inventory" element={<UserInventoryContainer />} />
             <Route path="/cars/:id" element={<CarContainer />} />
+            <Route path="/cars/scanner" element={<CarScannerContainer />} />
 
 {/* TEST routes++++++++++++ */}
-            <Route path="/test/scanner" element={<CarScannerContainer />} />
             <Route path="/test/inventory" element={<CarVinScanHistoryCard />} />
             <Route path="/test/cars" element={<CarContainer />} />
 

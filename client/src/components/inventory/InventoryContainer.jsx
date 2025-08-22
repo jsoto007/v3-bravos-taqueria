@@ -118,11 +118,11 @@ export default function InventoryContainer() {
       ) : (
         <>
             <div className="text-center mb-6">
-                <p className="text-sm text-gray-600 dark:text-gray-300">
-                    <strong>Add Cars to Inventory</strong>
+                <p className="text-sm text-gray-600 dark:text-gray-300 text-xl">
+                    <strong>Add Many Cars to Inventory</strong>
                 </p>
                 <p className="mt-2 text-xs text-gray-500 dark:text-gray-400 italic">
-                    Select a scan method → Scan VIN → Add Car → Submit Inventory to save all at once.
+                    Select a scan method → Scan VIN → Add Cars → Submit Inventory to save all at once.
                 </p>
             </div>
           <fieldset aria-label="VIN input method" className="mt-2 flex justify-center">
