@@ -1,8 +1,9 @@
 import React, { useState, useEffect } from "react";
 import { useParams } from "react-router-dom";
 import CarDetails from "./CarDetails"
-import CarNotes from "../carnotes/CarNotes"
+import CarNotes from "../notes/CarNotes"
 import CarScanHistory from "./CarScanHistory"
+
 
 export default function CarContainer() {
     const { id } = useParams();
