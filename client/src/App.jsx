@@ -17,12 +17,13 @@ import PageNotFound from './shared/PageNotFound';
 
 import SubscriptionDashboard from './components/subscription/SubscriptionDashboard';
 
-import InventoryFeed from './components/inventory/InventoryFeed';
+import CarContainer from './components/car/CarContainer';
+
 // Testing routes:
 import CarVinScanHistoryCard from './components/inventory/CarVinScanHistoryCard';
 import ScanbotVinText from './utils/ScanbotVinText';
 import CarNotes from './components/carNotes/CarNotes';
-import CarContainer from './components/car/CarContainer';
+import InventoryFeed from './components/inventory/InventoryFeed';
 
 function App() {
 
@@ -37,12 +38,13 @@ function App() {
           <Route element={<ProtactedRoutes />}>
             <Route path="/dashboard" element={<Dashboard />} />
             <Route path="/inventory" element={<UserInventoryContainer />} />
+            <Route path="/cars/:id" element={<CarContainer />} />
 
 {/* TEST routes++++++++++++ */}
-            <Route path="/test_scanner" element={<ScanbotVinText />} />
-            <Route path="/test_inventory" element={<CarVinScanHistoryCard />} />
-            <Route path="/test_notes" element={<CarNotes />} />
-            <Route path="/test_cars" element={<CarContainer />} />
+            <Route path="/test/scanner" element={<ScanbotVinText />} />
+            <Route path="/test/inventory" element={<CarVinScanHistoryCard />} />
+            <Route path="/test/notes" element={<CarNotes />} />
+            <Route path="/test/cars" element={<CarContainer />} />
 
 {/* End of test routes+++++ */}
 

@@ -5,10 +5,7 @@ import CarNotes from "../carNotes/CarNotes"
 import CarScanHistory from "./CarScanHistory"
 
 export default function CarContainer() {
-    // const { id } = useParams();
-
-    let id = 1012
-
+    const { id } = useParams();
     const [car, setCar] = useState(null);
     const [scanHistory, setScanHistory] = useState([]);
     const [notes, setNotes] = useState([]);
@@ -31,11 +28,6 @@ export default function CarContainer() {
         }
         fetchCarData();
     }, [id]);
-
-
-    console.log("CAR from test routes", {car})
-    console.log("HISTORY from test routes", {scanHistory})
-    console.log("NOTES from test routes", {notes})
 
     return (
         <div className="mt-20 text-left">

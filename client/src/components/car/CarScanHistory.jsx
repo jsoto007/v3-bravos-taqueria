@@ -14,8 +14,6 @@ export default function CarScanHistory({ scanHistory }) {
         });
     }
 
-    console.log(scanHistory)
-
   return (
     <div className="overflow-hidden rounded-md border border-slate-300 dark:border-slate-700 bg-white dark:bg-[#1A2235] mt-6">
       <div className="overflow-x-auto">

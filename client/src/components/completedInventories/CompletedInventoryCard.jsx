@@ -1,20 +1,30 @@
 import React, { useContext, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { CarDataContext } from "../../context/CarDataContextProvider";
+import { UserContext } from "../../context/UserContextProvider";
+
 
 export default function CompletedInventoryCard() {
   const { carData } = useContext(CarDataContext);
+  const { currentUser } = useContext(UserContext);
   const [searchTerm, setSearchTerm] = useState("");
 
+  const navigate = useNavigate();
+
+  console.log(carData)
   const events = carData
-    ? carData.flatMap(({ vin, history }) =>
+    ? carData.flatMap(({ vin, history, id }) =>
         history.map(({ created_at, location, user }) => ({
           vin,
+          id,
           user,
           location,
           created_at,
         }))
       )
     : [];
+
+  console.log(currentUser)
 
   const latestByVin = new Map();
   events.forEach((event) => {
@@ -54,7 +64,6 @@ export default function CompletedInventoryCard() {
         />
       </div>
 
-      {/* Scrollable area with max height */}
       <div className="overflow-y-auto max-h-[400px] sm:max-h-[500px]">
         <div className="overflow-x-auto">
           <table className="min-w-full text-left font-mono divide-y-6 divide-gray-400 dark:divide-gray-700">
@@ -71,14 +80,22 @@ export default function CompletedInventoryCard() {
                 const addressParts = item.location?.split(" ") || [];
                 const number = addressParts[0] || "";
                 const street = addressParts.slice(1, 3).join(" ") || "";
-                return (
-                  <tr key={index}>
-                    <td className="px-4 py-2">{item.vin}</td>
-                    <td className="px-4 py-2">{`${number} ${street}`}</td>
-                    <td className="px-4 py-2">{item.user?.split("@")[0]}</td>
-                    <td className="px-4 py-2">{formatDate(item.created_at)}</td>
-                  </tr>
-                );
+              return (
+                <tr
+                  key={item.id}
+                  onClick={() => {
+                    if (currentUser?.admin) {
+                      navigate(`/cars/${item.id}`);
+                    }
+                  }}
+                  className={currentUser?.admin ? "cursor-pointer hover:bg-gray-200 dark:hover:bg-gray-700" : ""}
+                >
+                  <td className="px-4 py-2">{item.vin}</td>
+                  <td className="px-4 py-2">{`${number} ${street}`}</td>
+                  <td className="px-4 py-2">{item.user?.split("@")[0]}</td>
+                  <td className="px-4 py-2">{formatDate(item.created_at)}</td>
+                </tr>
+              );
               })}
             </tbody>
           </table>

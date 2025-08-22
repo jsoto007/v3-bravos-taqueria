@@ -24,11 +24,15 @@ export default function CarDetails( { car, setCar } ) {
   // If car is deleted, show empty state
   if (!car) {
     return (
-      <div className="min-h-screen bg-gradient-to-b from-slate-100 via-slate-200 to-slate-300 dark:bg-[#121A2A] p-6 flex items-center justify-center">
-        <div className="text-center">
+      <div className="min-h-screen bg-gradient-to-b from-slate-100 via-slate-200 to-slate-300 dark:from-[#121A2A] dark:via-slate-800 dark:to-slate-900 p-6 flex items-center justify-center transition-colors duration-300">
+        <div className="text-center bg-white dark:bg-slate-900 rounded-xl shadow-md p-8 transition-colors duration-300">
           <KeySquare className="mx-auto h-16 w-16 text-slate-500 dark:text-slate-400 mb-4" />
-          <h2 className="text-2xl font-bold text-slate-950 dark:text-slate-50 mb-2">No Car Data</h2>
-          <p className="text-slate-500 dark:text-slate-400">The car and all associated data have been deleted.</p>
+          <h2 className="text-2xl font-bold text-slate-950 dark:text-slate-50 mb-2 transition-colors duration-300">
+            No Car Data
+          </h2>
+          <p className="text-slate-500 dark:text-slate-400 transition-colors duration-300">
+            The car and all associated data have been deleted.
+          </p>
         </div>
       </div>
     );
