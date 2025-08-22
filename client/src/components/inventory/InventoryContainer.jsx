@@ -3,9 +3,9 @@ import axios from "axios";
 import { UserContext } from "../../context/UserContextProvider";
 import InventoryForm from "./InventoryForm";
 import { userLocation } from "../../utils/UserLocation";
-import ActionBtn from "../../shared/ActionBtn";
 import ScanbotScanner from "../../utils/ScanbotScanner";
 import ScanbotVinText from "../../utils/ScanbotVinText";
+import AddCarBtn from "../../shared/AddCarBtn";
 
 export default function InventoryContainer() {
   const [inventoryId, setInventoryId] = useState(null);
@@ -108,8 +108,8 @@ export default function InventoryContainer() {
     <div className="mt-10">
         
       {!showForm ? (
-        <div className="float-right -mb-6">
-          <ActionBtn label="+ Car" onClick={handleStartInventory} />
+        <div className="flex justify-end mt-4">
+          <AddCarBtn />
         </div>
       ) : submitted ? (
         <div className="text-green-600 dark:text-green-400 font-semibold text-center">
