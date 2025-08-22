@@ -1,21 +1,19 @@
 import React, { useState } from 'react';
-import { Car, Trash2, KeySquare } from 'lucide-react';
+import { Trash2, KeySquare } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
 
 export default function CarDetails( { car, setCar } ) {
 
 
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
-
-    console.log(car)
+  const navigate = useNavigate();
 
   const deleteCar = async () => {
     try {
       const res = await fetch(`/api/cars_inventory/${car.id}`, { method: "DELETE" });
       if (res.ok) {
         setShowDeleteConfirm(false);
-        if (typeof setCar === "function") {
-          setCar(null);
-        }
+        navigate('/dashboard');
       }
     } catch (err) {
       console.error("Failed to delete car", err);
