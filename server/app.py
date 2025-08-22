@@ -342,7 +342,7 @@ class Logout(Resource):
         return {}, 204
 
 class CarInventories(Resource):
-    def get(self):
+    def get(self, id=None):
         cars = CarInventory.query.all()
         return make_response(jsonify([serialize_car_inventory(car) for car in cars]), 200)
 
@@ -372,6 +372,22 @@ class CarInventories(Resource):
         db.session.add(new_car)
         db.session.commit()
         return make_response(serialize_car_inventory(new_car), 201)
+
+    def delete(self, id):
+        car = CarInventory.query.filter_by(id=id).first()
+        if not car:
+            return {"error": "Car not found"}, 404
+
+        # Delete related notes
+        CarNote.query.filter_by(car_inventory_id=id).delete()
+
+        # Delete related photos
+        CarPhoto.query.filter_by(car_inventory_id=id).delete()
+
+        db.session.delete(car)
+        db.session.commit()
+
+        return '', 204
 
 class UserInventories(Resource):
     def post(self):
@@ -589,6 +605,7 @@ class VinHistory(Resource):
 
 
 # Search for car by ID and return Scan history, Scanner info,
+# '/api/cars/<int:id>'
 class CarById(Resource):
     def get(self, id):
         user_id = session.get('user_id')
@@ -695,7 +712,10 @@ api.add_resource(Signup, '/api/signup', endpoint='signup')
 api.add_resource(CheckSession, '/api/check_session', endpoint='check_session')
 api.add_resource(Login, '/api/login', endpoint='login')
 api.add_resource(Logout, '/api/logout', endpoint='logout')
+
 api.add_resource(CarInventories, '/api/cars', endpoint='cars')
+api.add_resource(CarInventories, '/api/cars_inventory/<int:id>', endpoint='car_by_id_delete')
+
 api.add_resource(CarPhotos, '/api/car_photos', endpoint='car_photos')
 api.add_resource(MasterCarRecords, '/api/master_inventory', endpoint='master_inventory')
 api.add_resource(MasterCarRecordById, '/api/master_inventory/<int:id>', endpoint='master_inventory_by_id')

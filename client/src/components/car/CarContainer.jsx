@@ -16,7 +16,7 @@ export default function CarContainer() {
     useEffect(() => {
         async function fetchCarData() {
             try {
-                const response = await fetch(`/api/cars/${id}`);
+                const response = await fetch(`/api/cars/${id}`)
                 if (!response.ok) {
                     throw new Error('Network response was not ok');
                 }
@@ -45,7 +45,7 @@ export default function CarContainer() {
                   Manage car records with full scan history. Add, edit, and delete notes or delete the car entirely.
                 </h3>
             </div>
-            <CarDetails car={car} />
+            <CarDetails car={car} setCar={setCar} />
             <CarNotes notes={notes} car={car} />
             <CarScanHistory scanHistory={scanHistory} />
         </div>
