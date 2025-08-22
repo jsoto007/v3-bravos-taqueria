@@ -347,26 +347,30 @@ class CarInventories(Resource):
         return make_response(jsonify([serialize_car_inventory(car) for car in cars]), 200)
 
     def post(self):
+        # Require user session
+        user_id = session.get('user_id')
+        if not user_id:
+            return {"error": "Unauthorized"}, 401
+        user = User.query.get(user_id)
+        if not user:
+            return {"error": "User not found"}, 404
+        account_group_id = user.account_group_id
+        if not account_group_id:
+            return {"error": "No account group associated with user"}, 403
+
         data = request.get_json()
-        user_inventory_id = data.get('user_inventory_id')
-        account_group_id = data.get('account_group_id')
-
-        if not user_inventory_id or not account_group_id:
-            return {"error": "User inventory ID and account group ID are required"}, 400
-
-        inventory = UserInventory.query.filter_by(id=user_inventory_id).first()
-        if not inventory:
-            return {"error": "User inventory not found"}, 404
-        if inventory.submitted:
-            return {"error": "Inventory has been submitted and cannot be modified"}, 403
+        # Only require location, vin_number, year, make
+        required_fields = ['location', 'vin_number', 'year', 'make']
+        for field in required_fields:
+            if field not in data:
+                return {"error": f"Missing required field: {field}"}, 400
 
         new_car = CarInventory(
             location=data['location'],
             vin_number=data['vin_number'],
             year=data.get('year'),
             make=data.get('make'),
-            user_id=data['user_id'],
-            user_inventory_id=user_inventory_id,
+            user_id=user_id,
             account_group_id=account_group_id
         )
         db.session.add(new_car)
