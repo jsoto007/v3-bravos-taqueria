@@ -65,7 +65,7 @@ export default function CarNotes( { notes, car } ) {
 
   // Save edited note
   function saveEdit(noteId) {
-    fetch(`/api/car_notes/${noteId}`, {
+    fetch(`/api/car_notes/note/${noteId}`, {
       method: "PATCH",
       headers: {
         "Content-Type": "application/json"
@@ -88,7 +88,7 @@ export default function CarNotes( { notes, car } ) {
 
   // Delete note
   function deleteNote(noteId) {
-    fetch(`/api/car_notes/${noteId}`, {
+    fetch(`/api/car_notes/note/${noteId}`, {
       method: "DELETE"
     })
     .then(resp => {
