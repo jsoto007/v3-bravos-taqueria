@@ -45,13 +45,8 @@ export default function CarScannerContainer() {
       const data = await response.json();
       setSubmittedCar(data);
 
-      // Reset fields after submission
-      setVin("");
-      setYear("");
-      setMake("");
-      setDecodedVin({ vin: "", info: { modelYear: "", manufacturer: "" } });
-      setLocation("");
-      setErrors({});
+      // After submission, show barcode scanner for next car
+      setScanMode("scanner");
       setScanComplete(false);
     } catch (err) {
       console.error(err);
