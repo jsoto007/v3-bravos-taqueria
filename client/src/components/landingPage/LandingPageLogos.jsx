@@ -31,7 +31,7 @@ export default function LandingPageLogos() {
                 <a href="https://vite.dev/" target="_blank">
                     <img
                         alt="Vite"
-                        src="https://vitejs.dev/logo-with-shadow.png"
+                        src="https://vite.dev/logo.svg"
                         width={158}
                         height={48}
                         className="max-h-32 w-full object-contain"
