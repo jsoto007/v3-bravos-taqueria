@@ -377,13 +377,18 @@ class CarInventories(Resource):
         if not car:
             return {"error": "Car not found"}, 404
 
-        # Delete related notes
-        CarNote.query.filter_by(car_inventory_id=id).delete()
+        vin_number = car.vin_number
 
-        # Delete related photos
-        CarPhoto.query.filter_by(car_inventory_id=id).delete()
+        # Find all cars with the same VIN
+        cars_to_delete = CarInventory.query.filter_by(vin_number=vin_number).all()
 
-        db.session.delete(car)
+        for c in cars_to_delete:
+            # Delete related notes
+            CarNote.query.filter_by(car_inventory_id=c.id).delete()
+            # Delete related photos
+            CarPhoto.query.filter_by(car_inventory_id=c.id).delete()
+            db.session.delete(c)
+
         db.session.commit()
 
         return '', 204
@@ -730,9 +735,7 @@ api.add_resource(StripeWebhook, '/api/webhook/stripe', endpoint='stripe_webhook'
 api.add_resource(AdminCreateUser, '/api/admin/create_user', endpoint='admin_create_user')
 
 api.add_resource(VinHistory, '/api/vin_history', endpoint='vin_history')
-# CarNotes routes:
-# GET and POST: /api/car_notes/<int:car_id>
-# PATCH and DELETE: /api/car_notes/note/<int:id>
+
 api.add_resource(CarNotes,
                  '/api/car_notes/<int:car_id>',  # GET, POST
                  '/api/car_notes/note/<int:id>',  # PATCH, DELETE
