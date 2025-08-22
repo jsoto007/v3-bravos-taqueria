@@ -13,6 +13,12 @@ export default function CarScanHistory({ scanHistory }) {
             hour12: true
         });
     }
+    
+    function getSortedHistory(history) {
+      return history
+        ?.slice()
+        .sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
+    }
 
   return (
     <div className="overflow-hidden rounded-md border border-slate-300 dark:border-slate-700 bg-white dark:bg-[#1A2235] mt-6">
@@ -41,7 +47,7 @@ export default function CarScanHistory({ scanHistory }) {
             </tr>
           </thead>
           <tbody>
-            {scanHistory?.map((scan) => (
+            {getSortedHistory(scanHistory)?.map((scan) => (
               <tr key={scan.id} className="even:bg-slate-200 dark:even:bg-slate-800">
                 <td className="whitespace-nowrap border-b border-slate-300 dark:border-slate-700 px-3 py-4 text-xs sm:text-sm text-slate-950 dark:text-slate-50 sm:pl-6">
                   <div className="flex items-center gap-1">
