@@ -51,7 +51,7 @@ export default function CompletedInventoryCard() {
   };
 
   return (
-    <div className="w-full bg-gray-100 dark:bg-gray-800 outline outline-white/15 lg:rounded-tl-[2rem] rounded-t-lg rounded-b-xl overflow-hidden">
+    <div className="w-full bg-white dark:bg-gray-800 outline outline-white/15 lg:rounded-tl-[2rem] rounded-t-lg rounded-b-xl overflow-hidden">
       <div className="p-4">
         <input
           type="text"
@@ -64,7 +64,7 @@ export default function CompletedInventoryCard() {
 
       <div className="overflow-y-auto max-h-[400px] sm:max-h-[500px]">
         <div className="overflow-x-auto">
-          <table className="min-w-full text-left font-mono divide-y-6 divide-gray-400 dark:divide-gray-700">
+          <table className="min-w-full text-left font-mono divide-y-6 divide-gray-300 dark:divide-gray-700">
             <thead>
               <tr>
                 <th className="px-4 py-2">VIN</th>

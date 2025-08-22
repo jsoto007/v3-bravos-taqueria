@@ -6,7 +6,7 @@ import InventoryOverviewCard from "./inventory/InventoryOverviewCard"
 
 export default function Dashboard() {
   return (
-    <div className="bg-white dark:bg-gray-900/30 text-gray-900 dark:text-white mt-20 rounded-xl">
+    <div className="bg-neutral-100 dark:bg-gray-900/30 text-gray-900 dark:text-white mt-20 rounded-xl">
       <div className="mx-auto">
         <p className="mt-2 max-w-lg text-pretty text-4xl font-serif font-semibold tracking-tight text-gray-900 dark:text-white sm:text-5xl">
           Dashboard
@@ -17,13 +17,13 @@ export default function Dashboard() {
          
           </div>
           <div className="flex p-px lg:col-span-2">
-            <div className="w-full overflow-hidden rounded-lg bg-gray-100 dark:bg-gray-800 outline outline-white/15 lg:rounded-tr-[2rem]">
+            <div className="w-full overflow-hidden rounded-lg bg-white dark:bg-gray-800 outline outline-white/15 lg:rounded-tr-[2rem]">
             <InventoryFeed />
          
             </div>
           </div>
           <div className="flex p-px lg:col-span-2">
-            <div className="w-full overflow-hidden rounded-lg bg-gray-100 dark:bg-gray-800 outline outline-white/15 lg:rounded-bl-[2rem]">
+            <div className="w-full overflow-hidden rounded-lg bg-white dark:bg-gray-800 outline outline-white/15 lg:rounded-bl-[2rem]">
             <InventoryOverviewCard />
             </div>
           </div>
