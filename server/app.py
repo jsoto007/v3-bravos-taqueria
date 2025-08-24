@@ -11,7 +11,23 @@ from werkzeug.utils import secure_filename
 import uuid
 
 from config import db, bcrypt, app
-from models import User, CarInventory, CarPhoto, MasterCarRecord, UserInventory, AccountGroup, CarNote
+from models import User, CarInventory, CarPhoto, MasterCarRecord, UserInventory, AccountGroup, CarNote, DesignatedLocation
+
+
+# ---- Helper for DesignatedLocation ---- #
+def serialize_designated_location(dl):
+    return {
+        "id": dl.id,
+        "name": dl.name,
+        "latitude": dl.latitude,
+        "longitude": dl.longitude,
+        "account_group_id": dl.account_group_id,
+        "created_at": dl.created_at.isoformat() if getattr(dl, "created_at", None) else None,
+    }
+
+# -------- Stripe -------- #
+
+# -------- Designated Locations Resource -------- #
 
 # ---------- Stripe ---------- #
 import stripe
@@ -142,64 +158,6 @@ def serialize_car_note(note):
     }
 
 
-class CarNotes(Resource):
-    def get(self, car_id):
-        user_id = session.get('user_id')
-        if not user_id:
-            return {"error": "Unauthorized"}, 401
-        user = User.query.get(user_id)
-        if not user or not getattr(user, 'admin', False):
-            return {"error": "Forbidden: Admins only"}, 403
-        # Return all notes for a given car_id
-        notes = CarNote.query.filter_by(car_inventory_id=car_id).all()
-        return [serialize_car_note(n) for n in notes], 200
-
-    def post(self, car_id):
-        user_id = session.get('user_id')
-        if not user_id:
-            return {"error": "Unauthorized"}, 401
-        user = User.query.get(user_id)
-        if not user or not getattr(user, 'admin', False):
-            return {"error": "Forbidden: Admins only"}, 403
-        data = request.get_json()
-        content = data.get('content')
-        if not content:
-            return {"error": "Missing content"}, 400
-        note = CarNote(car_inventory_id=car_id, content=content)
-        db.session.add(note)
-        db.session.commit()
-        return serialize_car_note(note), 201
-
-    def patch(self, id):
-        user_id = session.get('user_id')
-        if not user_id:
-            return {"error": "Unauthorized"}, 401
-        user = User.query.get(user_id)
-        if not user or not getattr(user, 'admin', False):
-            return {"error": "Forbidden: Admins only"}, 403
-        note = CarNote.query.get(id)
-        if not note:
-            return {"error": "CarNote not found"}, 404
-        data = request.get_json()
-        content = data.get('content')
-        if content is not None:
-            note.content = content
-        db.session.commit()
-        return serialize_car_note(note), 200
-
-    def delete(self, id):
-        user_id = session.get('user_id')
-        if not user_id:
-            return {"error": "Unauthorized"}, 401
-        user = User.query.get(user_id)
-        if not user or not getattr(user, 'admin', False):
-            return {"error": "Forbidden: Admins only"}, 403
-        note = CarNote.query.get(id)
-        if not note:
-            return {"error": "CarNote not found"}, 404
-        db.session.delete(note)
-        db.session.commit()
-        return '', 204
 
 
 
@@ -346,6 +304,135 @@ class Logout(Resource):
         session['user_id'] = None
         return {}, 204
 
+class DesignatedLocations(Resource):
+    def get(self):
+        user_id = session.get('user_id')
+        if not user_id:
+            return {"error": "Unauthorized"}, 401
+        user = User.query.get(user_id)
+        if not user or not user.account_group_id:
+            return {"error": "Forbidden: User not in an account group"}, 403
+        locations = DesignatedLocation.query.filter_by(account_group_id=user.account_group_id).all()
+        return [serialize_designated_location(dl) for dl in locations], 200
+
+    def post(self):
+        user_id = session.get('user_id')
+        if not user_id:
+            return {"error": "Unauthorized"}, 401
+        user = User.query.get(user_id)
+        if not user or not user.is_owner_admin:
+            return {"error": "Forbidden: Only owner admins can add locations"}, 403
+        data = request.get_json()
+        name = data.get("name")
+        latitude = data.get("latitude")
+        longitude = data.get("longitude")
+        if not name or latitude is None or longitude is None:
+            return {"error": "Missing required fields"}, 400
+        new_dl = DesignatedLocation(
+            name=name,
+            latitude=latitude,
+            longitude=longitude,
+            account_group_id=user.account_group_id
+        )
+        db.session.add(new_dl)
+        db.session.commit()
+        return serialize_designated_location(new_dl), 201
+
+    def patch(self, id):
+        user_id = session.get('user_id')
+        if not user_id:
+            return {"error": "Unauthorized"}, 401
+        user = User.query.get(user_id)
+        if not user or not user.is_owner_admin:
+            return {"error": "Forbidden: Only owner admins can update locations"}, 403
+        dl = DesignatedLocation.query.filter_by(id=id, account_group_id=user.account_group_id).first()
+        if not dl:
+            return {"error": "Designated location not found"}, 404
+        data = request.get_json()
+        if "name" in data:
+            dl.name = data["name"]
+        if "latitude" in data:
+            dl.latitude = data["latitude"]
+        if "longitude" in data:
+            dl.longitude = data["longitude"]
+        db.session.commit()
+        return serialize_designated_location(dl), 200
+
+    def delete(self, id):
+        user_id = session.get('user_id')
+        if not user_id:
+            return {"error": "Unauthorized"}, 401
+        user = User.query.get(user_id)
+        if not user or not user.is_owner_admin:
+            return {"error": "Forbidden: Only owner admins can delete locations"}, 403
+        dl = DesignatedLocation.query.filter_by(id=id, account_group_id=user.account_group_id).first()
+        if not dl:
+            return {"error": "Designated location not found"}, 404
+        db.session.delete(dl)
+        db.session.commit()
+        return '', 204
+    
+    
+class CarNotes(Resource):
+    def get(self, car_id):
+        user_id = session.get('user_id')
+        if not user_id:
+            return {"error": "Unauthorized"}, 401
+        user = User.query.get(user_id)
+        if not user or not getattr(user, 'admin', False):
+            return {"error": "Forbidden: Admins only"}, 403
+        # Return all notes for a given car_id
+        notes = CarNote.query.filter_by(car_inventory_id=car_id).all()
+        return [serialize_car_note(n) for n in notes], 200
+
+    def post(self, car_id):
+        user_id = session.get('user_id')
+        if not user_id:
+            return {"error": "Unauthorized"}, 401
+        user = User.query.get(user_id)
+        if not user or not getattr(user, 'admin', False):
+            return {"error": "Forbidden: Admins only"}, 403
+        data = request.get_json()
+        content = data.get('content')
+        if not content:
+            return {"error": "Missing content"}, 400
+        note = CarNote(car_inventory_id=car_id, content=content)
+        db.session.add(note)
+        db.session.commit()
+        return serialize_car_note(note), 201
+
+    def patch(self, id):
+        user_id = session.get('user_id')
+        if not user_id:
+            return {"error": "Unauthorized"}, 401
+        user = User.query.get(user_id)
+        if not user or not getattr(user, 'admin', False):
+            return {"error": "Forbidden: Admins only"}, 403
+        note = CarNote.query.get(id)
+        if not note:
+            return {"error": "CarNote not found"}, 404
+        data = request.get_json()
+        content = data.get('content')
+        if content is not None:
+            note.content = content
+        db.session.commit()
+        return serialize_car_note(note), 200
+
+    def delete(self, id):
+        user_id = session.get('user_id')
+        if not user_id:
+            return {"error": "Unauthorized"}, 401
+        user = User.query.get(user_id)
+        if not user or not getattr(user, 'admin', False):
+            return {"error": "Forbidden: Admins only"}, 403
+        note = CarNote.query.get(id)
+        if not note:
+            return {"error": "CarNote not found"}, 404
+        db.session.delete(note)
+        db.session.commit()
+        return '', 204
+    
+    
 class CarInventories(Resource):
     def get(self, id=None):
         cars = CarInventory.query.all()
@@ -780,3 +867,12 @@ def shutdown_session(exception=None):
 if __name__ == "__main__":
     app.run(host="0.0.0.0", port=int(os.environ.get("PORT", 5555)))
 
+
+
+# -------- DesignatedLocations Endpoints -------- #
+api.add_resource(
+    DesignatedLocations,
+    '/api/designated_locations',  # GET, POST
+    '/api/designated_locations/<int:id>',  # PATCH, DELETE
+    endpoint='designated_locations'
+)
