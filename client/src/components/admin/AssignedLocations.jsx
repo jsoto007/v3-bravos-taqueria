@@ -1,6 +1,5 @@
-
 import React, { useState } from 'react';
-import { Plus, Edit2, Trash2, MapPin, Save, X } from 'lucide-react';
+import { Plus, Edit3, Trash2, MapPin, Save, X, Check } from 'lucide-react';
 
 export default function AssignedLocations() {
   const [locations, setLocations] = useState([
@@ -119,13 +118,13 @@ export default function AssignedLocations() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-900 text-white p-6">
+    <div className="min-h-screen bg-white text-gray-900 dark:bg-gray-900 dark:text-white p-4 sm:p-6">
       <div className="max-w-6xl mx-auto">
-        {/* Header */}
-        <div className="flex justify-between items-center mb-8">
+    {/* Header */}
+        <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center mb-8 gap-4">
           <div>
-            <h1 className="text-3xl font-bold text-white mb-2">Designated Locations</h1>
-            <p className="text-gray-400">Manage your group's designated locations</p>
+            <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 dark:text-white mb-2">Designated Locations</h1>
+            <p className="text-gray-600 dark:text-gray-400">Manage your group's designated locations</p>
           </div>
           <button
             onClick={handleAddLocation}
@@ -141,7 +140,7 @@ export default function AssignedLocations() {
           {locations.map((location) => (
             <div
               key={location.id}
-              className="bg-gray-800 rounded-lg p-6 border border-gray-700 hover:border-gray-600 transition-colors"
+              className="bg-gray-100 dark:bg-gray-800 rounded-lg p-4 sm:p-6 border border-gray-300 dark:border-gray-700 hover:border-gray-400 dark:hover:border-gray-600 transition-colors"
             >
               <div className="flex justify-between items-start mb-4">
                 <div className="flex items-center gap-2">
@@ -151,10 +150,10 @@ export default function AssignedLocations() {
                 <div className="flex gap-2">
                   <button
                     onClick={() => handleEditLocation(location)}
-                    className="text-gray-400 hover:text-yellow-500 transition-colors"
+                    className="text-gray-400 hover:text-yellow-500 transition-colors mr-2"
                     title="Edit location"
                   >
-                    <Edit2 size={18} />
+                    <Edit3 size={18} />
                   </button>
                   <button
                     onClick={() => handleDeleteLocation(location.id)}
@@ -168,19 +167,19 @@ export default function AssignedLocations() {
               
               <div className="space-y-2 text-sm">
                 <div className="flex justify-between">
-                  <span className="text-gray-400">Longitude:</span>
-                  <span className="text-gray-200">{location.longitude}°</span>
+                  <span className="text-gray-600 dark:text-gray-400">Longitude:</span>
+                  <span className="text-gray-800 dark:text-gray-200">{location.longitude}°</span>
                 </div>
                 <div className="flex justify-between">
-                  <span className="text-gray-400">Latitude:</span>
-                  <span className="text-gray-200">{location.latitude}°</span>
+                  <span className="text-gray-600 dark:text-gray-400">Latitude:</span>
+                  <span className="text-gray-800 dark:text-gray-200">{location.latitude}°</span>
                 </div>
               </div>
 
               <div className="mt-4 pt-4 border-t border-gray-700">
                 <button
                   onClick={() => window.open(`https://maps.google.com/?q=${location.latitude},${location.longitude}`, '_blank')}
-                  className="text-yellow-500 hover:text-yellow-400 text-sm font-medium transition-colors"
+                  className="text-yellow-600 dark:text-yellow-500 hover:text-yellow-500 dark:hover:text-yellow-400 text-sm font-medium transition-colors"
                 >
                   View on Maps →
                 </button>
@@ -191,9 +190,9 @@ export default function AssignedLocations() {
 
         {locations.length === 0 && (
           <div className="text-center py-12">
-            <MapPin className="mx-auto text-gray-600 mb-4" size={48} />
-            <h3 className="text-xl font-semibold text-gray-400 mb-2">No locations yet</h3>
-            <p className="text-gray-500 mb-6">Add your first designated location to get started</p>
+            <MapPin className="mx-auto text-gray-400 dark:text-gray-600 mb-4" size={48} />
+            <h3 className="text-lg sm:text-xl font-semibold text-gray-600 dark:text-gray-400 mb-2">No locations yet</h3>
+            <p className="text-gray-500 dark:text-gray-500 mb-6">Add your first designated location to get started</p>
             <button
               onClick={handleAddLocation}
               className="bg-yellow-500 hover:bg-yellow-600 text-black px-6 py-2 rounded-lg font-semibold flex items-center gap-2 mx-auto transition-colors"
@@ -207,7 +206,7 @@ export default function AssignedLocations() {
         {/* Modal */}
         {isModalOpen && (
           <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-            <div className="bg-gray-800 rounded-lg p-6 w-full max-w-md mx-4">
+            <div className="bg-white dark:bg-gray-800 rounded-lg p-6 w-full max-w-md mx-4">
               <div className="flex justify-between items-center mb-6">
                 <h2 className="text-xl font-semibold">
                   {editingLocation ? 'Edit Location' : 'Add New Location'}
@@ -223,14 +222,14 @@ export default function AssignedLocations() {
               <div className="space-y-4">
                 {/* Location Name */}
                 <div>
-                  <label className="block text-sm font-medium text-gray-300 mb-2">
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                     Location Name *
                   </label>
                   <input
                     type="text"
                     value={formData.name}
                     onChange={(e) => handleInputChange('name', e.target.value)}
-                    className={`w-full px-3 py-2 bg-gray-700 border rounded-md text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-yellow-500 focus:border-transparent ${
+                    className={`w-full px-3 py-2 bg-white dark:bg-gray-700 border rounded-md text-gray-900 dark:text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-yellow-500 focus:border-transparent ${
                       errors.name ? 'border-red-500' : 'border-gray-600'
                     }`}
                     placeholder="Enter location name"
@@ -240,7 +239,7 @@ export default function AssignedLocations() {
 
                 {/* Longitude */}
                 <div>
-                  <label className="block text-sm font-medium text-gray-300 mb-2">
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                     Longitude * <span className="text-gray-500">(-180 to 180)</span>
                   </label>
                   <input
@@ -248,7 +247,7 @@ export default function AssignedLocations() {
                     step="any"
                     value={formData.longitude}
                     onChange={(e) => handleInputChange('longitude', e.target.value)}
-                    className={`w-full px-3 py-2 bg-gray-700 border rounded-md text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-yellow-500 focus:border-transparent ${
+                    className={`w-full px-3 py-2 bg-white dark:bg-gray-700 border rounded-md text-gray-900 dark:text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-yellow-500 focus:border-transparent ${
                       errors.longitude ? 'border-red-500' : 'border-gray-600'
                     }`}
                     placeholder="e.g., -118.2437"
@@ -260,7 +259,7 @@ export default function AssignedLocations() {
 
                 {/* Latitude */}
                 <div>
-                  <label className="block text-sm font-medium text-gray-300 mb-2">
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                     Latitude * <span className="text-gray-500">(-90 to 90)</span>
                   </label>
                   <input
@@ -268,7 +267,7 @@ export default function AssignedLocations() {
                     step="any"
                     value={formData.latitude}
                     onChange={(e) => handleInputChange('latitude', e.target.value)}
-                    className={`w-full px-3 py-2 bg-gray-700 border rounded-md text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-yellow-500 focus:border-transparent ${
+                    className={`w-full px-3 py-2 bg-white dark:bg-gray-700 border rounded-md text-gray-900 dark:text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-yellow-500 focus:border-transparent ${
                       errors.latitude ? 'border-red-500' : 'border-gray-600'
                     }`}
                     placeholder="e.g., 34.0522"
@@ -283,7 +282,7 @@ export default function AssignedLocations() {
                   <button
                     type="button"
                     onClick={handleCloseModal}
-                    className="flex-1 px-4 py-2 bg-gray-600 hover:bg-gray-700 text-white rounded-md transition-colors"
+                    className="flex-1 px-4 py-2 bg-gray-200 hover:bg-gray-300 dark:bg-gray-600 dark:hover:bg-gray-700 text-gray-900 dark:text-white rounded-md transition-colors"
                   >
                     Cancel
                   </button>
@@ -292,7 +291,7 @@ export default function AssignedLocations() {
                     onClick={handleSaveLocation}
                     className="flex-1 px-4 py-2 bg-yellow-500 hover:bg-yellow-600 text-black font-semibold rounded-md flex items-center justify-center gap-2 transition-colors"
                   >
-                    <Save size={18} />
+                    <Check size={18} />
                     {editingLocation ? 'Update' : 'Add'} Location
                   </button>
                 </div>
@@ -304,5 +303,3 @@ export default function AssignedLocations() {
     </div>
   );
 };
-
-
