@@ -120,6 +120,18 @@ class UserInventory(db.Model, SerializerMixin):
     account_group = relationship('AccountGroup', backref=backref('user_inventories', cascade='all, delete-orphan'))
 
 
+class DesignatedLocation(db.Model, SerializerMixin):
+    __tablename__ = 'designated_locations'
+
+    id = db.Column(db.Integer, primary_key=True)
+    name = db.Column(db.String, nullable=False)
+    latitude = db.Column(db.Float, nullable=False)
+    longitude = db.Column(db.Float, nullable=False)
+    account_group_id = db.Column(db.Integer, db.ForeignKey('account_groups.id'), nullable=False)
+    created_at = db.Column(db.DateTime(timezone=True), server_default=db.func.now())
+
+    account_group = relationship('AccountGroup', backref=backref('designated_locations', cascade='all, delete-orphan'))
+
 
 class CarInventory(db.Model, SerializerMixin):
     __tablename__ = 'car_inventories'
@@ -141,6 +153,7 @@ class CarInventory(db.Model, SerializerMixin):
     user_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
     user_inventory_id = db.Column(db.Integer, db.ForeignKey('user_inventories.id'), nullable=True)
     account_group_id = db.Column(db.Integer, db.ForeignKey('account_groups.id'), nullable=False)
+    designated_location_id = db.Column(db.Integer, db.ForeignKey('designated_locations.id'), nullable=True)
 
     created_at = db.Column(db.DateTime(timezone=True), server_default=db.func.now())
     updated_at = db.Column(db.DateTime(timezone=True), onupdate=db.func.now())
@@ -148,18 +161,29 @@ class CarInventory(db.Model, SerializerMixin):
     user = relationship('User', backref=backref('car_inventories'))
     user_inventory = relationship('UserInventory', backref=backref('car_inventories', cascade='all, delete-orphan'))
     account_group = relationship('AccountGroup', backref=backref('car_inventories', cascade='all, delete-orphan'))
+    designated_location = relationship('DesignatedLocation', backref=backref('car_inventories'))
     notes = relationship('CarNote', backref='car_inventory', cascade='all, delete-orphan')
 
     def to_dict(self):
+        designated_location_dict = None
+        if self.designated_location:
+            designated_location_dict = {
+                "id": self.designated_location.id,
+                "name": self.designated_location.name,
+                "latitude": self.designated_location.latitude,
+                "longitude": self.designated_location.longitude,
+            }
         return {
             "id": self.id,
-            "location": self.location,
+            "location": self.location if not designated_location_dict else None,
             "vin_number": self.vin_number,
             "year": self.year,
             "make": self.make,
             "user_id": self.user_id,
             "user_inventory_id": self.user_inventory_id,
             "account_group_id": self.account_group_id,
+            "designated_location_id": self.designated_location_id,
+            "designated_location": designated_location_dict,
             "created_at": self.created_at.isoformat() if self.created_at else None,
             "updated_at": self.updated_at.isoformat() if self.updated_at else None,
         }
