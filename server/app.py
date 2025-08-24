@@ -160,7 +160,6 @@ def serialize_car_note(note):
 
 
 
-
 class AccountGroups(Resource):
     def post(self):
         data = request.get_json()
@@ -372,7 +371,7 @@ class DesignatedLocations(Resource):
         db.session.commit()
         return '', 204
     
-    
+
 class CarNotes(Resource):
     def get(self, car_id):
         user_id = session.get('user_id')

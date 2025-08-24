@@ -149,6 +149,11 @@ class CarInventory(db.Model, SerializerMixin):
     vin_number = db.Column(db.String, unique=False, nullable=False)
     year = db.Column(db.Integer, nullable=True)
     make = db.Column(db.String, nullable=True)
+    color = db.Column(db.String, nullable=True)
+    body = db.Column(db.String, nullable=True)
+
+    latitude = db.Column(db.Float, nullable=True)
+    longitude = db.Column(db.Float, nullable=True)
 
     user_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
     user_inventory_id = db.Column(db.Integer, db.ForeignKey('user_inventories.id'), nullable=True)
