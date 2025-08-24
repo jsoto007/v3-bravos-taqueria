@@ -1,4 +1,5 @@
 import AdminSignupUser from "../authentication/AdminSignupUser";
+import AssignedLocations from "../admin/AssignedLocations";
 
 import { useState } from "react";
 import {
@@ -9,6 +10,7 @@ import {
   Settings,
   ChevronRight,
   Download,
+  MapPinned,
 } from "lucide-react";
 
 import ActionBtn from "../../shared/ActionBtn";
@@ -35,6 +37,7 @@ export default function SubscriptionDashboard() {
     { id: "overview", name: "Overview", icon: BarChart3 },
     { id: "billing", name: "Billing", icon: CreditCard },
     { id: "accounts", name: "Accounts", icon: Users },
+    { id: "locations", name: "Assigned Locations", icon: MapPinned },
     { id: "settings", name: "Settings", icon: Settings },
   ];
 
@@ -158,7 +161,11 @@ export default function SubscriptionDashboard() {
         );
       case "accounts":
         return <div> <AdminSignupUser /></div>;
-        
+      case "locations":
+        return <div className="text-gray-600 dark:text-gray-400"
+          >
+            <AssignedLocations />
+          </div>;
       case "settings":
         return <p className="text-gray-600 dark:text-gray-400">Settings tab under construction. Note that this option will allow the admin to crate user accounts</p>;
     }

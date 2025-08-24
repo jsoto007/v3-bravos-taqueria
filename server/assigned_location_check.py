@@ -6,3 +6,4 @@ def find_designated_location(lat, lon, designated_locations):
         if distance <= 0.5:
             return dl.name
     return None
+
