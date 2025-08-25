@@ -11,7 +11,7 @@ from werkzeug.utils import secure_filename
 import uuid
 
 from config import db, bcrypt, app
-from models import User, CarInventory, CarPhoto, MasterCarRecord, UserInventory, AccountGroup, CarNote, DesignatedLocation
+from models import User, CarInventory, CarPhoto, MasterCarRecord, UserInventory, AccountGroup, CarNote, DesignatedLocation, OwnerDealer
 
 
 # ---- Helper for DesignatedLocation ---- #
@@ -479,10 +479,6 @@ class CarInventories(Resource):
         cars_to_delete = CarInventory.query.filter_by(vin_number=vin_number).all()
 
         for c in cars_to_delete:
-            # Delete related notes
-            CarNote.query.filter_by(car_inventory_id=c.id).delete()
-            # Delete related photos
-            CarPhoto.query.filter_by(car_inventory_id=c.id).delete()
             db.session.delete(c)
 
         db.session.commit()
