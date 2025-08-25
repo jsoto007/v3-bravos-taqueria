@@ -47,7 +47,7 @@ function App() {
 
 {/* End of test routes+++++ */}
 
-            <Route path="/subscriptions" element={<SubscriptionDashboard />} />
+            <Route path="/account/settings" element={<SubscriptionDashboard />} />
             <Route path="/master_inventory/:id" element={<MasterCarContainer />} />
             <Route path="/master_inventory/create_master_inventory" element={<MasterInventoryForm />} />
             <Route path="/admin/user_inventory_check/:id" element={<AdminInventoryReviewContainer />} />

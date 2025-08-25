@@ -1,7 +1,7 @@
 
 import os
 import uuid
-from flask import Flask, jsonify, request, make_response, render_template, session, send_from_directory, url_for
+from flask import jsonify, request, make_response, render_template, session, send_from_directory, url_for
 from flask_migrate import Migrate
 from flask_restful import Api, Resource
 from flask_cors import CORS
@@ -10,7 +10,7 @@ from sqlalchemy.exc import IntegrityError
 from werkzeug.utils import secure_filename
 import uuid
 
-from config import db, bcrypt, app
+from config import db, app
 from models import User, CarInventory, CarPhoto, MasterCarRecord, UserInventory, AccountGroup, CarNote, DesignatedLocation, OwnerDealer
 
 

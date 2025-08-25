@@ -27,7 +27,7 @@ export default function NavBar() {
               <div className="hidden md:flex space-x-8 text-gray-700 dark:text-gray-200">
                 <Link to="/dashboard" className="text-gray-700 dark:text-gray-200 hover:text-indigo-600 dark:hover:text-indigo-400">Dashboard</Link>
                 <Link to="/inventory" className="text-gray-700 dark:text-gray-200 hover:text-indigo-600 dark:hover:text-indigo-400">Inventory</Link>
-                <Link to="/subscriptions" className="text-gray-700 dark:text-gray-200 hover:text-indigo-600 dark:hover:text-indigo-400">Subscriptions</Link> 
+                <Link to="/account/settings" className="text-gray-700 dark:text-gray-200 hover:text-indigo-600 dark:hover:text-indigo-400">Settings</Link> 
                 {/* <Link to="/master_inventory" className="text-gray-700 dark:text-gray-200 hover:text-indigo-600 dark:hover:text-indigo-400">Master Inventory</Link> */}
               </div>
 
@@ -68,10 +68,10 @@ export default function NavBar() {
                 </DisclosureButton>
                 <DisclosureButton
                   as={Link}
-                  to="/subscriptions"
+                  to="/account/settings"
                   className="block rounded-md py-2 px-3 text-base font-medium text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700 hover:text-indigo-600 dark:hover:text-indigo-400"
                 >
-                  Subscriptions
+                  Settings
                 </DisclosureButton>
                 {/* <DisclosureButton
                   as={Link}
