@@ -13,29 +13,16 @@ import uuid
 from config import db, app
 from models import User, CarInventory, CarPhoto, MasterCarRecord, UserInventory, AccountGroup, CarNote, DesignatedLocation, OwnerDealer
 
-
-# ---- Helper for DesignatedLocation ---- #
-def serialize_designated_location(dl):
-    return {
-        "id": dl.id,
-        "name": dl.name,
-        "latitude": dl.latitude,
-        "longitude": dl.longitude,
-        "account_group_id": dl.account_group_id,
-        "created_at": dl.created_at.isoformat() if getattr(dl, "created_at", None) else None,
-    }
+from sqlalchemy.pool import QueuePool
 
 # -------- Stripe -------- #
 
-# -------- Designated Locations Resource -------- #
-
-# ---------- Stripe ---------- #
 import stripe
 from datetime import timezone, datetime, timedelta
 
 stripe.api_key = os.getenv('STRIPE_SECRET_KEY')
 
-from sqlalchemy.pool import QueuePool
+# ---------- Stripe ---------- #
 
 # SQLAlchemy production-ready engine options
 app.config['SQLALCHEMY_ENGINE_OPTIONS'] = {
@@ -68,6 +55,16 @@ def not_found(e):
 api = Api(app)
 
 # ---- Manual Serializers ---- #
+
+def serialize_designated_location(dl):
+    return {
+        "id": dl.id,
+        "name": dl.name,
+        "latitude": dl.latitude,
+        "longitude": dl.longitude,
+        "account_group_id": dl.account_group_id,
+        "created_at": dl.created_at.isoformat() if getattr(dl, "created_at", None) else None,
+    }
 
 def serialize_user(user):
     return {

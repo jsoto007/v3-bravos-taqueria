@@ -1,12 +1,13 @@
-import { Outlet, Link } from "react-router-dom"
+import { Outlet, Link, useLocation } from "react-router-dom"
 import Logout from "./authentication/Logout"
 import { Disclosure, DisclosurePanel, DisclosureButton } from '@headlessui/react'
 import { Bars3Icon, XMarkIcon } from '@heroicons/react/24/outline'
 import logo  from '/logo.png'
 
-
-
+import { Settings2, GalleryVerticalEnd, LayoutDashboard } from 'lucide-react';
+{/* <LayoutDashboard /> */}
 export default function NavBar() {
+  const location = useLocation();
 
   return (
     <div className="text-gray-900 font-serif dark:text-white bg-white dark:bg-gray-900">
@@ -25,9 +26,33 @@ export default function NavBar() {
 
               {/* Navigation Links */}
               <div className="hidden md:flex space-x-8 text-gray-700 dark:text-gray-200">
-                <Link to="/dashboard" className="text-gray-700 dark:text-gray-200 hover:text-indigo-600 dark:hover:text-indigo-400">Dashboard</Link>
-                <Link to="/inventory" className="text-gray-700 dark:text-gray-200 hover:text-indigo-600 dark:hover:text-indigo-400">Inventory</Link>
-                <Link to="/account/settings" className="text-gray-700 dark:text-gray-200 hover:text-indigo-600 dark:hover:text-indigo-400">Settings</Link> 
+
+                <Link to="/dashboard" className={`flex items-center space-x-1 hover:text-indigo-600 dark:hover:text-indigo-400 ${
+                  location.pathname === "/dashboard"
+                    ? "text-indigo-600 dark:text-indigo-400 font-semibold"
+                    : "text-gray-700 dark:text-gray-200"
+                }`}>
+                  <LayoutDashboard className="w-4 h-4" aria-hidden="true" />
+                  <span>Dashboard</span>
+                </Link>
+
+                <Link to="/inventory" className={`flex items-center space-x-1 hover:text-indigo-600 dark:hover:text-indigo-400 ${
+                  location.pathname === "/inventory"
+                    ? "text-indigo-600 dark:text-indigo-400 font-semibold"
+                    : "text-gray-700 dark:text-gray-200"
+                }`}>
+                  <GalleryVerticalEnd className="w-4 h-4" aria-hidden="true" />
+                  <span>Inventory</span>
+                </Link>
+
+                <Link to="/account/settings" className={`flex items-center space-x-1 hover:text-indigo-600 dark:hover:text-indigo-400 ${
+                  location.pathname === "/account/settings"
+                    ? "text-indigo-600 dark:text-indigo-400 font-semibold"
+                    : "text-gray-700 dark:text-gray-200"
+                }`}>
+                  <Settings2 className="w-4 h-4" aria-hidden="true" />
+                  <span>Settings</span>
+                </Link>
                 {/* <Link to="/master_inventory" className="text-gray-700 dark:text-gray-200 hover:text-indigo-600 dark:hover:text-indigo-400">Master Inventory</Link> */}
               </div>
 
@@ -55,21 +80,33 @@ export default function NavBar() {
                 <DisclosureButton
                   as={Link}
                   to="/dashboard"
-                  className="block rounded-md py-2 px-3 text-base font-medium text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700 hover:text-indigo-600 dark:hover:text-indigo-400"
+                  className={`block rounded-md py-2 px-3 text-base font-medium hover:bg-gray-100 dark:hover:bg-gray-700 hover:text-indigo-600 dark:hover:text-indigo-400 ${
+                    location.pathname === "/dashboard"
+                      ? "text-indigo-600 dark:text-indigo-400 font-semibold"
+                      : "text-gray-700 dark:text-gray-200"
+                  }`}
                 >
                   Dashboard
                 </DisclosureButton>
                 <DisclosureButton
                   as={Link}
                   to="/inventory"
-                  className="block rounded-md py-2 px-3 text-base font-medium text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700 hover:text-indigo-600 dark:hover:text-indigo-400"
+                  className={`block rounded-md py-2 px-3 text-base font-medium hover:bg-gray-100 dark:hover:bg-gray-700 hover:text-indigo-600 dark:hover:text-indigo-400 ${
+                    location.pathname === "/inventory"
+                      ? "text-indigo-600 dark:text-indigo-400 font-semibold"
+                      : "text-gray-700 dark:text-gray-200"
+                  }`}
                 >
                   Inventory
                 </DisclosureButton>
                 <DisclosureButton
                   as={Link}
                   to="/account/settings"
-                  className="block rounded-md py-2 px-3 text-base font-medium text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700 hover:text-indigo-600 dark:hover:text-indigo-400"
+                  className={`block rounded-md py-2 px-3 text-base font-medium hover:bg-gray-100 dark:hover:bg-gray-700 hover:text-indigo-600 dark:hover:text-indigo-400 ${
+                    location.pathname === "/account/settings"
+                      ? "text-indigo-600 dark:text-indigo-400 font-semibold"
+                      : "text-gray-700 dark:text-gray-200"
+                  }`}
                 >
                   Settings
                 </DisclosureButton>

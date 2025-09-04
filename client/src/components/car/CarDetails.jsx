@@ -49,7 +49,7 @@ export default function CarDetails( { car, setCar } ) {
               </div>
               <div>
                 <p className="text-slate-700 dark:text-slate-200 text-lg md:text-2xl font-bold font-mono">
-                  <span className='dark:text-slate-400 text-slate-400 text-sm md:text-base'>VIN:</span> {car.vin_number}
+                  <span className='dark:text-slate-400 text-slate-500'>VIN:</span> {car.vin_number}
                 </p>
               </div>
             </div>

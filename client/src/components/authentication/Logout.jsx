@@ -25,6 +25,6 @@ export default function Logout() {
     };
 
     return (
-            <button className="text-sm" onClick={handleLogout}>Logout</button>
+            <button onClick={handleLogout}>Logout</button>
     );
 }
