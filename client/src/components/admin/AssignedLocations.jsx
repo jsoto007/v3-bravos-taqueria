@@ -5,11 +5,7 @@ import { Plus, Edit3, Trash2, MapPin, Save, X, Check } from 'lucide-react';
 export default function AssignedLocations() {
 
 
-  const [locations, setLocations] = useState([
-    { id: 1, name: 'Los Angeles Lot', longitude: -118.2437, latitude: 34.0522 },
-    { id: 2, name: 'New York Facility', longitude: -74.0060, latitude: 40.7128 },
-    { id: 3, name: 'Chicago Warehouse', longitude: -87.6298, latitude: 41.8781 },
-  ]);
+  const [locations, setLocations] = useState([]);
 
 
 
