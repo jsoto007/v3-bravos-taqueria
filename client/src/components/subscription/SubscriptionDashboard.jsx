@@ -178,9 +178,9 @@ export default function SubscriptionDashboard() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center py-6">
             <div>
-              <h1 className="text-2xl font-bold text-gray-900 dark:text-white">Subscription</h1>
+              <h1 className="text-2xl font-bold text-gray-900 dark:text-white text-left">Settings</h1>
               <p className="text-gray-600 dark:text-gray-400">
-                Manage your subscription and billing
+                Manage your user's settings, locations, subscription and billing.
               </p>
             </div>
           </div>

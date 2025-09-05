@@ -1,12 +1,17 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import axios from 'axios';
 import { Plus, Edit3, Trash2, MapPin, Save, X, Check } from 'lucide-react';
 
 export default function AssignedLocations() {
+
+
   const [locations, setLocations] = useState([
     { id: 1, name: 'Los Angeles Lot', longitude: -118.2437, latitude: 34.0522 },
     { id: 2, name: 'New York Facility', longitude: -74.0060, latitude: 40.7128 },
     { id: 3, name: 'Chicago Warehouse', longitude: -87.6298, latitude: 41.8781 },
   ]);
+
+
 
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingLocation, setEditingLocation] = useState(null);
@@ -17,6 +22,16 @@ export default function AssignedLocations() {
   });
   const [errors, setErrors] = useState({});
 
+  useEffect(() => {
+    axios.get('/api/designated_locations')
+      .then(response => {
+        setLocations(response.data);
+      })
+      .catch(error => {
+        console.error('Error fetching designated locations:', error);
+      });
+  }, []);
+  
   // Form validation
   const validateForm = () => {
     const newErrors = {};
@@ -80,32 +95,51 @@ export default function AssignedLocations() {
 
     if (editingLocation) {
       // Update existing location
-      setLocations(prev => 
-        prev.map(loc => 
-          loc.id === editingLocation.id 
-            ? { ...loc, ...locationData }
-            : loc
-        )
-      );
+      axios.patch(`/api/designated_locations/${editingLocation.id}`, locationData)
+        .then(response => {
+          const updatedLocation = response.data;
+          setLocations(prev => 
+            prev.map(loc => 
+              loc.id === updatedLocation.id 
+                ? updatedLocation
+                : loc
+            )
+          );
+          setIsModalOpen(false);
+          setFormData({ name: '', longitude: '', latitude: '' });
+          setEditingLocation(null);
+          setErrors({});
+        })
+        .catch(error => {
+          console.error('Error updating location:', error);
+        });
     } else {
       // Add new location
-      const newLocation = {
-        id: Math.max(...locations.map(l => l.id), 0) + 1,
-        ...locationData
-      };
-      setLocations(prev => [...prev, newLocation]);
+      axios.post('/api/designated_locations', locationData)
+        .then(response => {
+          const newLocation = response.data;
+          setLocations(prev => [...prev, newLocation]);
+          setIsModalOpen(false);
+          setFormData({ name: '', longitude: '', latitude: '' });
+          setEditingLocation(null);
+          setErrors({});
+        })
+        .catch(error => {
+          console.error('Error adding location:', error);
+        });
     }
-
-    setIsModalOpen(false);
-    setFormData({ name: '', longitude: '', latitude: '' });
-    setEditingLocation(null);
-    setErrors({});
   };
 
   // Delete location
   const handleDeleteLocation = (locationId) => {
     if (window.confirm('Are you sure you want to delete this location?')) {
-      setLocations(prev => prev.filter(loc => loc.id !== locationId));
+      axios.delete(`/api/designated_locations/${locationId}`)
+        .then(() => {
+          setLocations(prev => prev.filter(loc => loc.id !== locationId));
+        })
+        .catch(error => {
+          console.error('Error deleting location:', error);
+        });
     }
   };
 
