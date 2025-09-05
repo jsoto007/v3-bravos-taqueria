@@ -40,8 +40,8 @@ export async function userLocation(vin, setLocation, location) {
           console.log("Latitude:", latitude, "Longitude:", longitude);
 
           // Dealer coordinates
-          const dealerLat = 40.850278;
-          const dealerLon = -74.087500;
+          const dealerLat = 40.862503;
+          const dealerLon = -74.0966241;
           // Haversine formula (returns distance in miles)
           function haversine(lat1, lon1, lat2, lon2) {
             const toRad = (x) => (x * Math.PI) / 180;
@@ -60,9 +60,9 @@ export async function userLocation(vin, setLocation, location) {
           console.log("Distance to dealer (miles):", distanceToDealer);
 
           let address;
-          if (distanceToDealer <= 0.4) {
+          if (distanceToDealer <= 0.5) {
             // Snap to dealer location
-            address = "480 River Dr, Garfield, NJ 07026, USA"; // Dealer's main address
+            address = "350 S Main St, Wood-Ridge, NJ 07075"; // Dealer's main address
             console.log("User is within 0.4 miles, snapping to dealer address:", address);
           } else {
             // Use actual user location

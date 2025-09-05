@@ -18,11 +18,11 @@ import PageNotFound from './shared/PageNotFound';
 import SubscriptionDashboard from './components/subscription/SubscriptionDashboard';
 
 import CarContainer from './components/car/CarContainer';
+import CarScannerContainer from './components/inventory/CarScannerContainer';
 
 // Testing routes:
 import CarVinScanHistoryCard from './components/inventory/CarVinScanHistoryCard';
 import ScanbotVinText from './utils/ScanbotVinText';
-import CarScannerContainer from './components/inventory/CarScannerContainer';
 
 
 function App() {
@@ -41,11 +41,8 @@ function App() {
             <Route path="/cars/:id" element={<CarContainer />} />
             <Route path="/cars/scanner" element={<CarScannerContainer />} />
 
-{/* TEST routes++++++++++++ */}
             <Route path="/test/inventory" element={<CarVinScanHistoryCard />} />
             <Route path="/test/cars" element={<CarContainer />} />
-
-{/* End of test routes+++++ */}
 
             <Route path="/account/settings" element={<SubscriptionDashboard />} />
             <Route path="/master_inventory/:id" element={<MasterCarContainer />} />
