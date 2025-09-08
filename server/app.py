@@ -682,15 +682,10 @@ class VinHistory(Resource):
                     "notes": [serialize_car_note(n) for n in car.notes]
                 }
 # Car notes are included in this resource; might be deleted. It could be it's own resource since a user will not want to see all notes at once. Trying separating first. 
-            designated_location_info = None
+            designated_location_name = None
             if hasattr(car, "designated_location") and car.designated_location is not None:
-                dl = car.designated_location
-                designated_location_info = {
-                    "id": dl.id,
-                    "name": dl.name,
-                    "latitude": dl.latitude,
-                    "longitude": dl.longitude
-                }
+                designated_location_name = car.designated_location.name
+
             vin_map[vin]["history"].append({
                 "user": car.user.email if car.user else None,
                 "firstname": car.user.first_name if car.user else None,
@@ -700,8 +695,12 @@ class VinHistory(Resource):
                 "longitude": car.longitude,
                 "designated_location_id": car.designated_location_id,
                 "created_at": car.created_at.isoformat() if car.created_at else None,
-                "designated_location": designated_location_info
+                "designated_location": designated_location_name
             })
+
+            # check the client fist
+            # remove log and lat from vin map
+            # remove notes from vin_map
 
         result = [{
             "vin": vin_data["vin"],
