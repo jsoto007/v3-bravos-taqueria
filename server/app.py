@@ -9,6 +9,7 @@ from sqlalchemy.orm import joinedload
 from sqlalchemy.exc import IntegrityError
 from werkzeug.utils import secure_filename
 import uuid
+import assigned_location_check
 
 from config import db, app
 from models import User, CarInventory, CarPhoto, MasterCarRecord, UserInventory, AccountGroup, CarNote, DesignatedLocation, OwnerDealer
@@ -681,6 +682,15 @@ class VinHistory(Resource):
                     "notes": [serialize_car_note(n) for n in car.notes]
                 }
 # Car notes are included in this resource; might be deleted. It could be it's own resource since a user will not want to see all notes at once. Trying separating first. 
+            designated_location_info = None
+            if hasattr(car, "designated_location") and car.designated_location is not None:
+                dl = car.designated_location
+                designated_location_info = {
+                    "id": dl.id,
+                    "name": dl.name,
+                    "latitude": dl.latitude,
+                    "longitude": dl.longitude
+                }
             vin_map[vin]["history"].append({
                 "user": car.user.email if car.user else None,
                 "firstname": car.user.first_name if car.user else None,
@@ -688,7 +698,9 @@ class VinHistory(Resource):
                 "location": car.location,
                 "latitude": car.latitude,
                 "longitude": car.longitude,
-                "created_at": car.created_at.isoformat() if car.created_at else None
+                "designated_location_id": car.designated_location_id,
+                "created_at": car.created_at.isoformat() if car.created_at else None,
+                "designated_location": designated_location_info
             })
 
         result = [{
