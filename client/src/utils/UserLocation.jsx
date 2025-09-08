@@ -60,7 +60,7 @@ export async function userLocation(vin, setLocation, location) {
           console.log("Distance to dealer (miles):", distanceToDealer);
 
           let address;
-          if (distanceToDealer <= 0.5) {
+          if (distanceToDealer <= 0.1) {
             // Snap to dealer location
             address = "350 S Main St, Wood-Ridge, NJ 07075"; // Dealer's main address
             console.log("User is within 0.4 miles, snapping to dealer address:", address);
