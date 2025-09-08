@@ -455,6 +455,8 @@ class CarInventories(Resource):
 
         new_car = CarInventory(
             location=data['location'],
+            longitude=data.get('longitude'),
+            latitude=data.get('latitude'),
             vin_number=data['vin_number'],
             year=data.get('year'),
             make=data.get('make'),
@@ -681,7 +683,11 @@ class VinHistory(Resource):
 # Car notes are included in this resource; might be deleted. It could be it's own resource since a user will not want to see all notes at once. Trying separating first. 
             vin_map[vin]["history"].append({
                 "user": car.user.email if car.user else None,
+                "firstname": car.user.first_name if car.user else None,
+                "lastname": car.user.last_name if car.user else None,
                 "location": car.location,
+                "latitude": car.latitude,
+                "longitude": car.longitude,
                 "created_at": car.created_at.isoformat() if car.created_at else None
             })
 

@@ -1,9 +1,9 @@
-
-
 let cachedAddress = null;
 let fetching = false;
 
 export async function userLocation(vin, setLocation, location) {
+
+
   console.log("GEO being called with VIN:", vin);
 
   // add alert for user to check settings
@@ -14,7 +14,7 @@ export async function userLocation(vin, setLocation, location) {
 
   if (cachedAddress) {
     console.log("Using cached address:", cachedAddress);
-    setLocation && setLocation(cachedAddress);
+    setLocation && setLocation({ address: cachedAddress.address, latitude: cachedAddress.latitude, longitude: cachedAddress.longitude });
     return;
   }
 
@@ -25,7 +25,6 @@ export async function userLocation(vin, setLocation, location) {
 
   fetching = true;
 
-  // add alart for user to change browser; unlikely in modern phones
   try {
     if (!navigator.geolocation) {
       console.error("Geolocation is not supported by this browser.");
@@ -69,8 +68,8 @@ export async function userLocation(vin, setLocation, location) {
             address = await getAddressFromCoordinates(latitude, longitude);
             console.log("Address:", address);
           }
-          cachedAddress = address;
-          setLocation && setLocation(address);
+          cachedAddress = { address, latitude, longitude };
+          setLocation && setLocation({ address, latitude, longitude });
 
           setTimeout(() => {
             cachedAddress = null;

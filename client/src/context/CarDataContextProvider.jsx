@@ -8,7 +8,7 @@ function CarDataContextProvider( { children } ) {
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState("");
 
-
+console.log(carData)
     useEffect(() => {
         fetch('/api/vin_history')
             .then(resp => {

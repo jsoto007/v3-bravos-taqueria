@@ -18,6 +18,8 @@ export default function CarScannerContainer() {
 
   const { currentUser } = useContext(UserContext);
 
+  console.log("Updated Location: ", location)
+
   const addCar = async (e) => {
     e.preventDefault();
 
@@ -34,7 +36,9 @@ export default function CarScannerContainer() {
           user_id: currentUser.id,
           account_group_id: currentUser.account_group_id,
           vin_number: vin,
-          location,
+          location: location?.address,
+          longitude: location?.longitude,
+          latitude: location?.latitude,
           year,
           make,
         }),
@@ -44,7 +48,7 @@ export default function CarScannerContainer() {
 
       const data = await response.json();
       setSubmittedCar(data);
-
+      
       // After submission, show barcode scanner for next car
       setScanMode("scanner");
       setScanComplete(false);
@@ -126,7 +130,7 @@ export default function CarScannerContainer() {
           <h3 className="text-lg font-semibold text-green-800 dark:text-green-200 mb-2">Scanned VIN Data</h3>
           <ul className="text-green-700 dark:text-green-300 space-y-1">
             <li className="text-green-700 dark:text-green-100 text-xl font-bold my-2"><span className="font-semibold text-lg">VIN:</span> {vin}</li>
-            <li><strong>Location:</strong> {location || "N/A"}</li>
+            <li><strong>Location:</strong> {location?.address || "N/A"}</li>
             <li><strong>Year:</strong> {year || "N/A"}</li>
             <li><strong>Make:</strong> {make || "N/A"}</li>
           </ul>
