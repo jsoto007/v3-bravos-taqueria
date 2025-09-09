@@ -9,15 +9,20 @@ export default function InventoryFeed() {
   const { carData } = useContext(CarDataContext);
 
   const events = carData
-    ? carData.flatMap(({ vin, history }) =>
-        history.map(({ created_at, location, user }) => ({
-          vin,
-          user,
-          location,
-          created_at,
-        }))
-      )
-    : [];
+  ? carData.flatMap(({ vin, history, id }) =>
+    history.map(({ created_at, location, user, firstname, lastname, designated_location }) => ({
+      vin,
+      id,
+      user,
+      location,
+      created_at,
+      firstname,
+      lastname,
+      designated_location,
+    }))
+  )
+: [];
+
 
   const latestByVin = new Map();
   events.forEach(event => {
@@ -62,9 +67,9 @@ export default function InventoryFeed() {
                 <div className="flex min-w-0 flex-1 justify-between space-x-4 pt-1.5">
                   <div>
                     <p className="text-sm text-gray-500 dark:text-gray-400">
-                      <span className="font-medium text-gray-900 dark:text-white">{event.user}</span> conducted inventory for VIN{' '}
+                      <span className="font-medium text-gray-900 dark:text-white">{event.firstname} {event.lastname ? event.lastname[0] + '.' : ''}</span> conducted inventory for VIN{' '}
                       <span className="font-medium text-gray-900 dark:text-white">{event.vin}</span> at{' '}
-                      <span className="font-medium text-gray-900 dark:text-white">{event.location}</span>.
+                      <span className="font-medium text-gray-900 dark:text-white">{event.designated_location || event.location}</span>.
                     </p>
                   </div>
                   <div className="whitespace-nowrap text-right text-sm text-gray-500 dark:text-gray-400">
