@@ -1,3 +1,4 @@
+import functools
 
 import os
 import uuid
@@ -21,9 +22,8 @@ from sqlalchemy.pool import QueuePool
 import stripe
 from datetime import timezone, datetime, timedelta
 
-stripe.api_key = os.getenv('STRIPE_SECRET_KEY')
-
 # ---------- Stripe ---------- #
+stripe.api_key = os.getenv('STRIPE_SECRET_KEY')
 
 # SQLAlchemy production-ready engine options
 app.config['SQLALCHEMY_ENGINE_OPTIONS'] = {
@@ -36,6 +36,52 @@ app.config['PERMANENT_SESSION_LIFETIME'] = timedelta(days=7)
 
 
 CORS(app)
+
+
+# --------- Custom Decorators --------- #
+def require_login(fn):
+    @functools.wraps(fn)
+    def wrapper(*args, **kwargs):
+        user_id = session.get('user_id')
+        if not user_id:
+            return {"error": "Unauthorized"}, 401
+        user = User.query.get(user_id)
+        if not user:
+            return {"error": "User not found"}, 404
+        # Attach user to flask.g for convenience
+        import flask
+        flask.g.user = user
+        return fn(*args, **kwargs)
+    return wrapper
+
+def require_admin(fn):
+    @functools.wraps(fn)
+    def wrapper(*args, **kwargs):
+        user_id = session.get('user_id')
+        if not user_id:
+            return {"error": "Unauthorized"}, 401
+        user = User.query.get(user_id)
+        if not user or not getattr(user, 'admin', False):
+            return {"error": "Forbidden: Admins only"}, 403
+        import flask
+        flask.g.user = user
+        return fn(*args, **kwargs)
+    return wrapper
+
+def require_owner_admin(fn):
+    @functools.wraps(fn)
+    def wrapper(*args, **kwargs):
+        user_id = session.get('user_id')
+        if not user_id:
+            return {"error": "Unauthorized"}, 401
+        user = User.query.get(user_id)
+        if not user or not (user.admin and user.is_owner_admin):
+            return {"error": "Forbidden: Only owner admins can perform this action"}, 403
+        import flask
+        flask.g.user = user
+        return fn(*args, **kwargs)
+    return wrapper
+
 
 # Upload configuration
 UPLOAD_FOLDER = os.path.join(os.path.dirname(__file__), 'static', 'uploads')
@@ -159,6 +205,7 @@ def serialize_car_note(note):
 
 
 class AccountGroups(Resource):
+    @require_owner_admin
     def post(self):
         data = request.get_json()
         group = AccountGroup(group_key=data['group_key'])
@@ -234,15 +281,10 @@ class Signup(Resource):
 
 
 class AdminCreateUser(Resource):
+    @require_owner_admin
     def post(self):
-        admin_id = session.get('user_id')
-        if not admin_id:
-            return {"error": "Unauthorized"}, 401
-
-        admin = User.query.get(admin_id)
-        if not admin or not (admin.admin and admin.is_owner_admin):
-            return {"error": "Forbidden: Only owner admins can create users"}, 403
-
+        import flask
+        admin = flask.g.user
         data = request.get_json()
 
         # Validate required fields
@@ -276,12 +318,11 @@ class AdminCreateUser(Resource):
 
 
 class CheckSession(Resource):
+    @require_login
     def get(self):
-        if session.get('user_id'):
-            user = User.query.filter(User.id == session['user_id']).first()
-            if user:
-                return serialize_user(user), 200
-        return {"error": "Please log in"}, 401
+        import flask
+        user = flask.g.user
+        return serialize_user(user), 200
 
 class Login(Resource):
     def post(self):
@@ -297,28 +338,25 @@ class Login(Resource):
         return {"error": "401 Unauthorized"}, 401
 
 class Logout(Resource):
+    @require_login
     def delete(self):
         session['user_id'] = None
         return {}, 204
 
 class DesignatedLocations(Resource):
+    @require_login
     def get(self):
-        user_id = session.get('user_id')
-        if not user_id:
-            return {"error": "Unauthorized"}, 401
-        user = User.query.get(user_id)
-        if not user or not user.account_group_id:
+        import flask
+        user = flask.g.user
+        if not user.account_group_id:
             return {"error": "Forbidden: User not in an account group"}, 403
         locations = DesignatedLocation.query.filter_by(account_group_id=user.account_group_id).all()
         return [serialize_designated_location(dl) for dl in locations], 200
 
+    @require_owner_admin
     def post(self):
-        user_id = session.get('user_id')
-        if not user_id:
-            return {"error": "Unauthorized"}, 401
-        user = User.query.get(user_id)
-        if not user or not user.is_owner_admin:
-            return {"error": "Forbidden: Only owner admins can add locations"}, 403
+        import flask
+        user = flask.g.user
         data = request.get_json()
         name = data.get("name")
         latitude = data.get("latitude")
@@ -335,13 +373,10 @@ class DesignatedLocations(Resource):
         db.session.commit()
         return serialize_designated_location(new_dl), 201
 
+    @require_owner_admin
     def patch(self, id):
-        user_id = session.get('user_id')
-        if not user_id:
-            return {"error": "Unauthorized"}, 401
-        user = User.query.get(user_id)
-        if not user or not user.is_owner_admin:
-            return {"error": "Forbidden: Only owner admins can update locations"}, 403
+        import flask
+        user = flask.g.user
         dl = DesignatedLocation.query.filter_by(id=id, account_group_id=user.account_group_id).first()
         if not dl:
             return {"error": "Designated location not found"}, 404
@@ -355,13 +390,10 @@ class DesignatedLocations(Resource):
         db.session.commit()
         return serialize_designated_location(dl), 200
 
+    @require_owner_admin
     def delete(self, id):
-        user_id = session.get('user_id')
-        if not user_id:
-            return {"error": "Unauthorized"}, 401
-        user = User.query.get(user_id)
-        if not user or not user.is_owner_admin:
-            return {"error": "Forbidden: Only owner admins can delete locations"}, 403
+        import flask
+        user = flask.g.user
         dl = DesignatedLocation.query.filter_by(id=id, account_group_id=user.account_group_id).first()
         if not dl:
             return {"error": "Designated location not found"}, 404
@@ -371,24 +403,14 @@ class DesignatedLocations(Resource):
     
 
 class CarNotes(Resource):
+    @require_admin
     def get(self, car_id):
-        user_id = session.get('user_id')
-        if not user_id:
-            return {"error": "Unauthorized"}, 401
-        user = User.query.get(user_id)
-        if not user or not getattr(user, 'admin', False):
-            return {"error": "Forbidden: Admins only"}, 403
         # Return all notes for a given car_id
         notes = CarNote.query.filter_by(car_inventory_id=car_id).all()
         return [serialize_car_note(n) for n in notes], 200
 
+    @require_admin
     def post(self, car_id):
-        user_id = session.get('user_id')
-        if not user_id:
-            return {"error": "Unauthorized"}, 401
-        user = User.query.get(user_id)
-        if not user or not getattr(user, 'admin', False):
-            return {"error": "Forbidden: Admins only"}, 403
         data = request.get_json()
         content = data.get('content')
         if not content:
@@ -398,13 +420,8 @@ class CarNotes(Resource):
         db.session.commit()
         return serialize_car_note(note), 201
 
+    @require_admin
     def patch(self, id):
-        user_id = session.get('user_id')
-        if not user_id:
-            return {"error": "Unauthorized"}, 401
-        user = User.query.get(user_id)
-        if not user or not getattr(user, 'admin', False):
-            return {"error": "Forbidden: Admins only"}, 403
         note = CarNote.query.get(id)
         if not note:
             return {"error": "CarNote not found"}, 404
@@ -415,13 +432,8 @@ class CarNotes(Resource):
         db.session.commit()
         return serialize_car_note(note), 200
 
+    @require_admin
     def delete(self, id):
-        user_id = session.get('user_id')
-        if not user_id:
-            return {"error": "Unauthorized"}, 401
-        user = User.query.get(user_id)
-        if not user or not getattr(user, 'admin', False):
-            return {"error": "Forbidden: Admins only"}, 403
         note = CarNote.query.get(id)
         if not note:
             return {"error": "CarNote not found"}, 404
@@ -431,18 +443,17 @@ class CarNotes(Resource):
     
     
 class CarInventories(Resource):
+    @require_login
     def get(self, id=None):
-        cars = CarInventory.query.all()
+        import flask
+        user = flask.g.user
+        cars = CarInventory.query.filter_by(account_group_id=user.account_group_id).all()
         return make_response(jsonify([serialize_car_inventory(car) for car in cars]), 200)
 
+    @require_login
     def post(self):
-        # Require user session
-        user_id = session.get('user_id')
-        if not user_id:
-            return {"error": "Unauthorized"}, 401
-        user = User.query.get(user_id)
-        if not user:
-            return {"error": "User not found"}, 404
+        import flask
+        user = flask.g.user
         account_group_id = user.account_group_id
         if not account_group_id:
             return {"error": "No account group associated with user"}, 403
@@ -461,7 +472,7 @@ class CarInventories(Resource):
             vin_number=data['vin_number'],
             year=data.get('year'),
             make=data.get('make'),
-            user_id=user_id,
+            user_id=user.id,
             account_group_id=account_group_id
         )
 
@@ -492,15 +503,18 @@ class CarInventories(Resource):
         db.session.commit()
         return make_response(serialize_car_inventory(new_car), 201)
 
+    @require_login
     def delete(self, id):
-        car = CarInventory.query.filter_by(id=id).first()
+        import flask
+        user = flask.g.user
+        car = CarInventory.query.filter_by(id=id, account_group_id=user.account_group_id).first()
         if not car:
             return {"error": "Car not found"}, 404
 
         vin_number = car.vin_number
 
-        # Find all cars with the same VIN
-        cars_to_delete = CarInventory.query.filter_by(vin_number=vin_number).all()
+        # Find all cars with the same VIN in this account group
+        cars_to_delete = CarInventory.query.filter_by(vin_number=vin_number, account_group_id=user.account_group_id).all()
 
         for c in cars_to_delete:
             db.session.delete(c)
@@ -510,17 +524,15 @@ class CarInventories(Resource):
         return '', 204
 
 class UserInventories(Resource):
+    @require_login
     def post(self):
+        import flask
+        user = flask.g.user
         data = request.get_json()
-        user_id = data.get('user_id')
-        account_group_id = data.get('account_group_id')
-
-        if not user_id or not account_group_id:
-            return {"error": "User ID and account group ID are required"}, 400
-
+        # Only allow creating inventories for current user/account_group
         new_inventory = UserInventory(
-            user_id=user_id,
-            account_group_id=account_group_id,
+            user_id=user.id,
+            account_group_id=user.account_group_id,
             submitted=data.get('submitted', False),
             reviewed=data.get('reviewed', False)
         )
@@ -528,8 +540,11 @@ class UserInventories(Resource):
         db.session.commit()
         return make_response(serialize_user_inventory(new_inventory), 201)
 
+    @require_login
     def patch(self, id):
-        inventory = UserInventory.query.filter_by(id=id).first()
+        import flask
+        user = flask.g.user
+        inventory = UserInventory.query.filter_by(id=id, user_id=user.id, account_group_id=user.account_group_id).first()
         if not inventory:
             return {"error": "Inventory not found"}, 404
 
@@ -538,11 +553,16 @@ class UserInventories(Resource):
         return make_response(serialize_user_inventory(inventory), 200)
 
 class UserInventoryHistory(Resource):
+    @require_login
     def get(self, user_id):
-        inventories = UserInventory.query.filter_by(user_id=user_id).order_by(UserInventory.created_at.desc()).limit(12).all()
+        import flask
+        user = flask.g.user
+        # Only allow access to inventories for users in the same account group
+        inventories = UserInventory.query.filter_by(user_id=user_id, account_group_id=user.account_group_id).order_by(UserInventory.created_at.desc()).limit(12).all()
         return make_response(jsonify([serialize_user_inventory(inv) for inv in inventories]), 200)
 
 class CarPhotos(Resource):
+    @require_login
     def post(self):
         data = request.get_json()
         new_photo = CarPhoto(
@@ -555,10 +575,12 @@ class CarPhotos(Resource):
         return make_response(serialize_car_photo(new_photo), 201)
 
 class MasterCarRecords(Resource):
+    @require_login
     def get(self):
         records = MasterCarRecord.query.order_by(MasterCarRecord.created_at.desc()).all()
         return make_response(jsonify([serialize_master_car_record(rec) for rec in records]), 200)
 
+    @require_login
     def post(self):
         data = request.get_json()
         new_record = MasterCarRecord(
@@ -576,12 +598,14 @@ class MasterCarRecords(Resource):
         return make_response(serialize_master_car_record(new_record), 201)
 
 class MasterCarRecordById(Resource):
+    @require_login
     def get(self, id):
         record = MasterCarRecord.query.filter_by(id=id).first()
         if not record:
             return {"error": "Record not found"}, 404
         return make_response(serialize_master_car_record(record), 200)
 
+    @require_login
     def patch(self, id):
         record = MasterCarRecord.query.filter_by(id=id).first()
         if not record:
@@ -594,6 +618,7 @@ class MasterCarRecordById(Resource):
         db.session.commit()
         return make_response(serialize_master_car_record(record), 200)
 
+    @require_login
     def delete(self, id):
         record = MasterCarRecord.query.filter_by(id=id).first()
         if not record:
@@ -604,15 +629,8 @@ class MasterCarRecordById(Resource):
         return make_response('', 204)
 
 class AdminUserInventoryCheck(Resource):
+    @require_admin
     def get(self, user_inventory_id):
-        user_id = session.get('user_id')
-        if not user_id:
-            return {"error": "Unauthorized"}, 401
-
-        user = User.query.filter_by(id=user_id).first()
-        if not user or not getattr(user, 'admin', False):
-            return {"error": "Forbidden: Admins only"}, 403
-
         user_inventory = UserInventory.query.filter_by(id=user_inventory_id).first()
         if not user_inventory:
             return {"error": "User inventory not found"}, 404
@@ -627,6 +645,7 @@ class AdminUserInventoryCheck(Resource):
         }), 200)
 
 class UploadPhoto(Resource):
+    @require_login
     def post(self):
         if 'photo' not in request.files:
             return {"error": "No file part"}, 400
@@ -659,6 +678,7 @@ class UploadPhoto(Resource):
 
         return {"error": "File type not allowed. Allowed types: png, jpg, jpeg, gif"}, 400
 
+    @require_login
     def delete(self, id):
         record = CarPhoto.query.filter_by(id=id).first()
         if not record:
@@ -672,15 +692,10 @@ class UploadPhoto(Resource):
         return make_response("", 204)
 
 class VinHistory(Resource):
+    @require_login
     def get(self):
-        user_id = session.get('user_id')
-        if not user_id:
-            return {"error": "Unauthorized"}, 401
-
-        user = User.query.filter_by(id=user_id).first()
-        if not user:
-            return {"error": "User not found"}, 404
-
+        import flask
+        user = flask.g.user
         account_group_id = user.account_group_id
         if not account_group_id:
             return {"error": "No account group associated with user"}, 403
@@ -721,10 +736,6 @@ class VinHistory(Resource):
                 "designated_location": designated_location_name
             })
 
-            # check the client fist
-            # remove log and lat from vin map
-            # remove notes from vin_map
-
         result = [{
             "vin": vin_data["vin"],
             "id": vin_data["id"],
@@ -736,15 +747,12 @@ class VinHistory(Resource):
     
 
 
-# Search for car by ID and return Scan history, Scanner info,
-# '/api/cars/<int:id>'
 class CarById(Resource):
+    @require_login
     def get(self, id):
-        user_id = session.get('user_id')
-        if not user_id:
-            return {"error": "Unauthorized"}, 401
-        user = User.query.get(user_id)
-        if not user or not user.account_group_id:
+        import flask
+        user = flask.g.user
+        if not user.account_group_id:
             return {"error": "Forbidden: User not in an account group"}, 403
 
         car = (
@@ -876,7 +884,6 @@ api.add_resource(CarNotes,
                  '/api/car_notes/<int:car_id>',  # GET, POST
                  '/api/car_notes/note/<int:id>',  # PATCH, DELETE
                  endpoint='car_notes')
-
 
 api.add_resource(CarById, '/api/cars/<int:id>', endpoint='car_by_id')
 
