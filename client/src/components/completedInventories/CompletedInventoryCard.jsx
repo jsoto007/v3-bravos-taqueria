@@ -12,17 +12,19 @@ export default function CompletedInventoryCard() {
   const navigate = useNavigate();
 
   const events = carData
-    ? carData.flatMap(({ vin, history, id }) =>
-        history.map(({ created_at, location, user }) => ({
-          vin,
-          id,
-          user,
-          location,
-          created_at,
-        }))
-      )
-    : [];
-
+  ? carData.flatMap(({ vin, history, id }) =>
+      history.map(({ created_at, location, user, firstname, lastname, designated_location }) => ({
+        vin,
+        id,
+        user,
+        location,
+        created_at,
+        firstname,
+        lastname,
+        designated_location,
+      }))
+    )
+  : [];
 
   const latestByVin = new Map();
   events.forEach((event) => {
@@ -74,7 +76,7 @@ export default function CompletedInventoryCard() {
               </tr>
             </thead>
             <tbody className="divide-y-2 divide-gray-200/30">
-              {filteredEvents.map((item, index) => {
+              {filteredEvents.map((item) => {
                 const addressParts = item.location?.split(" ") || [];
                 const number = addressParts[0] || "";
                 const street = addressParts.slice(1, 3).join(" ") || "";
@@ -89,8 +91,14 @@ export default function CompletedInventoryCard() {
                   className={currentUser?.admin ? "cursor-pointer hover:bg-gray-200 dark:hover:bg-gray-700" : ""}
                 >
                   <td className="px-4 py-2">{item.vin}</td>
-                  <td className="px-4 py-2">{`${number} ${street}`}</td>
-                  <td className="px-4 py-2">{item.user?.split("@")[0]}</td>
+
+                  <td className="px-4 py-2">
+                    {item.designated_location
+                    ? item.designated_location
+                    : `${number} ${street}`}
+                  </td>
+
+                  <td className="px-4 py-2">{item.firstname} {item.lastname}</td>
                   <td className="px-4 py-2">{formatDate(item.created_at)}</td>
                 </tr>
               );
