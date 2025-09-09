@@ -7,7 +7,7 @@ import AddCarBtn from "../shared/AddCarBtn"
 
 export default function Dashboard() {
   return (
-    <div className="bg-neutral-100 dark:bg-gray-900/30 text-gray-900 dark:text-white mt-20 rounded-xl">
+    <div className="bg-neutral-50 dark:bg-gray-900/30 text-gray-900 dark:text-white mt-10 rounded-xl pt-4">
       <div className="mx-auto">
         <p className="mt-2 flex justify-start text-pretty text-4xl font-serif font-semibold tracking-tight text-gray-900 dark:text-white sm:text-5xl">
           Dashboard
