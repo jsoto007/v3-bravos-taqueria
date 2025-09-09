@@ -724,36 +724,44 @@ class CarById(Resource):
             return {"error": "Forbidden: User not in an account group"}, 403
 
         car = (
-            CarInventory.query.options(joinedload(CarInventory.user))
+            CarInventory.query.options(joinedload(CarInventory.user), joinedload(CarInventory.designated_location))
             .filter_by(id=id, account_group_id=user.account_group_id)
             .first()
         )
         if not car:
             return {"error": "Car not found"}, 404
 
+        # Prepare designated_location name for car_info
+        designated_location_name = car.designated_location.name if getattr(car, "designated_location", None) else None
+
         car_info = {
             "id": car.id,
             "vin_number": car.vin_number,
             "year": car.year,
             "make": car.make,
+            "designated_location": designated_location_name
         }
 
         # Scan history: all CarInventory records with the same vin_number in the same account group
         scan_history = []
         scan_cars = (
-            CarInventory.query.options(joinedload(CarInventory.user))
+            CarInventory.query.options(joinedload(CarInventory.user), joinedload(CarInventory.designated_location))
             .filter_by(vin_number=car.vin_number, account_group_id=user.account_group_id)
             .order_by(CarInventory.created_at.asc())
             .all()
         )
         for scan in scan_cars:
+            scan_designated_location_name = scan.designated_location.name if getattr(scan, "designated_location", None) else None
             scan_history.append({
                 "id": scan.id,
                 "user": scan.user.email if scan.user else None,
                 "first_name": scan.user.first_name if scan.user else None,
                 "last_name": scan.user.last_name if scan.user else None,
                 "location": scan.location,
+                "latitude": scan.latitude,
+                "longitude": scan.longitude,
                 "created_at": scan.created_at.isoformat() if scan.created_at else None,
+                "designated_location": scan_designated_location_name
             })
 
         # All notes for this car (by car.id)

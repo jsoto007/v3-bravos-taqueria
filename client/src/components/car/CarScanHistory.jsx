@@ -14,6 +14,8 @@ export default function CarScanHistory({ scanHistory }) {
         });
     }
     
+    console.log(scanHistory)
+    
     function getSortedHistory(history) {
       return history
         ?.slice()
