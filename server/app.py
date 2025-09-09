@@ -464,6 +464,30 @@ class CarInventories(Resource):
             user_id=user_id,
             account_group_id=account_group_id
         )
+
+        # --- Assigned location check ---
+        if new_car.latitude is not None and new_car.longitude is not None:
+            from math import radians, cos, sin, asin, sqrt
+
+            def haversine(lat1, lon1, lat2, lon2):
+                # convert decimal degrees to radians
+                lon1, lat1, lon2, lat2 = map(radians, [lon1, lat1, lon2, lat2])
+                # haversine formula
+                dlon = lon2 - lon1
+                dlat = lat2 - lat1
+                a = sin(dlat/2)**2 + cos(lat1) * cos(lat2) * sin(dlon/2)**2
+                c = 2 * asin(sqrt(a))
+                miles = 3956 * c  # Radius of Earth in miles
+                return miles
+
+            designated_locations = DesignatedLocation.query.filter_by(account_group_id=account_group_id).all()
+            for dl in designated_locations:
+                if dl.latitude is not None and dl.longitude is not None:
+                    distance = haversine(new_car.latitude, new_car.longitude, dl.latitude, dl.longitude)
+                    if distance <= 0.1:
+                        new_car.designated_location_id = dl.id
+                        break
+
         db.session.add(new_car)
         db.session.commit()
         return make_response(serialize_car_inventory(new_car), 201)

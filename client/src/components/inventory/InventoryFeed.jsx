@@ -1,9 +1,6 @@
 import React, { useContext } from "react"
 import { CarDataContext } from "../../context/CarDataContextProvider"
 
-function classNames(...classes) {
-  return classes.filter(Boolean).join(' ')
-}
 
 export default function InventoryFeed() {
   const { carData } = useContext(CarDataContext);
@@ -84,3 +81,4 @@ export default function InventoryFeed() {
     </div>
   )
 }
+
