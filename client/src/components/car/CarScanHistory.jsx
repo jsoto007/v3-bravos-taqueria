@@ -60,7 +60,7 @@ export default function CarScanHistory({ scanHistory }) {
                 <td className="whitespace-nowrap border-b border-slate-300 dark:border-slate-700 px-3 py-4 text-xs sm:text-sm text-slate-950 dark:text-slate-50">
                   <div className="flex items-center gap-1">
                     <MapPin className="h-4 w-4 flex-shrink-0 text-slate-500 dark:text-slate-400" />
-                    {scan.location}
+                    {scan.designated_location || scan.location}
                   </div>
                 </td>
                 <td className="whitespace-nowrap border-b border-slate-300 dark:border-slate-700 px-3 py-4 text-xs sm:text-sm text-slate-950 dark:text-slate-50">
