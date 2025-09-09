@@ -678,10 +678,9 @@ class VinHistory(Resource):
                     "vin": vin,
                     "year": car.year,
                     "make": car.make,
-                    "history": [],
-                    "notes": [serialize_car_note(n) for n in car.notes]
+                    "history": []
                 }
-# Car notes are included in this resource; might be deleted. It could be it's own resource since a user will not want to see all notes at once. Trying separating first. 
+                
             designated_location_name = None
             if hasattr(car, "designated_location") and car.designated_location is not None:
                 designated_location_name = car.designated_location.name
@@ -708,7 +707,6 @@ class VinHistory(Resource):
             "year": vin_data.get("year"),
             "make": vin_data.get("make"),
             "history": vin_data["history"],
-            "notes": vin_data["notes"],
         } for vin_data in vin_map.values()]
         return make_response(jsonify(result), 200)
     
