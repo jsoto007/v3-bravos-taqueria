@@ -6,7 +6,7 @@ import InventoryContainer from "./InventoryContainer";
 export default function UserInventoryContainer() {
 
     return (
-        <div className="flex flex-col gap-6 p-4">
+        <div className="flex flex-col gap-6 p-4 bg-white rounded-lg">
             <InventoryContainer />
                 <h1 className="text-left text-3xl text-nuetral-100 font-medium font-sans rounded-xl pt-2 mt-2">Scanned Vehicle Records</h1>
                 <p className="text-left text-sm text-neutral-400">
