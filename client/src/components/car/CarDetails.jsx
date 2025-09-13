@@ -84,19 +84,19 @@ export default function CarDetails( { car, setCar } ) {
           </div>
 
       <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-6">
-            <div className="bg-slate-300/50 dark:bg-slate-800 p-4 rounded-xl">
+            <div className="bg-slate-300/50 dark:bg-slate-800 p-2 rounded-xl">
               <p className="text-slate-500 dark:text-slate-400 text-sm font-medium">Make & Model</p>
               <p className="text-xl font-bold text-slate-950 dark:text-slate-50">{car.make}</p>
             </div>
-            <div className="bg-slate-300/50 dark:bg-slate-800 p-4 rounded-xl">
+            <div className="bg-slate-300/50 dark:bg-slate-800 p-2 rounded-xl">
               <p className="text-slate-500 dark:text-slate-400 text-sm font-medium">Year</p>
               <p className="text-xl font-bold text-slate-950 dark:text-slate-50">{car.year}</p>
             </div>
-            <div className="bg-slate-300/50 dark:bg-slate-800 p-4 rounded-xl">
+            <div className="bg-slate-300/50 dark:bg-slate-800 p-2 rounded-xl">
               <p className="text-slate-500 dark:text-slate-400 text-sm font-medium">Color</p>
               <p className="text-xl font-bold text-slate-950 dark:text-slate-50">Pending feature</p>
             </div>
-            <div className="bg-slate-300/50 dark:bg-slate-800 p-4 rounded-xl">
+            <div className="bg-slate-300/50 dark:bg-slate-800 p-2 rounded-xl">
               <p className="text-slate-500 dark:text-slate-400 text-sm font-medium">Body style</p>
               <p className="text-xl font-bold text-slate-950 dark:text-slate-50">pending feature</p>
             </div>
