@@ -55,7 +55,7 @@ def handle_location_change_async(event_type, instance_data):
                     logging.warning(f"Skipping car {car.id}: No coordinates available.")
                     continue
                 distance = haversine(location_lon, location_lat, car.longitude, car.latitude)
-                if distance <= 0.1:
+                if distance <= 0.15:
                     if car.designated_location_id != location_id:
                         logging.info(f"Assigning car {car.id} to designated location {location_id}.")
                     car.designated_location_id = location_id
