@@ -59,10 +59,12 @@ def handle_location_change_async(event_type, instance_data):
                     if car.designated_location_id != location_id:
                         logging.info(f"Assigning car {car.id} to designated location {location_id}.")
                     car.designated_location_id = location_id
-                else:
-                    if car.designated_location_id is not None:
-                        logging.info(f"Unassigning car {car.id} from designated location.")
-                    car.designated_location_id = None
+            # Only unassign cars for deleted locations
+            if event_type == "delete":
+                for car in cars:
+                    if car.designated_location_id == location_id:
+                        logging.info(f"Unassigning car {car.id} from designated location due to location deletion.")
+                        car.designated_location_id = None
 
             db.session.commit()
             logging.info(f"[LocationEvent] Completed processing {event_type.upper()} for DesignatedLocation ID {location_id}")
