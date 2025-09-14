@@ -495,7 +495,7 @@ class CarInventories(Resource):
             for dl in designated_locations:
                 if dl.latitude is not None and dl.longitude is not None:
                     distance = haversine(new_car.latitude, new_car.longitude, dl.latitude, dl.longitude)
-                    if distance <= 0.1:
+                    if distance <= 0.15:
                         new_car.designated_location_id = dl.id
                         break
 
