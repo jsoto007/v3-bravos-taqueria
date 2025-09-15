@@ -94,11 +94,11 @@ export default function CarDetails( { car, setCar } ) {
             </div>
             <div className="bg-slate-300/50 dark:bg-slate-800 p-2 rounded-xl">
               <p className="text-slate-500 dark:text-slate-400 text-sm font-medium">Color</p>
-              <p className="text-xl font-bold text-slate-950 dark:text-slate-50">Pending feature</p>
+              <p className="text-xl font-bold text-slate-950 dark:text-slate-50">{car?.color}</p>
             </div>
             <div className="bg-slate-300/50 dark:bg-slate-800 p-2 rounded-xl">
               <p className="text-slate-500 dark:text-slate-400 text-sm font-medium">Body style</p>
-              <p className="text-xl font-bold text-slate-950 dark:text-slate-50">pending feature</p>
+              <p className="text-xl font-bold text-slate-950 dark:text-slate-50">{car?.body}</p>
             </div>
           </div>
         </div>
