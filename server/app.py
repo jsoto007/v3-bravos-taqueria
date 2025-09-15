@@ -717,6 +717,8 @@ class VinHistory(Resource):
                     "vin": vin,
                     "year": car.year,
                     "make": car.make,
+                    "color": car.color,
+                    "body": car.body,
                     "history": []
                 }
                 
@@ -741,6 +743,8 @@ class VinHistory(Resource):
             "id": vin_data["id"],
             "year": vin_data.get("year"),
             "make": vin_data.get("make"),
+            "color": vin_data.get("color"),
+            "body": vin_data.get("body"),
             "history": vin_data["history"],
         } for vin_data in vin_map.values()]
         return make_response(jsonify(result), 200)
