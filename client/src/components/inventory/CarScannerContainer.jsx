@@ -63,6 +63,9 @@ export default function CarScannerContainer() {
       if (decodedVin.vin) setVin(decodedVin.vin);
       if (decodedVin.info?.modelYear) setYear(decodedVin.info.modelYear);
       if (decodedVin.info?.manufacturer) setMake(decodedVin.info.manufacturer);
+ 
+      
+
       setScanComplete(true);
     }
   }, [decodedVin]);

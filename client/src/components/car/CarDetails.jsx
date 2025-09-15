@@ -41,16 +41,17 @@ export default function CarDetails( { car, setCar } ) {
   return (
       <div className="max-w-auto mx-auto">
         {/* Header */}
-        <div className="bg-white dark:bg-[#1A2235] rounded-2xl shadow-xl p-8 mb-8 border border-slate-300 dark:border-slate-700">
+        <div className="bg-white dark:bg-[#1A2235] rounded-2xl shadow-xl p-2 mb-8 border border-slate-300 dark:border-slate-700">
           <div className="flex items-center justify-between mb-6">
             <div className="flex items-center space-x-4">
               <div className="p-3 bg-indigo-600 dark:bg-indigo-500 rounded-xl">
                 <KeySquare className="h-4 w-4 text-white" />
               </div>
               <div>
-                <p className="text-slate-700 dark:text-slate-200 text-lg md:text-2xl font-bold font-mono">
-                  <span className='dark:text-slate-400 text-slate-500'>VIN:</span> {car.vin_number}
+                <p className="text-slate-700 dark:text-slate-200 text-xl md:text-2xl font-bold font-mono mt-4">
+                  <span className='dark:text-slate-300 text-slate-500'>VIN:</span> {car.vin_number}
                 </p>
+                <p className='text-slate-500 text-md font-serif'>Vehicle Identification Number</p>
               </div>
             </div>
             <button
@@ -83,23 +84,15 @@ export default function CarDetails( { car, setCar } ) {
             )}
           </div>
 
-      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-6">
+        <div className="flex flex-col gap-4 w-full">
             <div className="bg-slate-300/50 dark:bg-slate-800 p-2 rounded-xl">
-              <p className="text-slate-500 dark:text-slate-400 text-sm font-medium">Make & Model</p>
+              <p className="text-slate-500 dark:text-slate-400 text-sm font-medium">MAKE & MODEL</p>
               <p className="text-xl font-bold text-slate-950 dark:text-slate-50">{car.make}</p>
             </div>
             <div className="bg-slate-300/50 dark:bg-slate-800 p-2 rounded-xl">
-              <p className="text-slate-500 dark:text-slate-400 text-sm font-medium">Year</p>
+              <p className="text-slate-500 dark:text-slate-400 text-sm font-medium">YEAR</p>
               <p className="text-xl font-bold text-slate-950 dark:text-slate-50">{car.year}</p>
-            </div>
-            <div className="bg-slate-300/50 dark:bg-slate-800 p-2 rounded-xl">
-              <p className="text-slate-500 dark:text-slate-400 text-sm font-medium">Color</p>
-              <p className="text-xl font-bold text-slate-950 dark:text-slate-50">{car?.color}</p>
-            </div>
-            <div className="bg-slate-300/50 dark:bg-slate-800 p-2 rounded-xl">
-              <p className="text-slate-500 dark:text-slate-400 text-sm font-medium">Body style</p>
-              <p className="text-xl font-bold text-slate-950 dark:text-slate-50">{car?.body}</p>
-            </div>
+            </div>  
           </div>
         </div>
 
