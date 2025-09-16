@@ -101,11 +101,12 @@ export default function CarNotes( { notes, car } ) {
   if (error) return <p className="text-red-500 mt-20">Error: {error}</p>;
 
   return (
-    <div className="max-w-auto mx-auto p-6 bg-white dark:bg-[#1A2235] border border-slate-300 dark:border-slate-700 rounded-lg shadow-lg max-h-[600px] overflow-y-auto">
-      <h2 className="text-2xl font-bold mb-6 text-slate-950 dark:text-slate-50 flex items-center gap-2">
+    <div className="max-w-auto mx-auto bg-white dark:bg-[#1A2235] border border-slate-300 dark:border-slate-700 rounded-2xl shadow-lg max-h-[600px] overflow-y-auto">
+      <div className="h-1 w-[97%] md:w-[99%] mx-auto bg-gradient-to-r from-indigo-800 to-cyan-400 rounded-t-2xl"></div>
+      <h2 className="text-2xl font-bold mb-6 ml-2 mt-2 text-slate-950 dark:text-slate-50 flex items-center gap-2">
         <span>Car Notes</span>
       </h2>
-      <div className="flex gap-2 mb-6">
+      <div className="flex gap-2 mb-6 ml-2">
         <input
           className="flex-1 px-3 py-2 rounded bg-white dark:bg-slate-800 text-slate-950 dark:text-slate-50 border border-slate-300 dark:border-slate-700 focus:outline-none focus:ring-2 focus:ring-indigo-600 dark:focus:ring-indigo-500"
           type="text"
@@ -115,7 +116,7 @@ export default function CarNotes( { notes, car } ) {
           onKeyDown={e => { if (e.key === "Enter") addNote(); }}
         />
         <button
-          className="p-2 rounded bg-indigo-600 hover:bg-indigo-500 dark:bg-indigo-500 dark:hover:bg-indigo-400 text-white flex items-center"
+          className="p-2 rounded-lg bg-indigo-600/70 hover:bg-indigo-500 dark:bg-indigo-500/70 dark:hover:bg-indigo-400 text-white flex items-center mr-2"
           onClick={addNote}
           aria-label="Add note"
         >

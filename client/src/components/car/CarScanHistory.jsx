@@ -23,26 +23,27 @@ export default function CarScanHistory({ scanHistory }) {
     }
 
   return (
-    <div className="overflow-hidden rounded-md border border-slate-300 dark:border-slate-700 bg-white dark:bg-[#1A2235] mt-6">
+    <div className="rounded-t-2xl overflow-hidden rounded-md border border-slate-300 dark:border-slate-700 bg-white dark:bg-[#1A2235] mt-6">
+      <div className="h-1 w-[97%] md:w-[99%] mx-auto bg-gradient-to-r from-indigo-800 to-cyan-400 rounded-t-2xl"></div>
       <div className="overflow-x-auto">
         <table className="w-full border-collapse table-auto min-w-full">
-          <thead className="bg-slate-400 dark:bg-slate-800">
+          <thead className="bg-slate-300/70 dark:bg-slate-800">
             <tr>
               <th
                 scope="col"
-                className="border-b border-slate-300 dark:border-slate-700 bg-slate-400 dark:bg-slate-800 px-3 py-3 text-left text-xs sm:text-sm font-semibold text-slate-950 dark:text-slate-50 sm:pl-6"
+                className="border-b border-slate-300 dark:border-slate-700 bg-slate-100/10 dark:bg-slate-800 px-3 py-3 text-left text-xs sm:text-sm font-semibold text-slate-950 dark:text-slate-50 sm:pl-6"
               >
                 Date
               </th>
               <th
                 scope="col"
-                className="border-b border-slate-300 dark:border-slate-700 bg-slate-400 dark:bg-slate-800 px-3 py-3 text-left text-xs sm:text-sm font-semibold text-slate-950 dark:text-slate-50"
+                className="border-b border-slate-300 dark:border-slate-700 bg-slate-100/10 dark:bg-slate-800 px-3 py-3 text-left text-xs sm:text-sm font-semibold text-slate-950 dark:text-slate-50"
               >
                 Location
               </th>
               <th
                 scope="col"
-                className="border-b border-slate-300 dark:border-slate-700 bg-slate-400 dark:bg-slate-800 px-3 py-3 text-left text-xs sm:text-sm font-semibold text-slate-950 dark:text-slate-50"
+                className="border-b border-slate-300 dark:border-slate-700 bg-slate-100/10 dark:bg-slate-800 px-3 py-3 text-left text-xs sm:text-sm font-semibold text-slate-950 dark:text-slate-50"
               >
                 User
               </th>

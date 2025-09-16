@@ -26,7 +26,7 @@ export default function CarDetails( { car, setCar } ) {
     return (
       <div className="min-h-screen bg-gradient-to-b from-slate-100 via-slate-200 to-slate-300 dark:from-[#121A2A] dark:via-slate-800 dark:to-slate-900 p-6 flex items-center justify-center transition-colors duration-300">
         <div className="text-center bg-white dark:bg-slate-900 rounded-xl shadow-md p-8 transition-colors duration-300">
-          <KeySquare className="mx-auto h-16 w-16 text-slate-500 dark:text-slate-400 mb-4" />
+          <KeySquare className="mx-auto h-16 w-16 text-slate-500 dark:text-slate-400 mb-4b" />
           <h2 className="text-2xl font-bold text-slate-950 dark:text-slate-50 mb-2 transition-colors duration-300">
             No Car Data
           </h2>
@@ -44,7 +44,7 @@ export default function CarDetails( { car, setCar } ) {
           <div className="h-1 w-[97%] md:w-[99%] mx-auto bg-gradient-to-r from-indigo-800 to-cyan-400 rounded-t-2xl"></div>
           <div className="flex items-center justify-between mb-6 ml-2">
             <div className="flex items-center space-x-4">
-              <div className="p-3 bg-indigo-600/70 dark:bg-indigo-500/70 rounded-xl">
+              <div className="p-3 bg-indigo-600/90 dark:bg-indigo-500/90 rounded-xl">
                 <KeySquare className="h-4 w-4 text-white" />
               </div>
               <div>
@@ -84,7 +84,7 @@ export default function CarDetails( { car, setCar } ) {
             )}
           </div>
 
-        <div className="flex flex-col gap-4 w-full ml-2">
+        <div className="flex flex-col gap-2 w-full ml-2">
             <div className="p-2 rounded-xl">
               <p className="text-slate-500 text-sm font-medium">MAKE & MODEL</p>
               <p className="text-xl font-bold text-slate-950 dark:text-slate-50">{car.make}</p>
