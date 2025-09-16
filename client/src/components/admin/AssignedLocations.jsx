@@ -174,7 +174,7 @@ export default function AssignedLocations() {
             >
               <div className="flex justify-between items-start mb-4">
                 <div className="flex items-center gap-2">
-                  <MapPin className="text-yellow-500" size={20} />
+                  <MapPin className="text-slate-300" size={20} />
                   <h3 className="text-xl font-semibold">{location.name}</h3>
                 </div>
                 <div className="flex gap-2">
