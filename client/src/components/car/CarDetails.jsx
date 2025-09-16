@@ -1,9 +1,11 @@
-import React, { useState } from 'react';
+import React, { useState, useContext } from 'react';
 import { Trash, KeySquare } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
+import { CarDataContext } from '../../context/CarDataContextProvider';
 
 export default function CarDetails( { car, setCar } ) {
 
+  const { setCarData } = useContext(CarDataContext);
 
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const navigate = useNavigate();
@@ -12,6 +14,7 @@ export default function CarDetails( { car, setCar } ) {
     try {
       const res = await fetch(`/api/cars_inventory/${car.id}`, { method: "DELETE" });
       if (res.ok) {
+        setCarData(prev => prev.filter(c => c.id !== car.id));
         setShowDeleteConfirm(false);
         navigate('/dashboard');
       }
@@ -19,24 +22,6 @@ export default function CarDetails( { car, setCar } ) {
       console.error("Failed to delete car", err);
     }
   };
-
-
-  // If car is deleted, show empty state
-  if (!car) {
-    return (
-      <div className="min-h-screen bg-gradient-to-b from-slate-100 via-slate-200 to-slate-300 dark:from-[#121A2A] dark:via-slate-800 dark:to-slate-900 p-6 flex items-center justify-center transition-colors duration-300">
-        <div className="text-center bg-white dark:bg-slate-900 rounded-xl shadow-md p-8 transition-colors duration-300">
-          <KeySquare className="mx-auto h-16 w-16 text-slate-500 dark:text-slate-400 mb-4b" />
-          <h2 className="text-2xl font-bold text-slate-950 dark:text-slate-50 mb-2 transition-colors duration-300">
-            No Car Data
-          </h2>
-          <p className="text-slate-500 dark:text-slate-400 transition-colors duration-300">
-            The car and all associated data have been deleted.
-          </p>
-        </div>
-      </div>
-    );
-  }
 
   return (
       <div className="max-w-auto mx-auto">
@@ -49,7 +34,7 @@ export default function CarDetails( { car, setCar } ) {
               </div>
               <div>
                 <p className="text-slate-700 dark:text-slate-200 text-xl md:text-2xl font-bold font-mono mt-4">
-                  <span className='dark:text-slate-300 text-slate-500'>VIN:</span> {car.vin_number}
+                  <span className='dark:text-slate-300 text-slate-500'></span> {car?.vin_number || "No data"}
                 </p>
                 <p className='text-slate-500 text-md font-serif'>Vehicle Identification Number</p>
               </div>
@@ -87,11 +72,11 @@ export default function CarDetails( { car, setCar } ) {
         <div className="flex flex-col gap-2 w-full ml-2">
             <div className="p-2 rounded-xl">
               <p className="text-slate-500 text-sm font-medium">MAKE & MODEL</p>
-              <p className="text-xl font-bold text-slate-950 dark:text-slate-50">{car.make}</p>
+              <p className="text-xl font-bold text-slate-950 dark:text-slate-50">{car?.make || "No data"}</p>
             </div>
             <div className="p-2 rounded-xl">
               <p className="text-slate-500 dark:text-slate-400 text-sm font-medium">YEAR</p>
-              <p className="text-xl font-bold text-slate-950 dark:text-slate-50">{car.year}</p>
+              <p className="text-xl font-bold text-slate-950 dark:text-slate-50">{car?.year || "No data"}</p>
             </div>  
           </div>
         </div>
