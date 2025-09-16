@@ -1,6 +1,6 @@
 import AdminSignupUser from "../authentication/AdminSignupUser";
 import AssignedLocations from "../admin/AssignedLocations";
-
+import FadeIn from "../../shared/FadeIn";
 import { useState } from "react";
 import {
   CreditCard,
@@ -45,6 +45,7 @@ export default function SubscriptionDashboard() {
     switch (activeTab) {
       case "overview":
         return (
+          <FadeIn>
           <div className="space-y-6">
             {/* Current Plan */}
             <h1>* Component under construction</h1>
@@ -94,9 +95,11 @@ export default function SubscriptionDashboard() {
               ))}
             </div>
           </div>
+          </FadeIn>
         );
       case "billing":
         return (
+          <FadeIn>
           <div className="space-y-6">
             {/* Payment Method */}
             <div className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl p-6">
@@ -158,6 +161,7 @@ export default function SubscriptionDashboard() {
               </div>
             </div>
           </div>
+          </FadeIn>
         );
       case "accounts":
         return <div> <AdminSignupUser /></div>;
@@ -215,6 +219,7 @@ export default function SubscriptionDashboard() {
 
       {/* Content */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">{renderTab()}</div>
+
     </div>
   );
 }
