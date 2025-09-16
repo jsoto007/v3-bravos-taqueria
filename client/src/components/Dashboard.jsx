@@ -30,14 +30,14 @@ export default function Dashboard() {
               </div>
             </div>
             <div className="flex p-px lg:col-span-2">
-              {/* <div className="w-full overflow-hidden rounded-lg bg-white dark:bg-gray-800 outline outline-white/15 lg:rounded-bl-[2rem]">
+              <div className="w-full overflow-hidden rounded-lg bg-white dark:bg-gray-800 outline outline-white/15 lg:rounded-bl-[2rem]">
               <InventoryOverviewCard />
-              </div> */}
+              </div>
             </div>
             <div className="flex p-px lg:col-span-4">
-              {/* <div className="w-full overflow-hidden rounded-lg bg-gray-100 dark:bg-gray-800 outline outline-white/15 max-lg:rounded-b-[2rem] lg:rounded-br-[2rem]">
+              <div className="w-full overflow-hidden rounded-lg bg-gray-100 dark:bg-gray-800 outline outline-white/15 max-lg:rounded-b-[2rem] lg:rounded-br-[2rem]">
                 <InventoryFilesDownloadCard />
-                </div> */}
+                </div>
             </div>
           </div>
         </div>
