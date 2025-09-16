@@ -19,12 +19,12 @@ export default function Dashboard() {
             <AddCarBtn />
           </div>
           <div className="mt-10 grid grid-cols-1 gap-4 sm:mt-16 lg:grid-cols-6 lg:grid-rows-2">
-            <div className="flex p-px lg:col-span-4">
+            <div className="w-auto flex p-px lg:col-span-4">
               <CompletedInventoryCard />
           
             </div>
             <div className="flex p-px lg:col-span-2">
-              <div className="w-full overflow-hidden rounded-lg bg-white dark:bg-gray-800 outline outline-white/15 lg:rounded-tr-[2rem]">
+              <div className="w-auto overflow-hidden rounded-lg bg-white dark:bg-gray-800 outline outline-white/15 lg:rounded-tr-[2rem]">
               <InventoryFeed />
           
               </div>
