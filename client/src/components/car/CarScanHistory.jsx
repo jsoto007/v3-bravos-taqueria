@@ -79,7 +79,7 @@ export default function CarScanHistory({ scanHistory }) {
                     />
                     {toggledIds[scan.id]
                       ? scan.location
-                      : scan.designated_location || scan.location}
+                      : scan.designated_location || "No designated location"}
                   </div>
                 </td>
                 <td className="whitespace-nowrap border-b border-slate-300 dark:border-slate-700 px-3 py-4 text-xs sm:text-sm text-slate-950 dark:text-slate-50">

@@ -71,13 +71,13 @@ export default function CompletedInventoryCard() {
 
       <div className="overflow-y-auto max-h-[400px] sm:max-h-[500px]">
         <div className="overflow-x-auto">
-          <table className="min-w-full text-left font-mono divide-y-6 divide-gray-300 dark:divide-gray-700">
+          <table className="min-w-max w-full text-left font-mono divide-y-6 divide-gray-300 dark:divide-gray-700 whitespace-nowrap">
             <thead>
               <tr>
-                <th className="px-4 py-2">VIN</th>
-                <th className="px-4 py-2">Location</th>
-                <th className="px-4 py-2">User</th>
-                <th className="px-4 py-2">Date</th>
+                <th className="px-4 py-2 whitespace-nowrap">VIN</th>
+                <th className="px-4 py-2 whitespace-nowrap">Location</th>
+                <th className="px-4 py-2 whitespace-nowrap">User</th>
+                <th className="px-4 py-2 whitespace-nowrap">Date</th>
               </tr>
             </thead>
             <tbody className="divide-y-2 divide-gray-200/30">
@@ -95,20 +95,20 @@ export default function CompletedInventoryCard() {
                   }}
                   className={currentUser?.admin ? "cursor-pointer hover:bg-gray-200 dark:hover:bg-gray-700" : ""}
                 >
-                  <td className={`px-4 py-2 ${
+                  <td className={`px-4 py-2 whitespace-nowrap ${
                       !item.designated_location
                         ? "border-l-4 border-l-yellow-300 dark:border-l-yellow-600"
                         : ""
                     }`}>{item.vin}</td>
 
                   <td
-                    className='px-4 py-2'
+                    className='px-4 py-2 whitespace-nowrap'
                   >
                     {item.designated_location ? item.designated_location : `${number} ${street}`}
                   </td>
 
-                  <td className="px-4 py-2">{item.firstname} {item.lastname}</td>
-                  <td className="px-4 py-2">{formatDate(item.created_at)}</td>
+                  <td className="px-4 py-2 whitespace-nowrap">{item.firstname} {item.lastname}</td>
+                  <td className="px-4 py-2 whitespace-nowrap">{formatDate(item.created_at)}</td>
                 </tr>
               );
               })}
