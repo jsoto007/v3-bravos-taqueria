@@ -1,47 +1,31 @@
+import React from "react";
+import { motion, useReducedMotion } from "framer-motion";
 
-import React, { createContext, useContext } from "react";
-import { motion } from "framer-motion";
-
-const FadeInContext = createContext(false);
-
-const FadeIn = ({ children, className = "", ...props }) => {
-  const stagger = useContext(FadeInContext);
-
-  if (stagger) {
-    return <>{children}</>;
-  }
+const FadeIn = ({ children, delayStep = 0.32 }) => {
+  const shouldReduceMotion = useReducedMotion();
 
   return (
     <motion.div
-      className={className}
-      initial={{ opacity: 0 }}
-      animate={{ opacity: 1 }}
-      transition={{ duration: 1, ease: "easeIn" }}
-      {...props}
+      initial="hidden"
+      whileInView="visible"
+      viewport={{ once: true, margin: "0px 0px -100px" }}
+      transition={{ staggerChildren: delayStep }}
+      className="w-full"
     >
-      {children}
+      {React.Children.map(children, (child, i) => (
+        <motion.div
+          variants={{
+            hidden: { opacity: 0, y: shouldReduceMotion ? 0 : 24 },
+            visible: { opacity: 1, y: 0 },
+          }}
+          transition={{ duration: 0.6, delay: i * delayStep }}
+          className="animate-fadeIn"
+        >
+          {child}
+        </motion.div>
+      ))}
     </motion.div>
   );
 };
 
-const FadeInStagger = ({ children }) => {
-  return (
-    <FadeInContext.Provider value={true}>
-      <motion.div
-        initial="hidden"
-        animate="visible"
-        variants={{
-          visible: {
-            transition: {
-              staggerChildren: 0.15,
-            },
-          },
-        }}
-      >
-        {children}
-      </motion.div>
-    </FadeInContext.Provider>
-  );
-};
-
-export { FadeIn, FadeInStagger };
+export default FadeIn;

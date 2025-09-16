@@ -6,6 +6,7 @@ import CarScanHistory from "./CarScanHistory"
 import FadeIn from "../../shared/FadeIn";
 
 
+
 export default function CarContainer() {
     const { id } = useParams();
     const [car, setCar] = useState(null);
@@ -39,14 +40,10 @@ export default function CarContainer() {
                 </h3>
             </div>
             <FadeIn>
-
-            <CarDetails car={car} setCar={setCar} />
+                <CarDetails car={car} setCar={setCar} />
+                <CarNotes notes={notes} car={car} />
+                <CarScanHistory scanHistory={scanHistory} />
             </FadeIn>
-            <FadeIn>
-
-            <CarNotes notes={notes} car={car} />
-            </FadeIn>
-            <CarScanHistory scanHistory={scanHistory} />
         </div>
     )
 }
