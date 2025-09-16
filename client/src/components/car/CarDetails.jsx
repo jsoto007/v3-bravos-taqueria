@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Trash2, KeySquare } from 'lucide-react';
+import { Trash, KeySquare } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 
 export default function CarDetails( { car, setCar } ) {
@@ -40,11 +40,11 @@ export default function CarDetails( { car, setCar } ) {
 
   return (
       <div className="max-w-auto mx-auto">
-        {/* Header */}
-        <div className="bg-white dark:bg-[#1A2235] rounded-2xl shadow-xl p-2 mb-8 border border-slate-300 dark:border-slate-700">
-          <div className="flex items-center justify-between mb-6">
+        <div className="bg-white dark:bg-[#1A2235] rounded-2xl shadow-xl mb-8 border border-slate-300 dark:border-slate-700">
+          <div className="h-1 w-[97%] md:w-[99%] mx-auto bg-gradient-to-r from-indigo-800 to-cyan-400 rounded-t-2xl"></div>
+          <div className="flex items-center justify-between mb-6 ml-2">
             <div className="flex items-center space-x-4">
-              <div className="p-3 bg-indigo-600 dark:bg-indigo-500 rounded-xl">
+              <div className="p-3 bg-indigo-600/70 dark:bg-indigo-500/70 rounded-xl">
                 <KeySquare className="h-4 w-4 text-white" />
               </div>
               <div>
@@ -56,9 +56,9 @@ export default function CarDetails( { car, setCar } ) {
             </div>
             <button
               onClick={() => setShowDeleteConfirm(true)}
-              className="p-1 rounded hover:bg-slate-700 text-red-400"
+              className="bg-red-500/40 dark:bg-red-500/20 p-2 rounded-lg flex items-center justify-center mr-2"
             >
-              <Trash2 className="h-4 w-4" />
+              <Trash className="h-4 w-4 text-slate-900 dark:text-white" />
             </button>
             {showDeleteConfirm && (
               <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50">
@@ -84,12 +84,12 @@ export default function CarDetails( { car, setCar } ) {
             )}
           </div>
 
-        <div className="flex flex-col gap-4 w-full">
-            <div className="bg-slate-300/50 dark:bg-slate-800 p-2 rounded-xl">
-              <p className="text-slate-500 dark:text-slate-400 text-sm font-medium">MAKE & MODEL</p>
+        <div className="flex flex-col gap-4 w-full ml-2">
+            <div className="p-2 rounded-xl">
+              <p className="text-slate-500 text-sm font-medium">MAKE & MODEL</p>
               <p className="text-xl font-bold text-slate-950 dark:text-slate-50">{car.make}</p>
             </div>
-            <div className="bg-slate-300/50 dark:bg-slate-800 p-2 rounded-xl">
+            <div className="p-2 rounded-xl">
               <p className="text-slate-500 dark:text-slate-400 text-sm font-medium">YEAR</p>
               <p className="text-xl font-bold text-slate-950 dark:text-slate-50">{car.year}</p>
             </div>  
