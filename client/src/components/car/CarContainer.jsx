@@ -3,6 +3,7 @@ import { useParams } from "react-router-dom";
 import CarDetails from "./CarDetails"
 import CarNotes from "../notes/CarNotes"
 import CarScanHistory from "./CarScanHistory"
+import FadeIn from "../../shared/FadeIn";
 
 
 export default function CarContainer() {
@@ -37,8 +38,14 @@ export default function CarContainer() {
                   Manage car records with full scan history. Add, edit, and delete notes or delete the car entirely.
                 </h3>
             </div>
+            <FadeIn>
+
             <CarDetails car={car} setCar={setCar} />
+            </FadeIn>
+            <FadeIn>
+
             <CarNotes notes={notes} car={car} />
+            </FadeIn>
             <CarScanHistory scanHistory={scanHistory} />
         </div>
     )
