@@ -10,8 +10,6 @@ export default function InventoryOverviewCard() {
   const { carData } = useContext(CarDataContext)
   const { currentUser } = useContext(UserContext)
 
-  console.log(currentUser)
-
   const now = new Date()
   const thirtyDaysAgo = new Date()
   thirtyDaysAgo.setDate(now.getDate() - 30)

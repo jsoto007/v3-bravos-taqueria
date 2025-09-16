@@ -4,6 +4,7 @@ import ActionBtn from "../../shared/ActionBtn";
 import ScanbotScanner from "../../utils/ScanbotScanner";
 import ScanbotVinText from "../../utils/ScanbotVinText";
 import { userLocation } from "../../utils/UserLocation";
+import FadeIn from "../../shared/FadeIn";
 
 export default function CarScannerContainer() {
   const [vin, setVin] = useState("");
@@ -78,6 +79,7 @@ export default function CarScannerContainer() {
   }, [vin]);
 
   return (
+    <FadeIn>
     <div className="mt-20 py-4 bg-white dark:bg-slate-800 rounded-xl">
       <div className="text-center mb-6">
         <p className="text-2xl text-gray-600 dark:text-gray-300">
@@ -162,5 +164,6 @@ export default function CarScannerContainer() {
         </div>
       )}
     </div>
+    </FadeIn>
   );
 }
