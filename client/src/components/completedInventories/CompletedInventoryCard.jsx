@@ -53,11 +53,11 @@ export default function CompletedInventoryCard() {
   };
 
   return (
-    <div className="w-full bg-white dark:bg-gray-800 outline outline-white/15 lg:rounded-tl-[2rem] rounded-t-lg rounded-b-xl overflow-hidden">
+    <div className="w-full bg-white dark:bg-gray-800 outline outline-white/15 rounded-t-lg rounded-b-xl overflow-hidden">
       <div className="p-4">
         <input
           type="text"
-          placeholder="Search by VIN, year, or make"
+          placeholder="🔍 Search by VIN, year, or make"
           value={searchTerm}
           onChange={(e) => setSearchTerm(e.target.value)}
           className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:outline-none focus:ring focus:border-blue-300"

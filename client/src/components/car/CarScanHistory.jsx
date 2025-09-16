@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { Calendar, MapPin, User } from "lucide-react";
 
 export default function CarScanHistory({ scanHistory }) {
@@ -13,9 +14,17 @@ export default function CarScanHistory({ scanHistory }) {
             hour12: true
         });
     }
-    
-    console.log(scanHistory)
-    
+
+    // State for toggling location display per scan row
+    const [toggledIds, setToggledIds] = useState({});
+
+    function toggleLocation(id) {
+      setToggledIds(prev => ({
+        ...prev,
+        [id]: !prev[id]
+      }));
+    }
+
     function getSortedHistory(history) {
       return history
         ?.slice()
@@ -60,8 +69,13 @@ export default function CarScanHistory({ scanHistory }) {
                 </td>
                 <td className="whitespace-nowrap border-b border-slate-300 dark:border-slate-700 px-3 py-4 text-xs sm:text-sm text-slate-950 dark:text-slate-50">
                   <div className="flex items-center gap-1">
-                    <MapPin className="h-4 w-4 flex-shrink-0 text-slate-500 dark:text-slate-400" />
-                    {scan.designated_location || scan.location}
+                    <MapPin
+                      onClick={() => toggleLocation(scan.id)}
+                      className="h-4 w-4 flex-shrink-0 text-slate-500 dark:text-slate-400 cursor-pointer mr-1"
+                    />
+                    {toggledIds[scan.id]
+                      ? scan.location
+                      : scan.designated_location || scan.location}
                   </div>
                 </td>
                 <td className="whitespace-nowrap border-b border-slate-300 dark:border-slate-700 px-3 py-4 text-xs sm:text-sm text-slate-950 dark:text-slate-50">
