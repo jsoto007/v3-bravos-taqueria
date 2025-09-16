@@ -1,28 +1,40 @@
 import { useContext } from 'react'
 import { CarDataContext } from '../../context/CarDataContextProvider'
+import { UserContext } from '../../context/UserContextProvider'
 
-function classNames(...classes) {
-  return classes.filter(Boolean).join(' ')
-}
+// function classNames(...classes) {
+//   return classes.filter(Boolean).join(' ')
+// }
 
 export default function InventoryOverviewCard() {
   const { carData } = useContext(CarDataContext)
+  const { currentUser } = useContext(UserContext)
+
+  console.log(currentUser)
 
   const now = new Date()
   const thirtyDaysAgo = new Date()
   thirtyDaysAgo.setDate(now.getDate() - 30)
+  const sevenDaysAgo = new Date()
+  sevenDaysAgo.setDate(now.getDate() - 7)
 
   const totalCars = new Set(carData.map(car => car.vin)).size
   const newCars = new Set(
     carData.filter(car => new Date(car.created_at) >= thirtyDaysAgo).map(car => car.vin)
   ).size
   const totalScans = carData.filter(car => new Date(car.created_at) >= thirtyDaysAgo).length
+  const totalScansThisWeek = carData.filter(car => new Date(car.created_at) >= sevenDaysAgo).length
 
-  const stats = [
-    { name: 'Total Cars in Inventory', stat: totalCars },
-    { name: 'New Cars Added This Month', stat: newCars },
-    { name: 'Total Scans in Past 30 Days', stat: totalScans },
-  ]
+  const stats = currentUser?.admin
+    ? [
+        { name: 'Total Cars in Inventory', stat: totalCars },
+        { name: 'New Cars Added This Month', stat: newCars },
+        { name: 'Total Scans in Past 30 Days', stat: totalScans },
+      ]
+    : [
+        { name: 'Total Scans in Past 30 Days', stat: totalScans },
+        { name: 'Total Scans in Past 7 Days', stat: totalScansThisWeek },
+      ]
 
   return (
     <div>
