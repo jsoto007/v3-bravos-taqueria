@@ -71,7 +71,11 @@ export default function CarScanHistory({ scanHistory }) {
                   <div className="flex items-center gap-1">
                     <MapPin
                       onClick={() => toggleLocation(scan.id)}
-                      className="h-4 w-4 flex-shrink-0 text-slate-500 dark:text-slate-400 cursor-pointer mr-1"
+                      className={`h-4 w-4 flex-shrink-0 cursor-pointer mr-1 ${
+                        toggledIds[scan.id] || !scan.designated_location
+                          ? "text-yellow-300 dark:text-yellow-600"
+                          : "text-slate-500 dark:text-slate-400"
+                      }`}
                     />
                     {toggledIds[scan.id]
                       ? scan.location
