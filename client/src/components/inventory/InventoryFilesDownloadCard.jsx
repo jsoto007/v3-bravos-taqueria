@@ -3,9 +3,9 @@ export default function InventoryFilesDownloadCard() {
       <div className="border-b border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 px-4 py-5 sm:px-6">
         <div className="-ml-4 -mt-4 flex flex-wrap items-center justify-between sm:flex-nowrap">
           <div className="ml-4 mt-4">
-            <h3 className="text-base font-semibold text-gray-900 dark:text-gray-100">Completed Inventories</h3>
+            <h3 className="text-left mb-2 font-semibold text-gray-900 dark:text-gray-100">Completed Inventories</h3>
             <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
-              Download your inventory as an Excel file. Pick your date range below.
+              Download your inventory as an Excel file.
             </p>
           </div>
           <div className="ml-4 mt-4 shrink-0">

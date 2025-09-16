@@ -90,12 +90,16 @@ export default function CompletedInventoryCard() {
                   }}
                   className={currentUser?.admin ? "cursor-pointer hover:bg-gray-200 dark:hover:bg-gray-700" : ""}
                 >
-                  <td className="px-4 py-2">{item.vin}</td>
+                  <td className={`px-4 py-2 ${
+                      !item.designated_location
+                        ? "border-l-4 border-l-yellow-300 dark:border-l-yellow-600"
+                        : ""
+                    }`}>{item.vin}</td>
 
-                  <td className="px-4 py-2">
-                    {item.designated_location
-                    ? item.designated_location
-                    : `${number} ${street}`}
+                  <td
+                    className='px-4 py-2'
+                  >
+                    {item.designated_location ? item.designated_location : `${number} ${street}`}
                   </td>
 
                   <td className="px-4 py-2">{item.firstname} {item.lastname}</td>
