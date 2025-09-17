@@ -77,9 +77,9 @@ export default function CarScanHistory({ scanHistory }) {
                           : "text-slate-500 dark:text-slate-400"
                       }`}
                     />
-                    {toggledIds[scan.id]
-                      ? scan.location
-                      : scan.designated_location || "No designated location"}
+                    {!scan.designated_location
+                      ? (toggledIds[scan.id] ? "No designated location" : scan.location)
+                      : (toggledIds[scan.id] ? "No designated location" : scan.designated_location)}
                   </div>
                 </td>
                 <td className="whitespace-nowrap border-b border-slate-300 dark:border-slate-700 px-3 py-4 text-xs sm:text-sm text-slate-950 dark:text-slate-50">
