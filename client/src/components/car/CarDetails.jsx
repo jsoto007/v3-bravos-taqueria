@@ -34,7 +34,7 @@ export default function CarDetails( { car, setCar } ) {
               </div>
               <div>
                 <p className="text-slate-700 dark:text-slate-200 text-xl md:text-2xl font-bold font-mono mt-4">
-                  <span className='dark:text-slate-300 text-slate-500'></span> {car?.vin_number || "No data"}
+                  <span className='dark:text-slate-300 text-slate-500'>VIN:</span> {car?.vin_number || "No data"}
                 </p>
                 <p className='text-slate-500 text-md font-serif'>Vehicle Identification Number</p>
               </div>
