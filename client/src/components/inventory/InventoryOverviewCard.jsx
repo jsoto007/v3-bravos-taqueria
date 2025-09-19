@@ -26,7 +26,7 @@ export default function InventoryOverviewCard() {
   const totalScans = allScans.filter(scan => new Date(scan.created_at) >= thirtyDaysAgo).length
   const totalScansThisWeek = allScans.filter(scan => new Date(scan.created_at) >= sevenDaysAgo).length
 
-  console.log(carData)
+
   const stats = currentUser?.admin
     ? [
         { name: 'Total Cars in Inventory', stat: totalCars },
