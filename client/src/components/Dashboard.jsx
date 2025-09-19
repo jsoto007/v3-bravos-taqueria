@@ -18,8 +18,8 @@ export default function Dashboard() {
           <div className="flex justify-end mt-4">
             <AddCarBtn />
           </div>
-          <div className="mt-10 grid grid-cols-1 gap-4 sm:mt-16 lg:grid-cols-6 lg:grid-rows-2">
-            <div className="w-auto flex p-px lg:col-span-4">
+          <div className="mt-10 grid grid-cols-1 gap-4 sm:mt-16 lg:grid-cols-8 lg:grid-rows-2">
+            <div className="w-auto flex p-px lg:col-span-6">
               <CompletedInventoryCard />
           
             </div>
@@ -29,7 +29,7 @@ export default function Dashboard() {
           
               </div>
             </div>
-            <div className="flex p-px lg:col-span-2">
+            <div className="flex p-px lg:col-span-4">
               <div className="w-full overflow-hidden rounded-lg bg-white dark:bg-gray-800 outline outline-white/15 lg:rounded-bl-[2rem]">
               <InventoryOverviewCard />
               </div>
