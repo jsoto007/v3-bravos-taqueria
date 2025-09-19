@@ -16,13 +16,17 @@ export default function InventoryOverviewCard() {
   const sevenDaysAgo = new Date()
   sevenDaysAgo.setDate(now.getDate() - 7)
 
+  // Flatten all scan history entries from all cars
+  const allScans = carData.flatMap(car => car.history || [])
+
   const totalCars = new Set(carData.map(car => car.vin)).size
   const newCars = new Set(
     carData.filter(car => new Date(car.created_at) >= thirtyDaysAgo).map(car => car.vin)
   ).size
-  const totalScans = carData.filter(car => new Date(car.created_at) >= thirtyDaysAgo).length
-  const totalScansThisWeek = carData.filter(car => new Date(car.created_at) >= sevenDaysAgo).length
+  const totalScans = allScans.filter(scan => new Date(scan.created_at) >= thirtyDaysAgo).length
+  const totalScansThisWeek = allScans.filter(scan => new Date(scan.created_at) >= sevenDaysAgo).length
 
+  console.log(carData)
   const stats = currentUser?.admin
     ? [
         { name: 'Total Cars in Inventory', stat: totalCars },

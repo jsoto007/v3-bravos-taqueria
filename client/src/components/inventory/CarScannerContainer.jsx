@@ -19,8 +19,6 @@ export default function CarScannerContainer() {
 
   const { currentUser } = useContext(UserContext);
 
-  console.log("Updated Location: ", location)
-
   const addCar = async (e) => {
     e.preventDefault();
 
