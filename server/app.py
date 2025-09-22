@@ -35,7 +35,35 @@ app.config['SQLALCHEMY_ENGINE_OPTIONS'] = {
 app.config['PERMANENT_SESSION_LIFETIME'] = timedelta(days=7)
 
 
+
 CORS(app)
+
+# -------- Caching policy (static vs API vs HTML) -------- #
+# Long-cache for fingerprinted static assets, disable caching for API and HTML shell.
+app.config["SEND_FILE_MAX_AGE_DEFAULT"] = 31536000  # 1 year for send_file defaults
+
+@app.after_request
+def add_cache_headers(resp):
+    # Normalize path
+    p = (request.path or "").lower()
+
+    # 1) APIs: never cache in the browser
+    if p.startswith("/api/"):
+        resp.headers["Cache-Control"] = "no-store"
+        return resp
+
+    # 2) HTML shell (including SPA fallback via the 404->index.html render):
+    # detect by mimetype rather than path so it also hits /dashboard, etc.
+    if (resp.mimetype or "").startswith("text/html"):
+        resp.headers["Cache-Control"] = "no-cache, max-age=0, must-revalidate"
+        return resp
+
+    # 3) Static assets: cache for a year (hashed filenames are safe to cache immutably)
+    if p.endswith((".js", ".css", ".png", ".jpg", ".jpeg", ".gif", ".svg", ".woff2", ".ttf")):
+        resp.headers["Cache-Control"] = "public, max-age=31536000, immutable"
+        return resp
+
+    return resp
 
 
 # --------- Custom Decorators --------- #
