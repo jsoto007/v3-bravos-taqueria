@@ -1,70 +1,78 @@
-import React from 'react'
+import React, { Suspense, lazy } from 'react'
 import './App.css'
-import { BrowserRouter as Router, Routes,Route } from 'react-router-dom';
-import ProtactedRoutes from './utils/ProtectedRoutes';
-import Auth from './components/authentication/Auth'
-import UserInventoryContainer from './components/inventory/UserInventoryContainer';
-import MasterInventoryContainer from './components/admin/MasterInventoryContainer';
-import MasterInventoryForm from './components/inventory/MasterInventoryForm';
-import MasterCarContainer from './components/admin/MasterCarContainer';
-import AdminInventoryReviewContainer from './components/admin/AdminInventoryReviewContainer';
-import AdminProtectedRoutes from './utils/AdminProtectedRoutes';
-import LandingPageContainer from './components/landingPage/LandingPageContainer';
-import NavBarContainer from './components/NavBarContainer';
-import Dashboard from './components/Dashboard';
-import Footer from './shared/Footer';
-import PageNotFound from './shared/PageNotFound';
+import { BrowserRouter as Router, Routes, Route } from 'react-router-dom'
 
-import SubscriptionDashboard from './components/subscription/SubscriptionDashboard';
+// Route guards (lazy)
+const ProtactedRoutes = lazy(() => import('./utils/ProtectedRoutes'))
+const AdminProtectedRoutes = lazy(() => import('./utils/AdminProtectedRoutes'))
 
-import CarContainer from './components/car/CarContainer';
-import CarScannerContainer from './components/inventory/CarScannerContainer';
+// Layout (lazy)
+const NavBarContainer = lazy(() => import('./components/NavBarContainer'))
+const Footer = lazy(() => import('./shared/Footer'))
 
-// Testing routes:
-import CarVinScanHistoryCard from './components/inventory/CarVinScanHistoryCard';
+// Public pages (lazy)
+const LandingPageContainer = lazy(() => import('./components/landingPage/LandingPageContainer'))
+const Auth = lazy(() => import('./components/authentication/Auth'))
 
+// Authenticated pages (lazy)
+const Dashboard = lazy(() => import('./components/Dashboard'))
+const UserInventoryContainer = lazy(() => import('./components/inventory/UserInventoryContainer'))
+const CarContainer = lazy(() => import('./components/car/CarContainer'))
+const CarScannerContainer = lazy(() => import('./components/inventory/CarScannerContainer'))
+const SubscriptionDashboard = lazy(() => import('./components/subscription/SubscriptionDashboard'))
 
+// Admin pages (lazy)
+const MasterInventoryContainer = lazy(() => import('./components/admin/MasterInventoryContainer'))
+const MasterInventoryForm = lazy(() => import('./components/inventory/MasterInventoryForm'))
+const MasterCarContainer = lazy(() => import('./components/admin/MasterCarContainer'))
+const AdminInventoryReviewContainer = lazy(() => import('./components/admin/AdminInventoryReviewContainer'))
+
+// Test routes (lazy)
+const CarVinScanHistoryCard = lazy(() => import('./components/inventory/CarVinScanHistoryCard'))
+
+// Shared
+const PageNotFound = lazy(() => import('./shared/PageNotFound'))
 
 function App() {
-
-  
   return (
     <Router>
-      <div>
-        <NavBarContainer />
-        <Routes>
-          {/* Public routes */}
-          <Route path="/" element={<LandingPageContainer />} />
-          <Route path="/auth" element={<Auth />} />
+      <Suspense fallback={<div style={{ padding: '1rem', fontSize: 14, opacity: 0.7 }}>Loading…</div>}>
+        <div>
+          <NavBarContainer />
+          <Routes>
+            {/* Public routes */}
+            <Route path="/" element={<LandingPageContainer />} />
+            <Route path="/auth" element={<Auth />} />
 
-          {/* Authenticated routes (group/multi-tenant protected) */}
-          <Route element={<ProtactedRoutes />}>
-            <Route path="/dashboard" element={<Dashboard />} />
-            <Route path="/inventory" element={<UserInventoryContainer />} />
-            <Route path="/cars/:id" element={<CarContainer />} />
-            <Route path="/cars/scanner" element={<CarScannerContainer />} />
+            {/* Authenticated routes (group/multi-tenant protected) */}
+            <Route element={<ProtactedRoutes />}>
+              <Route path="/dashboard" element={<Dashboard />} />
+              <Route path="/inventory" element={<UserInventoryContainer />} />
+              <Route path="/cars/:id" element={<CarContainer />} />
+              <Route path="/cars/scanner" element={<CarScannerContainer />} />
 
-            {/* Account management for signed-in users */}
-            <Route path="/account/settings" element={<SubscriptionDashboard />} />
+              {/* Account management for signed-in users */}
+              <Route path="/account/settings" element={<SubscriptionDashboard />} />
 
-            {/* Test routes - keep behind auth */}
-            <Route path="/test/inventory" element={<CarVinScanHistoryCard />} />
-            <Route path="/test/cars" element={<CarContainer />} />
-          </Route>
+              {/* Test routes - keep behind auth */}
+              <Route path="/test/inventory" element={<CarVinScanHistoryCard />} />
+              <Route path="/test/cars" element={<CarContainer />} />
+            </Route>
 
-          {/* Admin-only routes */}
-          <Route element={<AdminProtectedRoutes />}>
-            <Route path="/master_inventory" element={<MasterInventoryContainer />} />
-            <Route path="/master_inventory/:id" element={<MasterCarContainer />} />
-            <Route path="/master_inventory/create_master_inventory" element={<MasterInventoryForm />} />
-            <Route path="/admin/user_inventory_check/:id" element={<AdminInventoryReviewContainer />} />
-          </Route>
+            {/* Admin-only routes */}
+            <Route element={<AdminProtectedRoutes />}>
+              <Route path="/master_inventory" element={<MasterInventoryContainer />} />
+              <Route path="/master_inventory/:id" element={<MasterCarContainer />} />
+              <Route path="/master_inventory/create_master_inventory" element={<MasterInventoryForm />} />
+              <Route path="/admin/user_inventory_check/:id" element={<AdminInventoryReviewContainer />} />
+            </Route>
 
-          {/* 404 */}
-          <Route path="*" element={<PageNotFound />} />
-        </Routes>
-        <Footer />
-      </div>
+            {/* 404 */}
+            <Route path="*" element={<PageNotFound />} />
+          </Routes>
+          <Footer />
+        </div>
+      </Suspense>
     </Router>
   )
 }
