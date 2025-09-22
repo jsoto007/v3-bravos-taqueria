@@ -22,7 +22,7 @@ import CarScannerContainer from './components/inventory/CarScannerContainer';
 
 // Testing routes:
 import CarVinScanHistoryCard from './components/inventory/CarVinScanHistoryCard';
-import ScanbotVinText from './utils/ScanbotVinText';
+
 
 
 function App() {
@@ -33,28 +33,34 @@ function App() {
       <div>
         <NavBarContainer />
         <Routes>
+          {/* Public routes */}
           <Route path="/" element={<LandingPageContainer />} />
           <Route path="/auth" element={<Auth />} />
+
+          {/* Authenticated routes (group/multi-tenant protected) */}
           <Route element={<ProtactedRoutes />}>
             <Route path="/dashboard" element={<Dashboard />} />
             <Route path="/inventory" element={<UserInventoryContainer />} />
             <Route path="/cars/:id" element={<CarContainer />} />
             <Route path="/cars/scanner" element={<CarScannerContainer />} />
 
+            {/* Account management for signed-in users */}
+            <Route path="/account/settings" element={<SubscriptionDashboard />} />
+
+            {/* Test routes - keep behind auth */}
             <Route path="/test/inventory" element={<CarVinScanHistoryCard />} />
             <Route path="/test/cars" element={<CarContainer />} />
+          </Route>
 
-            <Route path="/account/settings" element={<SubscriptionDashboard />} />
+          {/* Admin-only routes */}
+          <Route element={<AdminProtectedRoutes />}>
+            <Route path="/master_inventory" element={<MasterInventoryContainer />} />
             <Route path="/master_inventory/:id" element={<MasterCarContainer />} />
             <Route path="/master_inventory/create_master_inventory" element={<MasterInventoryForm />} />
             <Route path="/admin/user_inventory_check/:id" element={<AdminInventoryReviewContainer />} />
-          
           </Route>
-            <Route path="/master_inventory" element={<MasterInventoryContainer />} />
 
-          <Route element={<AdminProtectedRoutes />}>
-
-          </Route>
+          {/* 404 */}
           <Route path="*" element={<PageNotFound />} />
         </Routes>
         <Footer />
