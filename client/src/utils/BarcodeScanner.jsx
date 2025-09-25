@@ -39,7 +39,7 @@ export default function BarcodeScanner({ onScan, setDecodedVin, decodedVin }) {
   useEffect(() => {
     const intervalId = setInterval(() => {
       captureFrame();
-    }, 2000); // Changed to 2000ms
+    }, 2000);
 
     return () => clearInterval(intervalId);
   }, []);
@@ -77,13 +77,8 @@ export default function BarcodeScanner({ onScan, setDecodedVin, decodedVin }) {
   const runOCR = (image) => {
     Tesseract.recognize(image, "eng", {
       logger: m => console.log("OCR progress:", m.status, m.progress),
-      // Optional character whitelist (may require tweaks depending on environment)
-      // Not officially supported in browser-only setup
-      // charWhitelist: "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789"
     }).then(result => {
-      console.log("**** Full OCR result:", result);
       let { text } = result.data;
-      console.log("^^^^^^ OCR extracted text (raw):", text);
 
       text = text.replace(/\s+/g, '').toUpperCase(); // Ensure uppercase
       console.log("Cleaned OCR text:", text);
@@ -96,7 +91,6 @@ export default function BarcodeScanner({ onScan, setDecodedVin, decodedVin }) {
           v => v.length === 17 && /^[A-HJ-NPR-Z0-9]{17}$/.test(v)
         );
         if (vin) {
-          console.log("Detected VIN from OCR:", vin);
           if (onScan) onScan(vin);
 
           decodeVinData(vin)

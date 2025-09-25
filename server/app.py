@@ -7,13 +7,13 @@ from flask_migrate import Migrate
 from flask_restful import Api, Resource
 from flask_cors import CORS
 from sqlalchemy.orm import joinedload
-from sqlalchemy.exc import IntegrityError
+from sqlalchemy.exc import IntegrityError, SQLAlchemyError
 from werkzeug.utils import secure_filename
 import uuid
 import assigned_location_check
 
 from config import db, app
-from models import User, CarInventory, CarPhoto, MasterCarRecord, UserInventory, AccountGroup, CarNote, DesignatedLocation, OwnerDealer
+from models import User, CarInventory, CarPhoto, MasterCarRecord, UserInventory, AccountGroup, CarNote, DesignatedLocation, OwnerDealer, NOTE_MAX_LEN
 
 from sqlalchemy.pool import QueuePool
 
@@ -122,6 +122,23 @@ def allowed_file(filename):
 
 # Migrations
 migrate = Migrate(app, db)
+
+
+# --------- Global Error Handlers --------- #
+@app.errorhandler(ValueError)
+def handle_value_error(err):
+    return jsonify({"error": str(err)}), 400
+
+@app.errorhandler(IntegrityError)
+def handle_integrity_error(err):
+    db.session.rollback()
+    # Avoid leaking raw SQL in production; include minimal detail
+    return jsonify({"error": "database constraint violation"}), 409
+
+@app.errorhandler(SQLAlchemyError)
+def handle_sqla_error(err):
+    db.session.rollback()
+    return jsonify({"error": "database error"}), 400
 
 @app.errorhandler(404)
 def not_found(e):
@@ -355,8 +372,8 @@ class CheckSession(Resource):
 class Login(Resource):
     def post(self):
         data = request.get_json()
-        email = data['username']
-        password = data['password']
+        email = (data.get('username') or '').strip().lower()
+        password = data.get('password')
 
         user = User.query.filter(User.email == email).first()
         if user and user.authenticate(password):
@@ -439,26 +456,40 @@ class CarNotes(Resource):
 
     @require_admin
     def post(self, car_id):
-        data = request.get_json()
-        content = data.get('content')
+        data = request.get_json() or {}
+        content = (data.get('content') or '').strip()
         if not content:
             return {"error": "Missing content"}, 400
-        note = CarNote(car_inventory_id=car_id, content=content)
-        db.session.add(note)
-        db.session.commit()
-        return serialize_car_note(note), 201
+        if len(content) > NOTE_MAX_LEN:
+            return {"error": f"content is too long (max {NOTE_MAX_LEN} chars)"}, 400
+        try:
+            note = CarNote(car_inventory_id=car_id, content=content)
+            db.session.add(note)
+            db.session.commit()
+            return serialize_car_note(note), 201
+        except (ValueError, IntegrityError) as e:
+            db.session.rollback()
+            return {"error": str(e) if isinstance(e, ValueError) else "database constraint violation"}, 400 if isinstance(e, ValueError) else 409
 
     @require_admin
     def patch(self, id):
         note = CarNote.query.get(id)
         if not note:
             return {"error": "CarNote not found"}, 404
-        data = request.get_json()
-        content = data.get('content')
-        if content is not None:
-            note.content = content
-        db.session.commit()
-        return serialize_car_note(note), 200
+        data = request.get_json() or {}
+        if 'content' in data:
+            new_content = (data.get('content') or '').strip()
+            if not new_content:
+                return {"error": "content must not be empty"}, 400
+            if len(new_content) > NOTE_MAX_LEN:
+                return {"error": f"content is too long (max {NOTE_MAX_LEN} chars)"}, 400
+            note.content = new_content
+        try:
+            db.session.commit()
+            return serialize_car_note(note), 200
+        except (ValueError, IntegrityError) as e:
+            db.session.rollback()
+            return {"error": str(e) if isinstance(e, ValueError) else "database constraint violation"}, 400 if isinstance(e, ValueError) else 409
 
     @require_admin
     def delete(self, id):
@@ -493,45 +524,47 @@ class CarInventories(Resource):
             if field not in data:
                 return {"error": f"Missing required field: {field}"}, 400
 
-        new_car = CarInventory(
-            location=data['location'],
-            longitude=data.get('longitude'),
-            latitude=data.get('latitude'),
-            vin_number=data['vin_number'],
-            year=data.get('year'),
-            color=data.get('color'),
-            body=data.get('body'),
-            make=data.get('make'),
-            user_id=user.id,
-            account_group_id=account_group_id
-        )
+        try:
+            new_car = CarInventory(
+                location=data['location'],
+                longitude=data.get('longitude'),
+                latitude=data.get('latitude'),
+                vin_number=data['vin_number'],
+                year=data.get('year'),
+                color=data.get('color'),
+                body=data.get('body'),
+                make=data.get('make'),
+                user_id=user.id,
+                account_group_id=account_group_id
+            )
 
-        # --- Assigned location check ---
-        if new_car.latitude is not None and new_car.longitude is not None:
-            from math import radians, cos, sin, asin, sqrt
+            # --- Assigned location check ---
+            if new_car.latitude is not None and new_car.longitude is not None:
+                from math import radians, cos, sin, asin, sqrt
 
-            def haversine(lat1, lon1, lat2, lon2):
-                # convert decimal degrees to radians
-                lon1, lat1, lon2, lat2 = map(radians, [lon1, lat1, lon2, lat2])
-                # haversine formula
-                dlon = lon2 - lon1
-                dlat = lat2 - lat1
-                a = sin(dlat/2)**2 + cos(lat1) * cos(lat2) * sin(dlon/2)**2
-                c = 2 * asin(sqrt(a))
-                miles = 3956 * c  # Radius of Earth in miles
-                return miles
+                def haversine(lat1, lon1, lat2, lon2):
+                    lon1, lat1, lon2, lat2 = map(radians, [lon1, lat1, lon2, lat2])
+                    dlon = lon2 - lon1
+                    dlat = lat2 - lat1
+                    a = sin(dlat/2)**2 + cos(lat1) * cos(lat2) * sin(dlon/2)**2
+                    c = 2 * asin(sqrt(a))
+                    miles = 3956 * c
+                    return miles
 
-            designated_locations = DesignatedLocation.query.filter_by(account_group_id=account_group_id).all()
-            for dl in designated_locations:
-                if dl.latitude is not None and dl.longitude is not None:
-                    distance = haversine(new_car.latitude, new_car.longitude, dl.latitude, dl.longitude)
-                    if distance <= 0.15:
-                        new_car.designated_location_id = dl.id
-                        break
+                designated_locations = DesignatedLocation.query.filter_by(account_group_id=account_group_id).all()
+                for dl in designated_locations:
+                    if dl.latitude is not None and dl.longitude is not None:
+                        distance = haversine(new_car.latitude, new_car.longitude, dl.latitude, dl.longitude)
+                        if distance <= 0.15:
+                            new_car.designated_location_id = dl.id
+                            break
 
-        db.session.add(new_car)
-        db.session.commit()
-        return make_response(serialize_car_inventory(new_car), 201)
+            db.session.add(new_car)
+            db.session.commit()
+            return make_response(serialize_car_inventory(new_car), 201)
+        except (ValueError, IntegrityError) as e:
+            db.session.rollback()
+            return {"error": str(e) if isinstance(e, ValueError) else "database constraint violation"}, 400 if isinstance(e, ValueError) else 409
 
     @require_login
     def delete(self, id):
@@ -613,19 +646,23 @@ class MasterCarRecords(Resource):
     @require_login
     def post(self):
         data = request.get_json()
-        new_record = MasterCarRecord(
-            vin_number=data['vin_number'],
-            location=data.get('location'),
-            year=data.get('year'),
-            make=data.get('make'),
-            purchase_price=data.get('purchase_price'),
-            selling_price=data.get('selling_price'),
-            sold_price=data.get('sold_price'),
-            is_sold=data.get('is_sold', False)
-        )
-        db.session.add(new_record)
-        db.session.commit()
-        return make_response(serialize_master_car_record(new_record), 201)
+        try:
+            new_record = MasterCarRecord(
+                vin_number=data['vin_number'],
+                location=data.get('location'),
+                year=data.get('year'),
+                make=data.get('make'),
+                purchase_price=data.get('purchase_price'),
+                selling_price=data.get('selling_price'),
+                sold_price=data.get('sold_price'),
+                is_sold=data.get('is_sold', False)
+            )
+            db.session.add(new_record)
+            db.session.commit()
+            return make_response(serialize_master_car_record(new_record), 201)
+        except (ValueError, IntegrityError) as e:
+            db.session.rollback()
+            return {"error": str(e) if isinstance(e, ValueError) else "database constraint violation"}, 400 if isinstance(e, ValueError) else 409
 
 class MasterCarRecordById(Resource):
     @require_login
@@ -641,12 +678,15 @@ class MasterCarRecordById(Resource):
         if not record:
             return {"error": "Record not found"}, 404
 
-        data = request.get_json()
-        for attr, value in data.items():
-            setattr(record, attr, value)
-
-        db.session.commit()
-        return make_response(serialize_master_car_record(record), 200)
+        data = request.get_json() or {}
+        try:
+            for attr, value in data.items():
+                setattr(record, attr, value)
+            db.session.commit()
+            return make_response(serialize_master_car_record(record), 200)
+        except (ValueError, IntegrityError) as e:
+            db.session.rollback()
+            return {"error": str(e) if isinstance(e, ValueError) else "database constraint violation"}, 400 if isinstance(e, ValueError) else 409
 
     @require_login
     def delete(self, id):
