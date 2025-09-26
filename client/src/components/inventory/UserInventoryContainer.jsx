@@ -127,6 +127,14 @@ export default function UserInventoryContainer() {
         return ordered;
     }, [carData, debouncedQuery]);
 
+    // Simple summary of counts per group (cars per designated location)
+    const groupSummaries = useMemo(() => {
+        return groupedByLocation.map(g => ({
+            label: g.onDesignatedLocation,
+            count: Array.isArray(g.scans) ? g.scans.length : 0,
+        }));
+    }, [groupedByLocation]);
+
     console.log("CarData", carData)
 
     return (
@@ -150,6 +158,28 @@ export default function UserInventoryContainer() {
                 <p className="text-left text-sm text-slate-600 dark:text-slate-300">
                     Car inventories grouped by location for easy browsing and management.
                 </p>
+            {/* Group counts summary */}
+            {groupSummaries.length > 0 && (
+                <div className="mt-3">
+                    <div className="flex flex-wrap gap-2">
+                        {groupSummaries.map(({ label, count }, i) => (
+                            <span
+                                key={`${label}-${i}`}
+                                className="inline-flex items-center rounded-full border border-slate-300 dark:border-slate-700 bg-slate-50 dark:bg-slate-900/50 px-3 py-1 text-sm text-slate-800 dark:text-slate-200"
+                                title={`${label}: ${count} ${count === 1 ? 'car' : 'cars'}`}
+                            >
+                                <span className="truncate max-w-[12rem]">{label}</span>
+                                <span className="ml-2 inline-flex items-center justify-center rounded-full min-w-6 h-6 text-xs font-semibold bg-indigo-600 text-white px-2">
+                                    {count}
+                                </span>
+                            </span>
+                        ))}
+                    </div>
+                    <div className="mt-2 text-xs text-slate-600 dark:text-slate-400">
+                        Total cars: {groupSummaries.reduce((sum, g) => sum + g.count, 0)}
+                    </div>
+                </div>
+            )}
             {groupedByLocation.length === 0 ? (
                 <div
                     className="rounded-md border border-slate-300 dark:border-slate-700 bg-white dark:bg-[#1A2235] p-4 text-sm text-slate-700 dark:text-slate-200"
