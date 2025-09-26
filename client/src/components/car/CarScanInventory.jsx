@@ -1,13 +1,12 @@
-import { useMemo, useState, useContext } from "react";
+import { useMemo, useContext } from "react";
 import { useNavigate } from "react-router-dom";
 import { UserContext } from "../../context/UserContextProvider";
 import { Calendar, MapPin, User } from "lucide-react";
 
+
 export default function CarScanInventory({ scanHistory, onDesignatedLocation }) {
   const { currentUser } = useContext(UserContext);
   const navigate = useNavigate();
-
-    console.log(scanHistory)
 
     function formatDateTime(dateString) {
         const date = new Date(dateString);
@@ -19,15 +18,6 @@ export default function CarScanInventory({ scanHistory, onDesignatedLocation }) 
             minute: "2-digit",
             hour12: true
         });
-    }
-
-    const [toggledIds, setToggledIds] = useState({});
-
-    function toggleLocation(id) {
-      setToggledIds(prev => ({
-        ...prev,
-        [id]: !prev[id]
-      }));
     }
 
 
@@ -139,16 +129,9 @@ export default function CarScanInventory({ scanHistory, onDesignatedLocation }) 
                 <td className="px-4 py-2 whitespace-nowrap border-b border-slate-300 dark:border-slate-700 text-sm sm:text-base text-slate-950 dark:text-slate-50">
                   <div className="flex items-center gap-1">
                     <MapPin
-                      onClick={() => toggleLocation(scan.id)}
-                      className={`h-4 w-4 flex-shrink-0 cursor-pointer mr-1 ${
-                        toggledIds[scan.id] || !scan.designated_location
-                          ? 'text-yellow-300 dark:text-yellow-600'
-                          : 'text-slate-500 dark:text-slate-400'
-                      }`}
+                      className="h-4 w-4 flex-shrink-0 mr-1 text-slate-500 dark:text-slate-400"
                     />
-                    {!scan.designated_location
-                      ? (toggledIds[scan.id] ? 'No designated location' : scan.location)
-                      : (toggledIds[scan.id] ? scan.location : scan.designated_location)}
+                    {scan.designated_location ? scan.designated_location : scan.location}
                   </div>
                 </td>
 
@@ -171,5 +154,6 @@ export default function CarScanInventory({ scanHistory, onDesignatedLocation }) 
         </table>
       </div>
     </div>
+
   );
 }

@@ -2,6 +2,8 @@ import React, { useContext, useMemo, useState, useEffect } from "react";
 import InventoryContainer from "./InventoryContainer";
 import CarScanInventory from "../car/CarScanInventory";
 import { CarDataContext } from "../../context/CarDataContextProvider";
+import FadeIn from "../../shared/FadeIn";
+import { motion } from "framer-motion";
 
 function capitalize(word = "") {
   if (!word) return "";
@@ -146,7 +148,13 @@ export default function UserInventoryContainer() {
 
 
     return (
-        <div className="flex flex-col gap-6 p-4 bg-white dark:bg-slate-800 text-slate-900 dark:text-slate-100 rounded-lg scroll-smooth">
+        <motion.div
+          initial={{ opacity: 0, y: 12 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true, margin: "0px 0px -100px" }}
+          transition={{ duration: 0.6, ease: "easeOut" }}
+          className="flex flex-col gap-6 p-4 bg-white dark:bg-slate-800 text-slate-900 dark:text-slate-100 rounded-lg scroll-smooth"
+        >
             <InventoryContainer />
             {/* Search Bar */}
             <div className="w-full">
@@ -210,20 +218,22 @@ export default function UserInventoryContainer() {
                     )}
                 </div>
             ) : (
-                groupedByLocation.map((group, idx) => (
-                  <section
-                    key={`${group.onDesignatedLocation}-${idx}`}
-                    id={toSectionId(group.onDesignatedLocation)}
-                    className="scroll-mt-24"
-                    aria-label={`${group.onDesignatedLocation} inventory section`}
-                  >
-                    <CarScanInventory
-                      scanHistory={group.scans}
-                      onDesignatedLocation={group.onDesignatedLocation}
-                    />
-                  </section>
-                ))
+                <FadeIn delayStep={0.4}>
+                  {groupedByLocation.map((group, idx) => (
+                    <section
+                      key={`${group.onDesignatedLocation}-${idx}`}
+                      id={toSectionId(group.onDesignatedLocation)}
+                      className="scroll-mt-24"
+                      aria-label={`${group.onDesignatedLocation} inventory section`}
+                    >
+                      <CarScanInventory
+                        scanHistory={group.scans}
+                        onDesignatedLocation={group.onDesignatedLocation}
+                      />
+                    </section>
+                  ))}
+                </FadeIn>
             )}
-        </div>
+        </motion.div>
     )
 }
