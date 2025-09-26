@@ -28,6 +28,13 @@ function toSectionId(label = "") {
   );
 }
 
+function normalize(str = "") {
+  return String(str || "")
+    .toLowerCase()
+    .replace(/\s+/g, "")
+    .replace(/[^a-z0-9]/g, "");
+}
+
 export default function UserInventoryContainer() {
 
     const { carData } = useContext(CarDataContext)
@@ -102,23 +109,50 @@ export default function UserInventoryContainer() {
 
             // Apply text filter if present
             if (hasQuery) {
-                const haystack = [
+              // Build two haystacks:
+              // 1) human-readable (keeps spaces) for normal substring search
+              // 2) normalized (no spaces/punct) to handle pasted VINs or emails with separators
+              const humanHaystack = [
+                scanRow.vin,
+                String(scanRow.year ?? ""),
+                scanRow.make,
+                scanRow.userEmail,
+                scanRow.user,
+                scanRow.first_name,
+                scanRow.last_name,
+                scanRow.firstname,
+                scanRow.lastname,
+                designated ?? "",
+                scanRow.location ?? "",
+              ]
+                .filter(Boolean)
+                .join(" \u2003 ")
+                .toLowerCase();
+
+              const normalizedHaystack = normalize(
+                [
                   scanRow.vin,
-                  String(scanRow.year ?? ''),
-                  scanRow.make,
                   scanRow.userEmail,
                   scanRow.user,
                   scanRow.first_name,
                   scanRow.last_name,
                   scanRow.firstname,
                   scanRow.lastname,
-                  designated ?? '',
-                  scanRow.location ?? '',
+                  designated ?? "",
+                  scanRow.location ?? "",
                 ]
                   .filter(Boolean)
-                  .join(' \u2003 ') // thin separators
-                  .toLowerCase();
-                if (!haystack.includes(q)) continue; // filtered out
+                  .join(" ")
+              );
+
+              // Prepare normalized query (strips spaces, punctuation) for flexible matching
+              const qHuman = q;
+              const qNormalized = normalize(q);
+
+              const matchesHuman = qHuman.length > 0 && humanHaystack.includes(qHuman);
+              const matchesNormalized = qNormalized.length > 0 && normalizedHaystack.includes(qNormalized);
+
+              if (!(matchesHuman || matchesNormalized)) continue; // filtered out
             }
 
             const key = designated ?? NO_DESIG_KEY;
@@ -181,7 +215,7 @@ export default function UserInventoryContainer() {
                         {groupSummaries.map(({ label, count }, i) => (
                             <button
                                 type="button"
-                                key={`${label}-${i}`}
+                                key={toSectionId(label)}
                                 onClick={() => {
                                   const id = toSectionId(label);
                                   const el = document.getElementById(id);
@@ -218,10 +252,10 @@ export default function UserInventoryContainer() {
                     )}
                 </div>
             ) : (
-                <FadeIn delayStep={0.4}>
-                  {groupedByLocation.map((group, idx) => (
+                <FadeIn immediate delayStep={0.4} key={debouncedQuery || 'all'}>
+                  {groupedByLocation.map((group) => (
                     <section
-                      key={`${group.onDesignatedLocation}-${idx}`}
+                      key={`${toSectionId(group.onDesignatedLocation)}-${debouncedQuery || 'all'}`}
                       id={toSectionId(group.onDesignatedLocation)}
                       className="scroll-mt-24"
                       aria-label={`${group.onDesignatedLocation} inventory section`}
