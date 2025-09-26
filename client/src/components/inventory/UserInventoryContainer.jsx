@@ -17,6 +17,15 @@ function parseNameFromEmail(email = "") {
   return { first, last };
 }
 
+function toSectionId(label = "") {
+  return (
+    "loc-" + String(label)
+      .toLowerCase()
+      .replace(/[^a-z0-9]+/g, "-")
+      .replace(/(^-|-$)/g, "")
+  );
+}
+
 export default function UserInventoryContainer() {
 
     const { carData } = useContext(CarDataContext)
@@ -135,10 +144,9 @@ export default function UserInventoryContainer() {
         }));
     }, [groupedByLocation]);
 
-    console.log("CarData", carData)
 
     return (
-        <div className="flex flex-col gap-6 p-4 bg-white dark:bg-slate-800 text-slate-900 dark:text-slate-100 rounded-lg">
+        <div className="flex flex-col gap-6 p-4 bg-white dark:bg-slate-800 text-slate-900 dark:text-slate-100 rounded-lg scroll-smooth">
             <InventoryContainer />
             {/* Search Bar */}
             <div className="w-full">
@@ -163,16 +171,24 @@ export default function UserInventoryContainer() {
                 <div className="mt-3">
                     <div className="flex flex-wrap gap-2">
                         {groupSummaries.map(({ label, count }, i) => (
-                            <span
+                            <button
+                                type="button"
                                 key={`${label}-${i}`}
-                                className="inline-flex items-center rounded-full border border-slate-300 dark:border-slate-700 bg-slate-50 dark:bg-slate-900/50 px-3 py-1 text-sm text-slate-800 dark:text-slate-200"
+                                onClick={() => {
+                                  const id = toSectionId(label);
+                                  const el = document.getElementById(id);
+                                  if (el) {
+                                    el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                                  }
+                                }}
+                                className="inline-flex items-center rounded-full border border-slate-300 dark:border-slate-700 bg-slate-50 dark:bg-slate-900/50 px-3 py-1 text-sm text-slate-800 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 focus:outline-none focus:ring-2 focus:ring-indigo-500/60"
                                 title={`${label}: ${count} ${count === 1 ? 'car' : 'cars'}`}
                             >
-                                <span className="truncate max-w-[12rem]">{label}</span>
+                                <span className="truncate max-w-[12rem] text-left">{label}</span>
                                 <span className="ml-2 inline-flex items-center justify-center rounded-full min-w-6 h-6 text-xs font-semibold bg-indigo-600 text-white px-2">
                                     {count}
                                 </span>
-                            </span>
+                            </button>
                         ))}
                     </div>
                     <div className="mt-2 text-xs text-slate-600 dark:text-slate-400">
@@ -195,11 +211,17 @@ export default function UserInventoryContainer() {
                 </div>
             ) : (
                 groupedByLocation.map((group, idx) => (
+                  <section
+                    key={`${group.onDesignatedLocation}-${idx}`}
+                    id={toSectionId(group.onDesignatedLocation)}
+                    className="scroll-mt-24"
+                    aria-label={`${group.onDesignatedLocation} inventory section`}
+                  >
                     <CarScanInventory
-                        key={`${group.onDesignatedLocation}-${idx}`}
-                        scanHistory={group.scans}
-                        onDesignatedLocation={group.onDesignatedLocation}
+                      scanHistory={group.scans}
+                      onDesignatedLocation={group.onDesignatedLocation}
                     />
+                  </section>
                 ))
             )}
         </div>
