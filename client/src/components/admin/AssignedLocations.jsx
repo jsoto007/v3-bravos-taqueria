@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
-import { Plus, Edit3, Trash2, MapPin, Save, X, Check } from 'lucide-react';
+import { Plus, Edit3, Trash2, MapPin, X, Check } from 'lucide-react';
 
 export default function AssignedLocations() {
 

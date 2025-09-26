@@ -1,13 +1,26 @@
 import React, { useContext, useMemo, useState, useEffect } from "react";
-import CompletedInventories from "../completedInventories/CompletedInventories";
 import InventoryContainer from "./InventoryContainer";
 import CarScanInventory from "../car/CarScanInventory";
 import { CarDataContext } from "../../context/CarDataContextProvider";
 
+function capitalize(word = "") {
+  if (!word) return "";
+  return word.charAt(0).toUpperCase() + word.slice(1).toLowerCase();
+}
+
+function parseNameFromEmail(email = "") {
+  const local = (email || "").split("@")[0];
+  if (!local) return { first: "", last: "" };
+  const parts = local.split(/[._-]+/).filter(Boolean);
+  const first = parts[0] ? capitalize(parts[0]) : "";
+  const last = parts[1] ? capitalize(parts[1]) : "";
+  return { first, last };
+}
 
 export default function UserInventoryContainer() {
 
     const { carData } = useContext(CarDataContext)
+    console.log("CARDATA",carData)
 
     // Search state with debounce
     const [query, setQuery] = useState("");
@@ -46,35 +59,54 @@ export default function UserInventoryContainer() {
                 ? latest.designated_location.trim()
                 : null;
 
-            // Build a normalized scan row for the child component
+            // Prefer names on the latest history item, then on the car object; finally infer from email
+            const userField = (latest?.user ?? car.user ?? null);
+            const email = typeof userField === 'string' ? userField : (typeof userField === 'object' ? (userField.email ?? '') : '');
+
+            let f = latest?.first_name ?? latest?.firstname ?? car.first_name ?? car.firstname ?? '';
+            let l = latest?.last_name ?? latest?.lastname ?? car.last_name ?? car.lastname ?? '';
+
+            if (!f && !l && email) {
+              const parsed = parseNameFromEmail(email);
+              f = parsed.first;
+              l = parsed.last;
+            }
+
             const scanRow = {
-                id: car.id,
-                created_at: latest?.created_at ?? car.created_at,
-                designated_location: latest?.designated_location ?? null,
-                location: (latest && latest.location) ? latest.location : (car.location ?? null),
-                first_name: car.first_name ?? car.firstname ?? '',
-                last_name: car.last_name ?? car.lastname ?? '',
-                user: car.user ?? null,
-                vin: car.vin ?? '',
-                make: car.make ?? '',
-                year: car.year ?? '',
+              id: car.id,
+              created_at: latest?.created_at ?? car.created_at,
+              designated_location: latest?.designated_location ?? null,
+              location: (latest && latest.location) ? latest.location : (car.location ?? null),
+              // keep both variants for downstream components that may expect one or the other
+              first_name: f,
+              last_name: l,
+              firstname: f,
+              lastname: l,
+              user: userField ?? null,
+              userEmail: email,
+              vin: car.vin ?? '',
+              make: car.make ?? '',
+              year: car.year ?? '',
             };
 
             // Apply text filter if present
             if (hasQuery) {
                 const haystack = [
-                    scanRow.vin,
-                    String(scanRow.year ?? ''),
-                    scanRow.make,
-                    scanRow.user,
-                    scanRow.first_name,
-                    scanRow.last_name,
-                    designated ?? '',
-                    scanRow.location ?? '',
+                  scanRow.vin,
+                  String(scanRow.year ?? ''),
+                  scanRow.make,
+                  scanRow.userEmail,
+                  scanRow.user,
+                  scanRow.first_name,
+                  scanRow.last_name,
+                  scanRow.firstname,
+                  scanRow.lastname,
+                  designated ?? '',
+                  scanRow.location ?? '',
                 ]
-                    .filter(Boolean)
-                    .join(' \u2003 ') // thin separators
-                    .toLowerCase();
+                  .filter(Boolean)
+                  .join(' \u2003 ') // thin separators
+                  .toLowerCase();
                 if (!haystack.includes(q)) continue; // filtered out
             }
 
@@ -140,7 +172,6 @@ export default function UserInventoryContainer() {
                     />
                 ))
             )}
-            {/* <CompletedInventories /> */}
         </div>
     )
 }

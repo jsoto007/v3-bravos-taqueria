@@ -28,7 +28,7 @@ const MasterCarContainer = lazy(() => import('./components/admin/MasterCarContai
 const AdminInventoryReviewContainer = lazy(() => import('./components/admin/AdminInventoryReviewContainer'))
 
 // Test routes (lazy)
-const CarVinScanHistoryCard = lazy(() => import('./components/inventory/CarVinScanHistoryCard'))
+
 
 // Shared
 const PageNotFound = lazy(() => import('./shared/PageNotFound'))
@@ -53,10 +53,6 @@ function App() {
 
               {/* Account management for signed-in users */}
               <Route path="/account/settings" element={<SubscriptionDashboard />} />
-
-              {/* Test routes - keep behind auth */}
-              <Route path="/test/inventory" element={<CarVinScanHistoryCard />} />
-              <Route path="/test/cars" element={<CarContainer />} />
             </Route>
 
             {/* Admin-only routes */}
