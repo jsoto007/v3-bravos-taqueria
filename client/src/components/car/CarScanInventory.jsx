@@ -3,7 +3,6 @@ import { Calendar, MapPin, User } from "lucide-react";
 
 export default function CarScanInventory({ scanHistory, onDesignatedLocation }) {
 
-  console.log(scanHistory)
 
     function formatDateTime(dateString) {
         const date = new Date(dateString);
@@ -17,7 +16,6 @@ export default function CarScanInventory({ scanHistory, onDesignatedLocation }) 
         });
     }
 
-    // State for toggling location display per scan row
     const [toggledIds, setToggledIds] = useState({});
 
     function toggleLocation(id) {
@@ -27,11 +25,11 @@ export default function CarScanInventory({ scanHistory, onDesignatedLocation }) 
       }));
     }
 
-    // Normalize to latest event per VIN (robust if multiple entries per VIN are passed)
+
     const latestEvents = useMemo(() => {
       if (!Array.isArray(scanHistory)) return [];
 
-      // Accept both normalized rows and raw car objects with history
+
       const events = scanHistory.flatMap((row) => {
         if (Array.isArray(row?.history) && row.history.length) {
           return row.history.map((h) => ({
@@ -110,12 +108,10 @@ export default function CarScanInventory({ scanHistory, onDesignatedLocation }) 
           <tbody>
             {latestEvents.map((scan) => (
               <tr key={scan.id} className="even:bg-slate-200 dark:even:bg-slate-800">
-                {/* VIN */}
                 <td className="py-2 whitespace-nowrap border-b border-slate-300 dark:border-slate-700 text-sm sm:text-base text-slate-950 dark:text-slate-50">
                   <span className="font-mono tracking-tight select-all">{scan.vin || '\u2014'}</span>
                 </td>
 
-                {/* Location */}
                 <td className="px-4 py-2 whitespace-nowrap border-b border-slate-300 dark:border-slate-700 text-sm sm:text-base text-slate-950 dark:text-slate-50">
                   <div className="flex items-center gap-1">
                     <MapPin
@@ -132,7 +128,6 @@ export default function CarScanInventory({ scanHistory, onDesignatedLocation }) 
                   </div>
                 </td>
 
-                {/* User */}
                 <td className="px-4 py-2 whitespace-nowrap border-b border-slate-300 dark:border-slate-700 text-sm sm:text-base text-slate-950 dark:text-slate-50">
                   <div className="flex items-center gap-1">
                     <User className="h-4 w-4 flex-shrink-0 text-slate-500 dark:text-slate-400" />
@@ -140,7 +135,6 @@ export default function CarScanInventory({ scanHistory, onDesignatedLocation }) 
                   </div>
                 </td>
 
-                {/* Date */}
                 <td className="px-4 py-2 whitespace-nowrap border-b border-slate-300 dark:border-slate-700 text-sm sm:text-base text-slate-950 dark:text-slate-50">
                   <div className="flex items-center gap-1">
                     <Calendar className="h-4 w-4 flex-shrink-0 text-slate-500 dark:text-slate-400" />
