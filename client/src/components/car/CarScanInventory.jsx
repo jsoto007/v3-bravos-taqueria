@@ -67,17 +67,28 @@ export default function CarScanInventory({ scanHistory, onDesignatedLocation }) 
       return Array.from(byVin.values()).sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
     }, [scanHistory]);
 
+    const totalUniqueVINs = useMemo(() => {
+      if (!Array.isArray(scanHistory)) return 0;
+      const vins = new Set();
+      for (const row of scanHistory) {
+        if (row?.vin) vins.add(row.vin);
+      }
+      return vins.size;
+    }, [scanHistory]);
+
   return (
     <div className="rounded-t-2xl overflow-hidden rounded-md border border-slate-300 dark:border-slate-700 bg-white dark:bg-[#1A2235] mt-6">
       <div className="h-1 w-[97%] md:w-[99%] mx-auto bg-gradient-to-r from-indigo-800 to-cyan-400 rounded-t-2xl"></div>
-      <div className="overflow-x-auto">
 
-      <h2 className="text-2xl font-bold mb-6 ml-2 mt-2 text-slate-950 dark:text-slate-50 flex items-center gap-2">
-        <span>{onDesignatedLocation? onDesignatedLocation : "Scan History"}</span>
+      <h2 className="text-2xl font-bold mb-3 ml-2 mt-2 text-slate-950 dark:text-slate-50 flex items-center justify-between gap-2">
+        <span>{onDesignatedLocation ? onDesignatedLocation : "Scan History"}</span>
+        <span className="text-base sm:text-lg font-semibold px-3 py-1 mr-2 rounded-md bg-slate-200/40 dark:bg-slate-700/30 text-slate-900 dark:text-slate-100">
+          Count: {totalUniqueVINs}
+        </span>
       </h2>
-
-        <table className="w-full border-collapse table-auto min-w-full">
-          <thead className="bg-slate-300/70 dark:bg-slate-800">
+      <div className="overflow-x-auto overflow-y-auto max-h-[70vh]">
+        <table className="w-full border-collapse table-auto min-w-full table-fixed">
+          <thead className="bg-slate-300/70 dark:bg-slate-800 sticky top-0 z-10">
             <tr>
               <th
                 scope="col"
