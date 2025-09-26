@@ -114,9 +114,9 @@ export default function UserInventoryContainer() {
                     spellCheck={false}
                 />
             </div>
-                <h1 className="text-left text-3xl text-slate-900 dark:text-slate-50 font-medium font-sans rounded-xl pt-2 mt-2">Scanned Vehicle Records</h1>
+                <h1 className="text-left text-3xl text-slate-900 dark:text-slate-50 font-medium font-sans rounded-xl pt-2 ">Scanned Vehicle Records</h1>
                 <p className="text-left text-sm text-slate-600 dark:text-slate-300">
-                    Here is a list of scanned cars. Use the search bar above to quickly find vehicles by VIN, year, make, user, name, or location. You can also click the <span className="font-semibold text-blue-500">+ Car</span> button to scan and add new cars. After the VIN is scanned and decoded, review the vehicle details and click submit to add it to your records.
+                    Car inventories grouped by location for easy browsing and management.
                 </p>
             {groupedByLocation.length === 0 ? (
                 <div
