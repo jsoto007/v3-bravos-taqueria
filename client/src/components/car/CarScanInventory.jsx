@@ -3,7 +3,7 @@ import { Calendar, MapPin, User } from "lucide-react";
 
 export default function CarScanInventory({ scanHistory, onDesignatedLocation }) {
 
-
+console.log(scanHistory)
     function formatDateTime(dateString) {
         const date = new Date(dateString);
         return date.toLocaleString("en-US", {
@@ -142,7 +142,7 @@ export default function CarScanInventory({ scanHistory, onDesignatedLocation }) 
                 <td className="px-4 py-2 whitespace-nowrap border-b border-slate-300 dark:border-slate-700 text-sm sm:text-base text-slate-950 dark:text-slate-50">
                   <div className="flex items-center gap-1">
                     <User className="h-4 w-4 flex-shrink-0 text-slate-500 dark:text-slate-400" />
-                    {scan.firstname} {scan.lastname}
+                    {scan.first_name} {scan.last_name}
                   </div>
                 </td>
 
