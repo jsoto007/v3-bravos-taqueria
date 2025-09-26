@@ -1,10 +1,21 @@
-import { useState, useContext, useEffect } from "react";
+import { useState, useContext, useEffect, lazy, Suspense } from "react";
 import { UserContext } from "../../context/UserContextProvider";
 import ActionBtn from "../../shared/ActionBtn";
-import ScanbotScanner from "../../utils/ScanbotScanner";
-import ScanbotVinText from "../../utils/ScanbotVinText";
+
+const ScanbotScanner = lazy(() => import("../../utils/ScanbotScanner"));
+const ScanbotVinText = lazy(() => import("../../utils/ScanbotVinText"));
+
 import { userLocation } from "../../utils/UserLocation";
 import FadeIn from "../../shared/FadeIn";
+
+function ScannerFallback() {
+  return (
+    <div className="mx-auto mt-6 max-w-md w-full animate-pulse">
+      <div className="h-40 rounded-lg bg-slate-200 dark:bg-slate-700" />
+      <p className="mt-3 text-center text-sm text-slate-500 dark:text-slate-400">Loading scanner…</p>
+    </div>
+  );
+}
 
 export default function CarScannerContainer() {
   const [vin, setVin] = useState("");
@@ -70,6 +81,18 @@ export default function CarScannerContainer() {
   }, [decodedVin]);
 
   useEffect(() => {
+    // Warm up the other mode’s chunk soon after mount for a snappy toggle.
+    const t = setTimeout(() => {
+      if (scanMode === "scanner") {
+        import("../../utils/ScanbotVinText");
+      } else {
+        import("../../utils/ScanbotScanner");
+      }
+    }, 300);
+    return () => clearTimeout(t);
+  }, [scanMode]);
+
+  useEffect(() => {
     if (vin) {
       const timer = setTimeout(() => userLocation(vin, setLocation), 500);
       return () => clearTimeout(timer);
@@ -119,13 +142,13 @@ export default function CarScannerContainer() {
       </fieldset>
 
       {!scanComplete && (
-        <>
+        <Suspense fallback={<ScannerFallback />}> 
           {scanMode === "scanner" ? (
             <ScanbotScanner onScan={setVin} setDecodedVin={setDecodedVin} />
           ) : (
             <ScanbotVinText onScan={setVin} setDecodedVin={setDecodedVin} />
           )}
-        </>
+        </Suspense>
       )}
 
       {scanComplete && (

@@ -29,7 +29,7 @@ function toSectionId(label = "") {
 export default function UserInventoryContainer() {
 
     const { carData } = useContext(CarDataContext)
-    console.log("CARDATA",carData)
+
 
     // Search state with debounce
     const [query, setQuery] = useState("");
@@ -48,7 +48,7 @@ export default function UserInventoryContainer() {
         const hasQuery = q.length > 0;
 
         const NO_DESIG_KEY = "__NO_DESIGNATED__";
-        const NO_DESIG_LABEL = "Cars with no designated location";
+        const NO_DESIG_LABEL = "Other";
 
         const groups = new Map();
 
