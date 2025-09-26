@@ -83,7 +83,7 @@ export default function CarScanInventory({ scanHistory, onDesignatedLocation }) 
       </h2>
       <div className="overflow-x-auto overflow-y-auto max-h-[70vh]">
         <table className="w-full border-collapse table-auto min-w-full">
-          <thead className="bg-slate-300/70 dark:bg-slate-800 sticky top-0 z-10">
+          <thead className="bg-slate-300/90 dark:bg-slate-800 sticky top-0 z-10">
             <tr>
               <th
                 scope="col"
@@ -120,7 +120,7 @@ export default function CarScanInventory({ scanHistory, onDesignatedLocation }) 
                     navigate(`/cars/${scan.id}`);
                   }
                 }}
-                className={`even:bg-slate-200 dark:even:bg-slate-800 ${currentUser?.admin ? "cursor-pointer hover:bg-gray-200 dark:hover:bg-gray-700" : ""}`}
+                className={`even:bg-slate-100 dark:even:bg-slate-800 ${currentUser?.admin ? "cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-700" : ""}`}
               >
                 <td className="py-2 whitespace-nowrap border-b border-slate-300 dark:border-slate-700 text-sm sm:text-base text-slate-950 dark:text-slate-50">
                   <span className="font-mono tracking-tight select-all">{scan.vin || '\u2014'}</span>

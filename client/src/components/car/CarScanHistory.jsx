@@ -3,7 +3,6 @@ import { Calendar, MapPin, User } from "lucide-react";
 
 export default function CarScanHistory({ scanHistory, onDesignatedLocation }) {
 
-  console.log(scanHistory)
 
     function formatDateTime(dateString) {
         const date = new Date(dateString);
