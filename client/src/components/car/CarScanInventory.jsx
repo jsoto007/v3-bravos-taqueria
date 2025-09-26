@@ -1,7 +1,11 @@
-import { useMemo, useState } from "react";
+import { useMemo, useState, useContext } from "react";
+import { useNavigate } from "react-router-dom";
+import { UserContext } from "../../context/UserContextProvider";
 import { Calendar, MapPin, User } from "lucide-react";
 
 export default function CarScanInventory({ scanHistory, onDesignatedLocation }) {
+  const { currentUser } = useContext(UserContext);
+  const navigate = useNavigate();
 
     console.log(scanHistory)
 
@@ -119,7 +123,15 @@ export default function CarScanInventory({ scanHistory, onDesignatedLocation }) 
           </thead>
           <tbody>
             {latestEvents.map((scan) => (
-              <tr key={scan.id} className="even:bg-slate-200 dark:even:bg-slate-800">
+              <tr
+                key={scan.id}
+                onClick={() => {
+                  if (currentUser?.admin) {
+                    navigate(`/cars/${scan.id}`);
+                  }
+                }}
+                className={`even:bg-slate-200 dark:even:bg-slate-800 ${currentUser?.admin ? "cursor-pointer hover:bg-gray-200 dark:hover:bg-gray-700" : ""}`}
+              >
                 <td className="py-2 whitespace-nowrap border-b border-slate-300 dark:border-slate-700 text-sm sm:text-base text-slate-950 dark:text-slate-50">
                   <span className="font-mono tracking-tight select-all">{scan.vin || '\u2014'}</span>
                 </td>
