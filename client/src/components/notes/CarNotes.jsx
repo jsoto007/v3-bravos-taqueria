@@ -103,9 +103,9 @@ export default function CarNotes( { notes, car } ) {
   return (
     <div className="max-w-auto mx-auto bg-white dark:bg-[#1A2235] border border-slate-300 dark:border-slate-700 rounded-2xl shadow-lg max-h-[600px] overflow-y-auto">
       <div className="h-1 w-[97%] md:w-[99%] mx-auto bg-gradient-to-r from-indigo-800 to-cyan-400 rounded-t-2xl"></div>
-      <h2 className="text-2xl font-bold mb-6 ml-2 mt-2 text-slate-950 dark:text-slate-50 flex items-center gap-2">
-        <span>Car Notes</span>
-      </h2>
+        <h2 className="text-2xl font-bold mb-6 ml-2 mt-2 text-slate-950 dark:text-slate-50 flex items-center gap-2">
+          <span>Car Notes</span>
+        </h2>
       <div className="flex gap-2 mb-6 ml-2">
         <input
           className="flex-1 px-3 py-2 rounded bg-white dark:bg-slate-800 text-slate-950 dark:text-slate-50 border border-slate-300 dark:border-slate-700 focus:outline-none focus:ring-2 focus:ring-indigo-600 dark:focus:ring-indigo-500"

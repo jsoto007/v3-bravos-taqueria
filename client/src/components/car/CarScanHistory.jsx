@@ -1,7 +1,9 @@
 import { useState } from "react";
 import { Calendar, MapPin, User } from "lucide-react";
 
-export default function CarScanHistory({ scanHistory }) {
+export default function CarScanHistory({ scanHistory, onDesignatedLocation }) {
+
+  console.log(scanHistory)
 
     function formatDateTime(dateString) {
         const date = new Date(dateString);
@@ -35,6 +37,11 @@ export default function CarScanHistory({ scanHistory }) {
     <div className="rounded-t-2xl overflow-hidden rounded-md border border-slate-300 dark:border-slate-700 bg-white dark:bg-[#1A2235] mt-6">
       <div className="h-1 w-[97%] md:w-[99%] mx-auto bg-gradient-to-r from-indigo-800 to-cyan-400 rounded-t-2xl"></div>
       <div className="overflow-x-auto">
+
+      <h2 className="text-2xl font-bold mb-6 ml-2 mt-2 text-slate-950 dark:text-slate-50 flex items-center gap-2">
+        <span>{onDesignatedLocation? onDesignatedLocation : "Scan History"}</span>
+      </h2>
+
         <table className="w-full border-collapse table-auto min-w-full">
           <thead className="bg-slate-300/70 dark:bg-slate-800">
             <tr>
@@ -96,3 +103,4 @@ export default function CarScanHistory({ scanHistory }) {
     </div>
   );
 }
+
