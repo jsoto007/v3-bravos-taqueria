@@ -20,6 +20,24 @@ export default function CarScanInventory({ scanHistory, onDesignatedLocation }) 
         });
     }
 
+    function shortenLocation(loc) {
+        if (!loc || typeof loc !== 'string') return '\u2014';
+        const parts = loc.split(',').map(p => p.trim()).filter(Boolean);
+        // Prefer something like "City, State" if available
+        if (parts.length >= 3) {
+            // Heuristic: often formats like Street, Neighborhood, City, State, Country, ZIP
+            // Return last meaningful city/state pair when possible
+            const cityIdx = Math.max(0, parts.length - 3); // city typically here
+            const city = parts[cityIdx];
+            const state = parts[cityIdx + 1] || '';
+            const shortCS = state ? `${city}, ${state}` : city;
+            if (shortCS.length <= 35) return shortCS;
+        }
+        // Fallback: first meaningful chunk
+        const base = parts[0] || loc;
+        return base.length > 35 ? `${base.slice(0, 32)}...` : base;
+    }
+
 
     const latestEvents = useMemo(() => {
       if (!Array.isArray(scanHistory)) return [];
@@ -131,7 +149,9 @@ export default function CarScanInventory({ scanHistory, onDesignatedLocation }) 
                     <MapPin
                       className="h-4 w-4 flex-shrink-0 mr-1 text-slate-500 dark:text-slate-400"
                     />
-                    {scan.designated_location ? scan.designated_location : scan.location}
+                    <span title={scan.location || ''}>
+                      {scan.designated_location ? scan.designated_location : shortenLocation(scan.location)}
+                    </span>
                   </div>
                 </td>
 
