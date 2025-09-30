@@ -49,3 +49,4 @@ export default function ScanbotScanner({ onScan, setDecodedVin }) {
     </div>
   );
 }
+
