@@ -103,7 +103,7 @@ export default function CarScannerContainer() {
   return (
     <FadeIn>
     <div className="mt-20 py-4 bg-white dark:bg-slate-800 rounded-xl">
-      <Alert message="VIN: 762111126719 is NOT a valid VIN Please scan another barcode" />
+      {/* <Alert message="VIN: 762111126719 is NOT a valid VIN Please scan another barcode" /> */}
       <div className="text-center mb-6">
         <p className="text-2xl text-gray-600 dark:text-gray-300">
           <strong>Scan and Submit a Car</strong>
