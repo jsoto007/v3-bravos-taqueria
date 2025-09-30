@@ -1,6 +1,7 @@
 import { useState, useContext, useEffect, lazy, Suspense } from "react";
 import { UserContext } from "../../context/UserContextProvider";
 import ActionBtn from "../../shared/ActionBtn";
+import Alert from "../alerts/alert";
 
 const ScanbotScanner = lazy(() => import("../../utils/ScanbotScanner"));
 const ScanbotVinText = lazy(() => import("../../utils/ScanbotVinText"));
@@ -102,6 +103,7 @@ export default function CarScannerContainer() {
   return (
     <FadeIn>
     <div className="mt-20 py-4 bg-white dark:bg-slate-800 rounded-xl">
+      <Alert message="VIN: 762111126719 is NOT a valid VIN Please scan another barcode" />
       <div className="text-center mb-6">
         <p className="text-2xl text-gray-600 dark:text-gray-300">
           <strong>Scan and Submit a Car</strong>
