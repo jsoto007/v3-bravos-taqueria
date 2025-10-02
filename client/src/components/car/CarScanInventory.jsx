@@ -99,7 +99,7 @@ export default function CarScanInventory({ scanHistory, onDesignatedLocation }) 
           Count: {totalUniqueVINs}
         </span>
       </h2>
-      <div className="overflow-x-auto overflow-y-auto max-h-[70vh]">
+      <div className="overflow-x-auto overflow-y-auto max-h-[560px]">
         <table className="w-full border-collapse table-auto min-w-full">
           <thead className="bg-slate-300/90 dark:bg-slate-800 sticky top-0 z-10">
             <tr>
