@@ -122,7 +122,7 @@ class User(db.Model, SerializerMixin):
     admin = db.Column(db.Boolean, default=False)
     is_owner_admin = db.Column(db.Boolean, default=False)
 
-    is_active = db.Column(db.Boolean, nullable=False, default=True, index=True)
+    is_active = db.Column(db.Boolean, nullable=True, default=True, index=True)
     deactivated_at = db.Column(db.DateTime(timezone=True), nullable=True)
     account_group_id = db.Column(db.Integer, db.ForeignKey('account_groups.id'), nullable=False)
 
