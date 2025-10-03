@@ -121,12 +121,16 @@ class User(db.Model, SerializerMixin):
 
     admin = db.Column(db.Boolean, default=False)
     is_owner_admin = db.Column(db.Boolean, default=False)
+
+    is_active = db.Column(db.Boolean, nullable=False, default=True, index=True)
+    deactivated_at = db.Column(db.DateTime(timezone=True), nullable=True)
     account_group_id = db.Column(db.Integer, db.ForeignKey('account_groups.id'), nullable=False)
 
     created_at = db.Column(db.DateTime(timezone=True), server_default=db.func.now())
     updated_at = db.Column(db.DateTime(timezone=True), onupdate=db.func.now())
     __table_args__ = (
         Index('ix_users_account_group', 'account_group_id'),
+        Index('ix_users_is_active', 'is_active'),
     )
 
     owned_account_groups = relationship(
@@ -165,6 +169,17 @@ class User(db.Model, SerializerMixin):
 
     def authenticate(self, password):
         return bcrypt.check_password_hash(self._password_hash, password.encode('utf-8'))
+
+    def deactivate(self, when=None):
+        """Mark the user as inactive and timestamp when this happened."""
+        self.is_active = False
+        # If a datetime is provided use it, otherwise use current UTC time
+        self.deactivated_at = when or datetime.utcnow()
+
+    def activate(self):
+        """Reactivate the user and clear the deactivation timestamp."""
+        self.is_active = True
+        self.deactivated_at = None
 
     def __repr__(self):
         return f'User {self.email}, ID: {self.id}'
