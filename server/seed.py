@@ -91,6 +91,7 @@ with app.app_context():
         last_name="Perreo",
         admin=False,
         is_owner_admin=False,
+        is_active=True,
         account_group_id=account_group.id,
     )
     user1.password_hash = "password123"
@@ -101,6 +102,7 @@ with app.app_context():
         last_name="Doe",
         admin=True,
         is_owner_admin=True,
+        is_active=True,
         account_group_id=account_group.id,
     )
     user2.password_hash = "adminpass456"
@@ -223,6 +225,61 @@ with app.app_context():
 
     db.session.bulk_save_objects(car_inventories)
     db.session.commit()
+
+    # --- Additional scans per designated location (history via extra CarInventory rows) ---
+    print("🔁 Creating additional scans per designated location…")
+    extra_scans = []
+    scan_sessions = []
+    # create a scan session (UserInventory) per designated location
+    for dl in dl_objects:
+        session_inv = UserInventory(
+            user_id=user1.id,
+            account_group_id=account_group.id,
+            submitted=False,
+            reviewed=False,
+        )
+        scan_sessions.append(session_inv)
+    db.session.bulk_save_objects(scan_sessions)
+    db.session.commit()
+
+    # Map each designated location to its session id
+    session_ids = [si.id for si in scan_sessions]
+
+    # for each designated location, add some extra scans for random VINs
+    for idx, dl in enumerate(dl_objects):
+        loc_name = dl.name
+        lat = dl.latitude
+        lng = dl.longitude
+        # sample 15 vins to rescan at this location
+        sampled_vins = random.sample(vins, 15 if len(vins) >= 15 else len(vins))
+        for vin in sampled_vins:
+            # pick a random master record attributes for consistency
+            # (we only need VIN; other attrs are for denormalized convenience)
+            year = random.randint(1998, CURRENT_PLUS_ONE)
+            make = random.choice(list(MAKES_MODELS.keys()))
+            color = random.choice(COLORS)
+            body = random.choice(BODIES)
+            extra_scans.append(
+                CarInventory(
+                    location=loc_name,
+                    vin_number=vin,
+                    year=year,
+                    make=make,
+                    color=color,
+                    body=body,
+                    latitude=lat,
+                    longitude=lng,
+                    user_id=user1.id,
+                    user_inventory_id=session_ids[idx],
+                    account_group_id=account_group.id,
+                    designated_location_id=dl.id,
+                )
+            )
+
+    if extra_scans:
+        db.session.bulk_save_objects(extra_scans)
+        db.session.commit()
+        print(f"✅ Added {len(extra_scans)} additional scans across {len(dl_objects)} locations.")
 
     # A few sample notes/photos on first few cars for UI testing
     print("📝 Adding sample notes & photos…")
