@@ -21,21 +21,70 @@ export default function CarScanInventory({ scanHistory, onDesignatedLocation }) 
     }
 
     function shortenLocation(loc) {
-        if (!loc || typeof loc !== 'string') return '\u2014';
-        const parts = loc.split(',').map(p => p.trim()).filter(Boolean);
-        // Prefer something like "City, State" if available
-        if (parts.length >= 3) {
-            // Heuristic: often formats like Street, Neighborhood, City, State, Country, ZIP
-            // Return last meaningful city/state pair when possible
-            const cityIdx = Math.max(0, parts.length - 3); // city typically here
-            const city = parts[cityIdx];
-            const state = parts[cityIdx + 1] || '';
-            const shortCS = state ? `${city}, ${state}` : city;
-            if (shortCS.length <= 35) return shortCS;
+      if (!loc || typeof loc !== 'string') return '\u2014';
+
+      const zipMatch = loc.match(/\b\d{5}(?:-\d{4})?\b/);
+      if (!zipMatch) return '\u2014';
+      const zip = zipMatch[0];
+      const parts = loc.split(',').map(p => p.trim()).filter(Boolean);
+
+      const suffixMap = {
+        'street': 'St', 'st': 'St',
+        'avenue': 'Ave', 'ave': 'Ave',
+        'road': 'Rd', 'rd': 'Rd',
+        'boulevard': 'Blvd', 'blvd': 'Blvd',
+        'lane': 'Ln', 'ln': 'Ln',
+        'drive': 'Dr', 'dr': 'Dr',
+        'court': 'Ct', 'ct': 'Ct',
+        'place': 'Pl', 'pl': 'Pl',
+        'trail': 'Trl', 'trl': 'Trl',
+        'parkway': 'Pkwy', 'pkwy': 'Pkwy',
+        'highway': 'Hwy', 'hwy': 'Hwy',
+        'terrace': 'Ter', 'ter': 'Ter',
+        'way': 'Way',
+        'circle': 'Cir', 'cir': 'Cir',
+        'alley': 'Aly', 'aly': 'Aly'
+      };
+
+      const hasNormalizedSuffix = (s) => {
+        const tokens = s.toLowerCase().replace(/\./g, '').split(/\s+/);
+        return tokens.some(t => Object.prototype.hasOwnProperty.call(suffixMap, t));
+      };
+
+      const normalizeSuffix = (s) => {
+        const tokens = s.split(/\s+/);
+        if (!tokens.length) return s;
+        const last = tokens[tokens.length - 1].replace(/\./g, '');
+        const key = last.toLowerCase();
+        if (suffixMap[key]) {
+          tokens[tokens.length - 1] = suffixMap[key];
         }
-        // Fallback: first meaningful chunk
-        const base = parts[0] || loc;
-        return base.length > 35 ? `${base.slice(0, 32)}...` : base;
+        return tokens.join(' ');
+      };
+
+      let streetSeg = '';
+      if (parts.length) {
+        if (/\d/.test(parts[0]) && hasNormalizedSuffix(parts[0])) {
+          streetSeg = normalizeSuffix(parts[0]);
+        }
+        else if (/^\d+$/.test(parts[0]) && parts[1]) {
+          streetSeg = `${parts[0]} ${normalizeSuffix(parts[1])}`;
+        }
+        else if (/\d/.test(parts[0]) && parts[1] && hasNormalizedSuffix(parts[1])) {
+          streetSeg = `${parts[0]} ${normalizeSuffix(parts[1])}`;
+        }
+        else {
+          let acc = parts[0] || '';
+          for (let i = 1; i < Math.min(parts.length, 3) && !hasNormalizedSuffix(acc); i++) {
+            acc = `${acc} ${parts[i]}`;
+          }
+          streetSeg = normalizeSuffix(acc.trim());
+        }
+      }
+
+      streetSeg = streetSeg || parts[0] || loc;
+      
+      return `${streetSeg}, ${zip}`;
     }
 
 
