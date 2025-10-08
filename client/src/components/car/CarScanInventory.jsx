@@ -83,7 +83,7 @@ export default function CarScanInventory({ scanHistory, onDesignatedLocation }) 
       }
 
       streetSeg = streetSeg || parts[0] || loc;
-      
+
       return `${streetSeg}, ${zip}`;
     }
 
