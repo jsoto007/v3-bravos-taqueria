@@ -13,49 +13,69 @@ export default function CompletedInventoryCard() {
   const prevIdsRef = useRef(new Set());
   const didInitRef = useRef(false);
   const highlightTimersRef = useRef([]);
+  const prevLatestRef = useRef(new Map()); // id -> latestCreatedAt (ms)
 
   const navigate = useNavigate();
 
   useEffect(() => {
     if (!Array.isArray(carData)) return;
 
-    // Build the set of current car root IDs
-    const currIds = new Set(carData.map((c) => c.id));
+    // Build maps for current snapshot
+    const currIds = new Set();
+    const currLatest = new Map(); // id -> latest created_at (ms)
 
-    // Skip highlighting on first load
+    for (const c of carData) {
+      currIds.add(c.id);
+      const latestMs = Array.isArray(c.history)
+        ? c.history.reduce((acc, h) => {
+            const t = Date.parse(h.created_at);
+            return isNaN(t) ? acc : Math.max(acc, t);
+          }, 0)
+        : 0;
+      currLatest.set(c.id, latestMs);
+    }
+
+    const fiveMinutesMs = 2 * 60 * 1000;
+    const now = Date.now();
+
+    // Skip highlighting on first load (prevents green on reload)
     if (!didInitRef.current) {
       didInitRef.current = true;
       prevIdsRef.current = currIds;
+      prevLatestRef.current = currLatest;
       return;
     }
 
     const prevIds = prevIdsRef.current;
-    const fiveMinutesMs = 5 * 60 * 1000;
-    const now = Date.now();
+    const prevLatest = prevLatestRef.current;
+    const toHighlight = [];
 
-    const newlyAddedRecent = [];
-    currIds.forEach((id) => {
+    // 1) New cars added since last render
+    for (const id of currIds) {
       if (!prevIds.has(id)) {
-        const car = Array.isArray(carData) ? carData.find((c) => c.id === id) : null;
-        // Find the most recent created_at from history for this car
-        const latestCreatedAt = car?.history?.reduce((acc, h) => {
-          const t = Date.parse(h.created_at);
-          return isNaN(t) ? acc : Math.max(acc, t);
-        }, 0);
-        if (latestCreatedAt && (now - latestCreatedAt) <= fiveMinutesMs) {
-          newlyAddedRecent.push(id);
+        const latestMs = currLatest.get(id) || 0;
+        if (latestMs && (now - latestMs) <= fiveMinutesMs) {
+          toHighlight.push(id);
         }
       }
-    });
+    }
 
-    if (newlyAddedRecent.length > 0) {
+    // 2) Existing cars whose most recent scan (history) advanced
+    for (const [id, latestMs] of currLatest.entries()) {
+      const prevMs = prevLatest.get(id) || 0;
+      if (latestMs > prevMs && (now - latestMs) <= fiveMinutesMs) {
+        toHighlight.push(id);
+      }
+    }
+
+    if (toHighlight.length > 0) {
       setRecentlyAdded((prev) => {
         const next = { ...prev };
-        newlyAddedRecent.forEach((id) => (next[id] = true));
+        toHighlight.forEach((id) => (next[id] = true));
         return next;
       });
 
-      newlyAddedRecent.forEach((id) => {
+      toHighlight.forEach((id) => {
         const tid = setTimeout(() => {
           setRecentlyAdded((prev) => {
             const next = { ...prev };
@@ -67,8 +87,9 @@ export default function CompletedInventoryCard() {
       });
     }
 
-    // Update previous IDs snapshot
+    // Update snapshots for next comparison
     prevIdsRef.current = currIds;
+    prevLatestRef.current = currLatest;
 
     return () => {
       // Clear any pending highlight timers
