@@ -2,6 +2,7 @@ import { useState, useContext, useEffect, lazy, Suspense } from "react";
 import { UserContext } from "../../context/UserContextProvider";
 import ActionBtn from "../../shared/ActionBtn";
 import { useNavigate } from "react-router-dom";
+import Loading from "../../shared/Loading";
 
 const ScanbotScanner = lazy(() => import("../../utils/ScanbotScanner"));
 const ScanbotVinText = lazy(() => import("../../utils/ScanbotVinText"));
@@ -11,10 +12,7 @@ import FadeIn from "../../shared/FadeIn";
 
 function ScannerFallback() {
   return (
-    <div className="mx-auto mt-6 max-w-md w-full animate-pulse">
-      <div className="h-40 rounded-lg bg-slate-200 dark:bg-slate-700" />
-      <p className="mt-3 text-center text-sm text-slate-500 dark:text-slate-400">Loading scanner…</p>
-    </div>
+      <Loading />
   );
 }
 

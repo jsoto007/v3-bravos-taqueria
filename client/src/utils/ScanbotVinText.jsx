@@ -6,6 +6,7 @@ import { decodeVinData } from "./VinDecoder"; // import if needed
 export default function ScanbotVinText({ onScan, setDecodedVin }) {
   const apiKey = import.meta.env.VITE_LICENSE_KEY;
   const [vin, setVin] = useState("");
+  const [showScanner, setShowScanner] = useState(false);
 
   // ISO 3779 VIN validation
   function isRealVIN(vin) {
@@ -37,6 +38,10 @@ export default function ScanbotVinText({ onScan, setDecodedVin }) {
 
   const startVinScanner = useCallback(async () => {
     try {
+      // Ensure the container is mounted before creating the scanner UI
+      setShowScanner(true);
+      await new Promise((resolve) => setTimeout(resolve, 0));
+
       const sdk = await ScanbotSDK.initialize({
         licenseKey: apiKey,
         enginePath: "/wasm/complete/",
@@ -71,6 +76,8 @@ export default function ScanbotVinText({ onScan, setDecodedVin }) {
             if (sdk && typeof sdk.dispose === "function") {
               sdk.dispose();
             }
+            // Hide scanner UI after successful scan
+            setShowScanner(false);
           }
         },
         onError: (error) => {
@@ -85,10 +92,17 @@ export default function ScanbotVinText({ onScan, setDecodedVin }) {
   }, [apiKey, onScan, setDecodedVin]);
 
   return (
-    <div className="mt-2 flex flex-col items-center space-y-4">
-      <ActionBtn label="Scan Text" onClick={startVinScanner} />
+    <div className="mt-2 flex flex-col items-center space-y-4" style={{ padding: '2rem', fontFamily: 'sans-serif' }}>
+      {!showScanner && (
+        <ActionBtn label="Scan Text" onClick={startVinScanner} />
+      )}
       <h1>{vin}</h1>
-      <div id="vin-scanner-container" style={{ width: "100%", height: "500px" }} />
+      {showScanner && (
+        <div
+          id="vin-scanner-container"
+          style={{ width: "100%", height: "500px" }}
+        />
+      )}
     </div>
   );
 }
