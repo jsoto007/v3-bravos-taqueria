@@ -1,4 +1,5 @@
 import { Outlet, Link, useLocation } from "react-router-dom"
+import { useEffect } from 'react';
 import Logout from "./authentication/Logout"
 import { Disclosure, DisclosurePanel, DisclosureButton } from '@headlessui/react'
 import { Bars3Icon, XMarkIcon } from '@heroicons/react/24/outline'
@@ -8,6 +9,12 @@ import { Settings2, GalleryVerticalEnd, LayoutDashboard } from 'lucide-react';
 {/* <LayoutDashboard /> */}
 export default function NavBar() {
   const location = useLocation();
+
+  // Always scroll to top on navigation
+  useEffect(() => {
+    // Use 'auto' for instant jump; change to 'smooth' if you prefer animation
+    window.scrollTo({ top: 0, left: 0, behavior: 'auto' });
+  }, [location.pathname, location.search]);
 
   return (
     <div className="text-gray-900 font-serif dark:text-white bg-white dark:bg-gray-900">
