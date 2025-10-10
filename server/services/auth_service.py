@@ -1,7 +1,7 @@
 # server/services/auth_service.py
 from __future__ import annotations
 from dataclasses import dataclass
-from datetime import datetime
+from datetime import datetime, timezone
 from typing import Optional, Tuple
 
 from flask import request
@@ -33,7 +33,8 @@ def _client_ip() -> str:
     return request.headers.get("X-Forwarded-For", request.remote_addr or "")
 
 def _now() -> datetime:
-    return datetime.utcnow()
+    # Return timezone-aware UTC datetime to match timezone=True columns
+    return datetime.now(timezone.utc)
 
 # ----------------------------
 # Throttling (cooldown)

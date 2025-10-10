@@ -12,7 +12,7 @@ from config import db, bcrypt
 
 import re
 
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 
 
 # Max length for user-entered notes
@@ -137,6 +137,7 @@ class User(db.Model, SerializerMixin):
 
     created_at = db.Column(db.DateTime(timezone=True), server_default=db.func.now())
     updated_at = db.Column(db.DateTime(timezone=True), onupdate=db.func.now())
+    last_login_at = db.Column(db.DateTime(timezone=True), nullable=True, index=True)
     __table_args__ = (
         Index('ix_users_account_group', 'account_group_id'),
         Index('ix_users_is_active', 'is_active'),
@@ -182,8 +183,8 @@ class User(db.Model, SerializerMixin):
     def deactivate(self, when=None):
         """Mark the user as inactive and timestamp when this happened."""
         self.is_active = False
-        # If a datetime is provided use it, otherwise use current UTC time
-        self.deactivated_at = when or datetime.utcnow()
+        # If a datetime is provided use it, otherwise use current UTC time (aware)
+        self.deactivated_at = when or datetime.now(timezone.utc)
 
     def activate(self):
         """Reactivate the user and clear the deactivation timestamp."""
@@ -193,11 +194,11 @@ class User(db.Model, SerializerMixin):
     def mark_last_login(self, when=None):
       """Optional helper to update last login timestamp."""
       if hasattr(self, 'last_login_at'):
-          self.last_login_at = when or datetime.utcnow()
+          self.last_login_at = when or datetime.now(timezone.utc)
 
     def is_locked_out(self, email=None, ip_address=None):
         """Check if user/email is currently under login cooldown."""
-        now = datetime.utcnow()
+        now = datetime.now(timezone.utc)
         # Prefer user_id lookup when available
         q = AuthThrottle.query
         if self.id:
@@ -296,7 +297,7 @@ class AuthThrottle(db.Model, SerializerMixin):
         - If failure: increment and lock if threshold exceeded within window.
         Returns a tuple (is_locked: bool, attempts: int, locked_until: datetime|None).
         """
-        now = now or datetime.utcnow()
+        now = now or datetime.now(timezone.utc)
 
         # Respect active lockout
         if self.locked_until and self.locked_until > now:
@@ -457,7 +458,7 @@ class CarInventory(db.Model, SerializerMixin):
         y = _coerce_int(year, "year")
         if y is None:
             return None
-        current_plus_one = datetime.utcnow().year + 1
+        current_plus_one = datetime.now(timezone.utc).year + 1
         if y < 1886 or y > current_plus_one:
             raise ValueError(f"year must be between 1886 and {current_plus_one}")
         return y
@@ -613,7 +614,7 @@ class MasterCarRecord(db.Model, SerializerMixin):
         y = _coerce_int(year, "year")
         if y is None:
             return None
-        current_plus_one = datetime.utcnow().year + 1
+        current_plus_one = datetime.now(timezone.utc).year + 1
         if y < 1886 or y > current_plus_one:
             raise ValueError(f"year must be between 1886 and {current_plus_one}")
         return y

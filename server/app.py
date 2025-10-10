@@ -3,6 +3,7 @@ import functools
 import os
 import uuid
 from flask import jsonify, request, make_response, render_template, session, send_from_directory, url_for, g
+from services.auth_service import password_login
 from flask_migrate import Migrate
 from flask_restful import Api, Resource
 from flask_cors import CORS
@@ -164,6 +165,7 @@ def serialize_user(user):
         "account_group_id": user.account_group_id,
         "created_at": user.created_at.isoformat() if user.created_at else None,
         "updated_at": user.updated_at.isoformat() if user.updated_at else None,
+        "last_login_at": getattr(user, "last_login_at", None).isoformat() if getattr(user, "last_login_at", None) else None,
     }
 
 def serialize_user_inventory(inv):
@@ -366,16 +368,30 @@ class CheckSession(Resource):
 
 class Login(Resource):
     def post(self):
-        data = request.get_json()
+        data = request.get_json() or {}
         email = (data.get('username') or '').strip().lower()
-        password = data.get('password')
+        password = data.get('password') or ''
 
-        user = User.query.filter(User.email == email).first()
-        if user and user.authenticate(password):
-            session['user_id'] = user.id
-            session.permanent = True
-            return serialize_user(user), 200
-        return {"error": "401 Unauthorized"}, 401
+        # Use the shared auth service (handles cooldown/throttle + last_login)
+        ip = request.headers.get('X-Forwarded-For', request.remote_addr)
+        device_id = request.cookies.get('device_id')  # optional signal
+
+        user, thr, err = password_login(email, password, ip=ip, device_id=device_id)
+
+        if err:
+            status = 429 if thr.is_locked else 401
+            body = {"error": err}
+            if thr.locked_until:
+                try:
+                    body["locked_until"] = thr.locked_until.isoformat()
+                except Exception:
+                    pass
+            return body, status
+
+        # Success: establish session
+        session['user_id'] = user.id
+        session.permanent = True
+        return serialize_user(user), 200
 
 class Logout(Resource):
     @require_login
