@@ -12,10 +12,19 @@ from config import db, bcrypt
 
 import re
 
-from datetime import datetime
+from datetime import datetime, timedelta
+
 
 # Max length for user-entered notes
 NOTE_MAX_LEN = 1000
+
+# --- Login throttle configuration ---
+# Maximum failed attempts allowed within the rolling window before cooldown
+AUTH_THROTTLE_MAX_ATTEMPTS = 5
+# Size of the rolling window (seconds) to count attempts
+AUTH_THROTTLE_WINDOW_SECS = 15 * 60  # 15 minutes
+# Lockout / cooldown duration after exceeding max attempts
+AUTH_THROTTLE_LOCKOUT_SECS = 30 * 60  # 30 minutes
 
 # --- Safe coercion helpers (handle strings from form/json payloads) ---
 
@@ -181,8 +190,144 @@ class User(db.Model, SerializerMixin):
         self.is_active = True
         self.deactivated_at = None
 
+    def mark_last_login(self, when=None):
+      """Optional helper to update last login timestamp."""
+      if hasattr(self, 'last_login_at'):
+          self.last_login_at = when or datetime.utcnow()
+
+    def is_locked_out(self, email=None, ip_address=None):
+        """Check if user/email is currently under login cooldown."""
+        now = datetime.utcnow()
+        # Prefer user_id lookup when available
+        q = AuthThrottle.query
+        if self.id:
+            q = q.filter_by(user_id=self.id)
+        elif email:
+            q = q.filter_by(email=email.strip().lower())
+        if ip_address:
+            q = q.filter_by(ip_address=ip_address)
+        record = q.order_by(AuthThrottle.id.desc()).first()
+        return bool(record and record.locked_until and record.locked_until > now)
+
     def __repr__(self):
         return f'User {self.email}, ID: {self.id}'
+
+
+# -------------------------------------
+# Auth Throttle Model
+# -------------------------------------
+class AuthThrottle(db.Model, SerializerMixin):
+    """
+    Tracks authentication attempts per user/email/device/IP to enforce a cooldown
+    after too many failed attempts in a short time window.
+    """
+    __tablename__ = 'auth_throttles'
+
+    id = db.Column(db.Integer, primary_key=True)
+
+    # When user_id isn't known yet (login by email), store normalized email
+    user_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=True, index=True)
+    email = db.Column(db.String(254), nullable=True, index=True)
+
+    # Optional signals for finer-grained throttling
+    ip_address = db.Column(db.String(64), nullable=True, index=True)
+    device_id = db.Column(db.String(64), nullable=True, index=True)
+
+    # Rolling window
+    attempts = db.Column(db.Integer, nullable=False, default=0)
+    window_started_at = db.Column(db.DateTime(timezone=True), nullable=True)
+    last_attempt_at = db.Column(db.DateTime(timezone=True), nullable=True)
+
+    # Cooldown
+    locked_until = db.Column(db.DateTime(timezone=True), nullable=True, index=True)
+
+    created_at = db.Column(db.DateTime(timezone=True), server_default=db.func.now())
+    updated_at = db.Column(db.DateTime(timezone=True), onupdate=db.func.now())
+
+    user = relationship('User', backref=backref('auth_throttles', cascade='all, delete-orphan'))
+
+    __table_args__ = (
+        Index('ix_auth_throttle_lookup', 'user_id', 'email', 'ip_address', 'device_id'),
+    )
+
+    # ---------------- Convenience API ---------------- #
+    @staticmethod
+    def _normalize_email(email):
+        return email.strip().lower() if isinstance(email, str) else None
+
+    @classmethod
+    def get_or_create(cls, user=None, email=None, ip_address=None, device_id=None):
+        norm_email = cls._normalize_email(email)
+        q = cls.query
+        if user and user.id:
+            q = q.filter_by(user_id=user.id)
+        elif norm_email:
+            q = q.filter_by(email=norm_email)
+        if ip_address:
+            q = q.filter_by(ip_address=ip_address)
+        if device_id:
+            q = q.filter_by(device_id=device_id)
+        rec = q.order_by(cls.id.desc()).first()
+        if rec:
+            return rec
+        rec = cls(
+            user_id=(user.id if user and user.id else None),
+            email=norm_email,
+            ip_address=ip_address,
+            device_id=device_id,
+            attempts=0,
+            window_started_at=None,
+            last_attempt_at=None,
+            locked_until=None,
+        )
+        db.session.add(rec)
+        return rec
+
+    def _within_window(self, now):
+        if not self.window_started_at:
+            return False
+        delta = (now - self.window_started_at).total_seconds()
+        return delta <= AUTH_THROTTLE_WINDOW_SECS
+
+    def register_attempt(self, success: bool, now=None):
+        """
+        Call this on every login attempt (before final response):
+        - If success: reset counts and clear lockout.
+        - If failure: increment and lock if threshold exceeded within window.
+        Returns a tuple (is_locked: bool, attempts: int, locked_until: datetime|None).
+        """
+        now = now or datetime.utcnow()
+
+        # Respect active lockout
+        if self.locked_until and self.locked_until > now:
+            self.last_attempt_at = now
+            return True, self.attempts, self.locked_until
+
+        if success:
+            self.attempts = 0
+            self.window_started_at = None
+            self.locked_until = None
+            self.last_attempt_at = now
+            return False, self.attempts, None
+
+        # Failure path
+        if not self._within_window(now):
+            # start a new window
+            self.window_started_at = now
+            self.attempts = 1
+        else:
+            self.attempts = (self.attempts or 0) + 1
+
+        self.last_attempt_at = now
+
+        if self.attempts >= AUTH_THROTTLE_MAX_ATTEMPTS:
+            self.locked_until = now + timedelta(seconds=AUTH_THROTTLE_LOCKOUT_SECS)
+            # reset window so next period starts fresh after lockout
+            self.window_started_at = None
+        else:
+            self.locked_until = None
+
+        return bool(self.locked_until and self.locked_until > now), self.attempts, self.locked_until
 
 
 
