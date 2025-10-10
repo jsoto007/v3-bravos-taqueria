@@ -35,7 +35,7 @@ export default function CompletedInventoryCard() {
       currLatest.set(c.id, latestMs);
     }
 
-    const fiveMinutesMs = 2 * 60 * 1000;
+    const fiveMinutesMs = 5 * 60 * 1000;
     const now = Date.now();
 
     // Skip highlighting on first load (prevents green on reload)
