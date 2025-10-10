@@ -1,4 +1,4 @@
-import React, { useContext, useState } from "react";
+import React, { useContext, useState, useRef, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { CarDataContext } from "../../context/CarDataContextProvider";
 import { UserContext } from "../../context/UserContextProvider";
@@ -9,7 +9,73 @@ export default function CompletedInventoryCard() {
   const { currentUser } = useContext(UserContext);
   const [searchTerm, setSearchTerm] = useState("");
 
+  const [recentlyAdded, setRecentlyAdded] = useState({}); // { [carId]: true }
+  const prevIdsRef = useRef(new Set());
+  const didInitRef = useRef(false);
+  const highlightTimersRef = useRef([]);
+
   const navigate = useNavigate();
+
+  useEffect(() => {
+    if (!Array.isArray(carData)) return;
+
+    // Build the set of current car root IDs
+    const currIds = new Set(carData.map((c) => c.id));
+
+    // Skip highlighting on first load
+    if (!didInitRef.current) {
+      didInitRef.current = true;
+      prevIdsRef.current = currIds;
+      return;
+    }
+
+    const prevIds = prevIdsRef.current;
+    const fiveMinutesMs = 5 * 60 * 1000;
+    const now = Date.now();
+
+    const newlyAddedRecent = [];
+    currIds.forEach((id) => {
+      if (!prevIds.has(id)) {
+        const car = Array.isArray(carData) ? carData.find((c) => c.id === id) : null;
+        // Find the most recent created_at from history for this car
+        const latestCreatedAt = car?.history?.reduce((acc, h) => {
+          const t = Date.parse(h.created_at);
+          return isNaN(t) ? acc : Math.max(acc, t);
+        }, 0);
+        if (latestCreatedAt && (now - latestCreatedAt) <= fiveMinutesMs) {
+          newlyAddedRecent.push(id);
+        }
+      }
+    });
+
+    if (newlyAddedRecent.length > 0) {
+      setRecentlyAdded((prev) => {
+        const next = { ...prev };
+        newlyAddedRecent.forEach((id) => (next[id] = true));
+        return next;
+      });
+
+      newlyAddedRecent.forEach((id) => {
+        const tid = setTimeout(() => {
+          setRecentlyAdded((prev) => {
+            const next = { ...prev };
+            delete next[id];
+            return next;
+          });
+        }, 45 * 1000);
+        highlightTimersRef.current.push(tid);
+      });
+    }
+
+    // Update previous IDs snapshot
+    prevIdsRef.current = currIds;
+
+    return () => {
+      // Clear any pending highlight timers
+      highlightTimersRef.current.forEach((tid) => clearTimeout(tid));
+      highlightTimersRef.current = [];
+    };
+  }, [carData]);
 
   const events = carData
   ? carData.flatMap(({ vin, history, id }) =>
@@ -93,7 +159,7 @@ export default function CompletedInventoryCard() {
                       navigate(`/cars/${item.id}`);
                     }
                   }}
-                  className={currentUser?.admin ? "cursor-pointer hover:bg-gray-200 dark:hover:bg-gray-700" : ""}
+                  className={`${currentUser?.admin ? "cursor-pointer hover:bg-gray-200 dark:hover:bg-gray-700" : ""} ${recentlyAdded[item.id] ? "bg-green-50 dark:bg-green-900/30" : ""}`}
                 >
                   <td className={`px-4 py-2 whitespace-nowrap ${
                       !item.designated_location
