@@ -1,5 +1,5 @@
 import React, { useContext, useState, useRef, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 import { CarDataContext } from "../../context/CarDataContextProvider";
 import { UserContext } from "../../context/UserContextProvider";
 
@@ -9,13 +9,45 @@ export default function CompletedInventoryCard() {
   const { currentUser } = useContext(UserContext);
   const [searchTerm, setSearchTerm] = useState("");
 
-  const [recentlyAdded, setRecentlyAdded] = useState({}); // { [carId]: true }
+  const [recentlyAdded, setRecentlyAdded] = useState({});
   const prevIdsRef = useRef(new Set());
   const didInitRef = useRef(false);
   const highlightTimersRef = useRef([]);
   const prevLatestRef = useRef(new Map()); // id -> latestCreatedAt (ms)
 
   const navigate = useNavigate();
+  const routeLocation = useLocation();
+
+  // If we navigated here with highlight instructions, apply highlight immediately even on first load
+  useEffect(() => {
+    const state = routeLocation?.state || {};
+    const ids = Array.isArray(state.highlightIds) ? state.highlightIds : [];
+    if (!ids.length) return;
+
+    setRecentlyAdded((prev) => {
+      const next = { ...prev };
+      ids.forEach((id) => (next[id] = true));
+      return next;
+    });
+
+    ids.forEach((id) => {
+      const tid = setTimeout(() => {
+        setRecentlyAdded((prev) => {
+          const next = { ...prev };
+          delete next[id];
+          return next;
+        });
+      }, 45 * 1000);
+      highlightTimersRef.current.push(tid);
+    });
+
+    // Clear the highlight state from history so it does not reapply on future navigations
+    if (routeLocation?.state?.highlightIds) {
+      window.history.replaceState({}, document.title, window.location.pathname + window.location.search);
+    }
+  // run once on mount
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   useEffect(() => {
     if (!Array.isArray(carData)) return;

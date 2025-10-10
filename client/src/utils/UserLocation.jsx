@@ -107,6 +107,5 @@ async function getAddressFromCoordinates(lat, lon) {
   }
 
   const data = await response.json();
-  console.log("USER'S ADDRESS:", data);
   return data.display_name;
 }

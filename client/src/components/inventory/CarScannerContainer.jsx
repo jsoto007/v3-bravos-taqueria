@@ -1,5 +1,6 @@
 import { useState, useContext, useEffect, lazy, Suspense } from "react";
 import { UserContext } from "../../context/UserContextProvider";
+import { CarDataContext } from "../../context/CarDataContextProvider";
 import ActionBtn from "../../shared/ActionBtn";
 import { useNavigate } from "react-router-dom";
 import Loading from "../../shared/Loading";
@@ -28,6 +29,7 @@ export default function CarScannerContainer() {
 
   const { currentUser } = useContext(UserContext);
   const navigate = useNavigate();
+  const { setCarData } = useContext(CarDataContext);
 
   const addCar = async (e) => {
     e.preventDefault();
@@ -55,11 +57,48 @@ export default function CarScannerContainer() {
 
       if (!response.ok) throw new Error("Failed to submit car");
 
-      // Optionally read the response (not needed for navigation)
-      await response.json();
+      // Parse the newly created car from the API
+      const created = await response.json();
+
+      // Shape it to match CarDataContext's expected structure
+      const historyEntry = {
+        created_at: created.created_at || new Date().toISOString(),
+        location: created.designated_location ? null : (created.location || location?.address || null),
+        user: currentUser?.email || null,
+        firstname: currentUser?.first_name || currentUser?.firstname || null,
+        lastname: currentUser?.last_name || currentUser?.lastname || null,
+        designated_location: created?.designated_location?.name || null,
+      };
+
+      const newItem = {
+        id: created.id,
+        vin: created.vin_number,
+        history: [historyEntry],
+      };
+
+      // Update context so the new item shows at the top; if same VIN exists, prepend to its history
+      setCarData?.((prev) => {
+        if (!Array.isArray(prev) || prev.length === 0) return [newItem];
+        const idxByVin = prev.findIndex((c) => c.vin === newItem.vin);
+        if (idxByVin >= 0) {
+          const updated = [...prev];
+          const existing = updated[idxByVin];
+          const merged = {
+            ...existing,
+            // prefer the newly created id if you treat each scan as a record
+            id: created.id || existing.id,
+            history: [historyEntry, ...(Array.isArray(existing.history) ? existing.history : [])],
+          };
+          // Move this VIN to the top to reflect recency
+          updated.splice(idxByVin, 1);
+          return [merged, ...updated];
+        }
+        // Otherwise, insert as a brand new VIN at the top
+        return [newItem, ...prev];
+      });
 
       // Navigate to dashboard on success
-      navigate("/dashboard");
+      navigate("/dashboard", { state: { highlightIds: [created.id].filter(Boolean), highlightVins: [created.vin_number].filter(Boolean), highlightAt: Date.now() } });
     } catch (err) {
       console.error(err);
       setErrors({ message: err.message });
