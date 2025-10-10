@@ -93,7 +93,6 @@ export async function userLocation(vin, setLocation, location) {
 
 async function getAddressFromCoordinates(lat, lon) {
   const apiKey = import.meta.env.VITE_LOCATIONIQ_API_KEY;
-  console.log("Loaded API Key:", apiKey);
 
   if (!apiKey) {
     throw new Error("Missing LocationIQ API key. Please set VITE_LOCATIONIQ_API_KEY in your .env file.");

@@ -7,49 +7,8 @@ import { Calendar, MapPin, User, KeySquare } from 'lucide-react';
 export default function CarVinScanHistoryCard( { selectedCar, scanHistory } ) {
 
 
-  // Default props if not provided
-  const defaultCar = {
-    vin: '1HGCM82633A123456',
-    make: 'Honda',
-    model: 'Accord',
-    year: '2023'
-  };
-
-  const defaultScanHistory = [
-    {
-      id: 1,
-      user: 'John Smith',
-      location: 'Los Angeles, CA',
-      dateTime: '2024-08-12 09:30:15'
-    },
-    {
-      id: 2,
-      user: 'Sarah Johnson',
-      location: 'San Francisco, CA',
-      dateTime: '2024-08-10 14:22:08'
-    },
-    {
-      id: 3,
-      user: 'Mike Davis',
-      location: 'Sacramento, CA',
-      dateTime: '2024-08-08 11:15:33'
-    },
-    {
-      id: 4,
-      user: 'Emily Wilson',
-      location: 'Oakland, CA',
-      dateTime: '2024-08-05 16:45:22'
-    },
-    {
-      id: 5,
-      user: 'Robert Brown',
-      location: 'San Jose, CA',
-      dateTime: '2024-08-03 13:12:45'
-    }
-  ];
-
-  const car = selectedCar || defaultCar;
-  const history = scanHistory || defaultScanHistory;
+  const car = selectedCar
+  const history = scanHistory
 
   const formatDateTime = (dateTime) => {
     const date = new Date(dateTime);
