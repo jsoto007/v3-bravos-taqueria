@@ -1,7 +1,7 @@
 import { useState, useContext, useEffect, lazy, Suspense } from "react";
 import { UserContext } from "../../context/UserContextProvider";
 import ActionBtn from "../../shared/ActionBtn";
-
+import { useNavigate } from "react-router-dom";
 
 const ScanbotScanner = lazy(() => import("../../utils/ScanbotScanner"));
 const ScanbotVinText = lazy(() => import("../../utils/ScanbotVinText"));
@@ -23,13 +23,13 @@ export default function CarScannerContainer() {
   const [location, setLocation] = useState("");
   const [year, setYear] = useState("");
   const [make, setMake] = useState("");
-  const [submittedCar, setSubmittedCar] = useState(null);
   const [errors, setErrors] = useState({});
   const [scanMode, setScanMode] = useState("scanner");
   const [decodedVin, setDecodedVin] = useState({});
   const [scanComplete, setScanComplete] = useState(false);
 
   const { currentUser } = useContext(UserContext);
+  const navigate = useNavigate();
 
   const addCar = async (e) => {
     e.preventDefault();
@@ -57,12 +57,11 @@ export default function CarScannerContainer() {
 
       if (!response.ok) throw new Error("Failed to submit car");
 
-      const data = await response.json();
-      setSubmittedCar(data);
-      
-      // After submission, show barcode scanner for next car
-      setScanMode("scanner");
-      setScanComplete(false);
+      // Optionally read the response (not needed for navigation)
+      await response.json();
+
+      // Navigate to dashboard on success
+      navigate("/dashboard");
     } catch (err) {
       console.error(err);
       setErrors({ message: err.message });
@@ -74,8 +73,6 @@ export default function CarScannerContainer() {
       if (decodedVin.vin) setVin(decodedVin.vin);
       if (decodedVin.info?.modelYear) setYear(decodedVin.info.modelYear);
       if (decodedVin.info?.manufacturer) setMake(decodedVin.info.manufacturer);
- 
-      
 
       setScanComplete(true);
     }
@@ -173,12 +170,6 @@ export default function CarScannerContainer() {
             color="bg-green-700/90 hover:bg-green-500 active:bg-green-700 dark:bg-green-700 dark:hover:bg-green-500 dark:active:bg-green-800"
         />
       </div>
-
-      {submittedCar && (
-        <div className="mt-4 text-green-600 dark:text-green-400 text-center">
-          Car with VIN <strong>{submittedCar.vin_number}</strong> submitted successfully!
-        </div>
-      )}
 
       {errors.message && (
         <div className="mt-4 text-red-600 dark:text-red-400 text-center">
