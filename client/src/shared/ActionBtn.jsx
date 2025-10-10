@@ -1,16 +1,47 @@
-import React from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 
-{/* <ActionBtn label="Submit" onClick={() => console.log("Clicked!")} /> */}
+// Usage:
+// <ActionBtn label="Submit" onClick={handleSubmit} />
+// Optional: <ActionBtn spinMs={2000} /> to customize the post-click spin duration
 
+export default function ActionBtn({
+  label = "Hold Me",
+  onClick,
+  color = "bg-indigo-600 hover:bg-indigo-700 active:bg-indigo-800",
+  spinMs = 2000,
+  disableWhileSpinning = false,
+}) {
+  const [isSpinning, setIsSpinning] = useState(false);
+  const timerRef = useRef(null);
 
-export default function ActionBtn({ label = "Hold Me", onClick, color = "bg-indigo-600 hover:bg-indigo-700 active:bg-indigo-800" }) {
+  useEffect(() => {
+    return () => {
+      if (timerRef.current) {
+        clearTimeout(timerRef.current);
+      }
+    };
+  }, []);
+
+  const handleClick = (e) => {
+    // Fire consumer click handler first
+    if (typeof onClick === 'function') {
+      onClick(e);
+    }
+    // Keep spinner running for `spinMs` after click
+    setIsSpinning(true);
+    if (timerRef.current) clearTimeout(timerRef.current);
+    timerRef.current = setTimeout(() => setIsSpinning(false), Math.max(0, spinMs));
+  };
+
   return (
     <button
-      onClick={onClick}
-      className={`cursor-pointer w-32 h-8 ${color} text-white rounded-lg hover:shadow-md transition-all group active:w-11 active:h-11 active:rounded-full active:duration-300 ease-in-out`}
+      onClick={handleClick}
+      disabled={disableWhileSpinning && isSpinning}
+      className={`cursor-pointer w-32 h-8 ${color} text-white rounded-lg hover:shadow-md transition-all ease-in-out`}
     >
+      {/* Spinner */}
       <svg
-        className="animate-spin hidden group-active:block mx-auto"
+        className={`animate-spin ${isSpinning ? 'block' : 'hidden'} mx-auto`}
         width="33"
         height="32"
         viewBox="0 0 33 32"
@@ -26,7 +57,9 @@ export default function ActionBtn({ label = "Hold Me", onClick, color = "bg-indi
           fill="white"
         />
       </svg>
-      <span className="group-active:hidden">{label}</span>
+
+      {/* Label */}
+      <span className={`${isSpinning ? 'hidden' : 'inline'}`}>{label}</span>
     </button>
   );
 }
