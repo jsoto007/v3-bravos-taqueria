@@ -2,15 +2,19 @@ import functools
 
 import os
 import uuid
-from flask import jsonify, request, make_response, render_template, session, send_from_directory, url_for, g
+from flask import jsonify, request, make_response, render_template, session, send_from_directory, url_for, g, send_file
 from services.auth_service import password_login
 from flask_migrate import Migrate
 from flask_restful import Api, Resource
 from flask_cors import CORS
 from sqlalchemy.orm import joinedload
+from sqlalchemy import func, and_
 from sqlalchemy.exc import IntegrityError, SQLAlchemyError
 from werkzeug.utils import secure_filename
 import uuid
+from io import BytesIO
+# -------- Stripe -------- #
+
 import assigned_location_check
 
 from config import db, app
@@ -590,6 +594,85 @@ class CarInventories(Resource):
 
         return '', 204
 
+class ExportLastScans(Resource):
+    """Owner admin export: one row per VIN with its latest scan in this account group.
+    Columns: Location, Date, User
+    """
+    @require_owner_admin
+    def get(self):
+        owner = g.user
+
+        # Build a subquery to get latest created_at per VIN within the same account group
+        subq = (
+            db.session.query(
+                CarInventory.vin_number.label('vin'),
+                func.max(CarInventory.created_at).label('max_created')
+            )
+            .filter(CarInventory.account_group_id == owner.account_group_id)
+            .group_by(CarInventory.vin_number)
+            .subquery()
+        )
+
+        # Join back to CarInventory to fetch the full rows for those latest scans
+        rows = (
+            db.session.query(CarInventory)
+            .options(joinedload(CarInventory.user))
+            .join(subq, and_(
+                CarInventory.vin_number == subq.c.vin,
+                CarInventory.created_at == subq.c.max_created
+            ))
+            .filter(CarInventory.account_group_id == owner.account_group_id)
+            .order_by(CarInventory.created_at.desc())
+            .all()
+        )
+
+        # Prepare tabular data
+        data = [(r.location or '',
+                 r.created_at.isoformat() if getattr(r, 'created_at', None) else '',
+                 (r.user.email if getattr(r, 'user', None) else '')) for r in rows]
+
+        # Try to produce a real Excel file (xlsx). Fallback to CSV if openpyxl isn't installed.
+        try:
+            from openpyxl import Workbook
+            wb = Workbook()
+            ws = wb.active
+            ws.title = "Last Scans"
+            ws.append(["Location", "Date", "User"])
+            for loc, dt, usr in data:
+                ws.append([loc, dt, usr])
+
+            bio = BytesIO()
+            wb.save(bio)
+            bio.seek(0)
+            filename = f"last_scans_{datetime.utcnow().strftime('%Y%m%d_%H%M%S')}.xlsx"
+            return send_file(
+                bio,
+                mimetype='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+                as_attachment=True,
+                download_name=filename
+            )
+        except ImportError:
+            # CSV fallback
+            import csv
+            bio = BytesIO()
+            # Write CSV content as UTF-8
+            import io as _io
+            text_io = _io.TextIOWrapper(bio, encoding='utf-8', newline='')
+            writer = csv.writer(text_io)
+            writer.writerow(["Location", "Date", "User"])
+            for row in data:
+                writer.writerow(row)
+            text_io.flush()
+            bio.seek(0)
+            filename = f"last_scans_{datetime.utcnow().strftime('%Y%m%d_%H%M%S')}.csv"
+            return send_file(
+                bio,
+                mimetype='text/csv',
+                as_attachment=True,
+                download_name=filename
+            )
+        
+        
 class UserInventories(Resource):
     @require_login
     def post(self):
@@ -1009,6 +1092,8 @@ api.add_resource(UploadPhoto, '/api/upload_photo', endpoint='upload_photo')
 api.add_resource(UploadPhoto, '/api/upload_photo/<int:id>', endpoint='upload_photo_by_id')
 api.add_resource(CarPhotos, '/api/car_photos', endpoint='car_photos')
 
+
+api.add_resource(ExportLastScans, '/api/export/last_scans.xlsx', endpoint='export_last_scans')
 api.add_resource(StripeWebhook, '/api/webhook/stripe', endpoint='stripe_webhook')
 
 
