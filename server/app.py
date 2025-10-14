@@ -622,10 +622,24 @@ class ExportLastScans(Resource):
             .all()
         )
 
-        # Prepare tabular data
-        data = [(r.location or '',
-                 r.created_at.isoformat() if getattr(r, 'created_at', None) else '',
-                 (r.user.email if getattr(r, 'user', None) else '')) for r in rows]
+        # Prepare tabular data (VIN, Location, Date, Scanned By)
+        def _full_name(u):
+            if not u:
+                return ''
+            first = (getattr(u, 'first_name', '') or '').strip()
+            last = (getattr(u, 'last_name', '') or '').strip()
+            name = (first + ' ' + last).strip()
+            return name or (getattr(u, 'email', '') or '')
+
+        data = [
+            (
+                r.vin_number or '',
+                r.location or '',
+                r.created_at.isoformat() if getattr(r, 'created_at', None) else '',
+                _full_name(getattr(r, 'user', None))
+            )
+            for r in rows
+        ]
 
         # Try to produce a real Excel file (xlsx). Fallback to CSV if openpyxl isn't installed.
         try:
@@ -633,9 +647,9 @@ class ExportLastScans(Resource):
             wb = Workbook()
             ws = wb.active
             ws.title = "Last Scans"
-            ws.append(["Location", "Date", "User"])
-            for loc, dt, usr in data:
-                ws.append([loc, dt, usr])
+            ws.append(["VIN", "Location", "Date", "Scanned By"])
+            for vin, loc, dt, scanned_by in data:
+                ws.append([vin, loc, dt, scanned_by])
 
             bio = BytesIO()
             wb.save(bio)
@@ -655,7 +669,7 @@ class ExportLastScans(Resource):
             import io as _io
             text_io = _io.TextIOWrapper(bio, encoding='utf-8', newline='')
             writer = csv.writer(text_io)
-            writer.writerow(["Location", "Date", "User"])
+            writer.writerow(["VIN", "Location", "Date", "Scanned By"])
             for row in data:
                 writer.writerow(row)
             text_io.flush()
