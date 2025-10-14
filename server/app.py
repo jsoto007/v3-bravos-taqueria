@@ -23,7 +23,15 @@ from sqlalchemy.pool import QueuePool
 # -------- Stripe -------- #
 
 import stripe
+
 from datetime import timezone, datetime, timedelta
+
+# --- Optional Excel support (install openpyxl) ---
+try:
+    from openpyxl import Workbook  # type: ignore
+    OPENPYXL_AVAILABLE = True
+except ImportError:  # pragma: no cover
+    OPENPYXL_AVAILABLE = False
 
 # ---------- Stripe ---------- #
 stripe.api_key = os.getenv('STRIPE_SECRET_KEY')
@@ -659,9 +667,8 @@ class ExportLastScans(Resource):
             for r in rows
         ]
 
-        # Try to produce a real Excel file (xlsx). Fallback to CSV if openpyxl isn't installed.
-        try:
-            from openpyxl import Workbook
+        # Prefer a real Excel file when possible. Fallback to CSV only if openpyxl isn't available.
+        if OPENPYXL_AVAILABLE:
             wb = Workbook()
             ws = wb.active
             ws.title = "Last Scans"
@@ -677,9 +684,10 @@ class ExportLastScans(Resource):
                 bio,
                 mimetype='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
                 as_attachment=True,
-                download_name=filename
+                download_name=filename,
+                conditional=False,  # send full body to avoid proxy range issues
             )
-        except ImportError:
+        else:
             # CSV fallback
             import csv
             import io as _io
@@ -695,13 +703,16 @@ class ExportLastScans(Resource):
             bio = BytesIO(csv_bytes)
             bio.seek(0)
             filename = f"last_scans_{datetime.now(timezone.utc).strftime('%Y%m%d_%H%M%S')}.csv"
-            return send_file(
+            resp = send_file(
                 bio,
                 mimetype='text/csv; charset=utf-8',
                 as_attachment=True,
-                download_name=filename
+                download_name=filename,
             )
-        
+            # Helpful signal for debugging why Excel wasn't produced
+            resp.headers['X-Export-Format'] = 'csv'
+            resp.headers['X-Openpyxl-Available'] = '0'
+            return resp
 class UserInventories(Resource):
     @require_login
     def post(self):
