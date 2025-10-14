@@ -91,7 +91,7 @@ export default function Footer() {
           ))}
         </div>
         <p className="mt-10 text-center text-sm/6 text-gray-600 dark:text-gray-400">
-            &copy; {year} <a href="https://sotodev.com/" target="_blank" rel="noopener noreferrer">SotoDev</a>, Inc. All rights reserved.
+            &copy; {year} <a href="https://sotodev.com/" target="_blank" rel="noopener noreferrer">SotoDev</a>, LLC. All rights reserved.
         </p>
       </div>
     </footer>
