@@ -1,18 +1,16 @@
-import functools
-
 import os
 import uuid
-from flask import jsonify, request, make_response, render_template, session, send_from_directory, url_for, g, send_file
-from services.auth_service import password_login
-from flask_migrate import Migrate
-from flask_restful import Api, Resource
-from flask_cors import CORS
-from sqlalchemy.orm import joinedload
-from sqlalchemy import func, and_
-from sqlalchemy.exc import IntegrityError, SQLAlchemyError
-from werkzeug.utils import secure_filename
-import uuid
+import functools
 from io import BytesIO
+from flask_cors import CORS
+from flask_migrate import Migrate
+from sqlalchemy import func, and_
+from sqlalchemy.orm import joinedload
+from flask_restful import Api, Resource
+from werkzeug.utils import secure_filename
+from services.auth_service import password_login
+from sqlalchemy.exc import IntegrityError, SQLAlchemyError
+from flask import jsonify, request, make_response, render_template, session, send_from_directory, url_for, g, send_file
 # -------- Stripe -------- #
 
 import assigned_location_check
@@ -595,9 +593,7 @@ class CarInventories(Resource):
         return '', 204
 
 class ExportLastScans(Resource):
-    """Owner admin export: one row per VIN with its latest scan in this account group.
-    Columns: Location, Date, User
-    """
+
     @require_owner_admin
     def get(self):
         owner = g.user
@@ -671,7 +667,6 @@ class ExportLastScans(Resource):
                 as_attachment=True,
                 download_name=filename
             )
-        
         
 class UserInventories(Resource):
     @require_login
