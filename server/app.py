@@ -682,20 +682,22 @@ class ExportLastScans(Resource):
         except ImportError:
             # CSV fallback
             import csv
-            bio = BytesIO()
-            # Write CSV content as UTF-8
             import io as _io
-            text_io = _io.TextIOWrapper(bio, encoding='utf-8', newline='')
-            writer = csv.writer(text_io)
+
+            # Write CSV to a text buffer first, then encode once into bytes.
+            text_buf = _io.StringIO()
+            writer = csv.writer(text_buf)
             writer.writerow(["VIN", "Designated Location", "Location", "Date", "Scanned By"])
             for row in data:
                 writer.writerow(row)
-            text_io.flush()
+            csv_bytes = text_buf.getvalue().encode('utf-8')
+
+            bio = BytesIO(csv_bytes)
             bio.seek(0)
             filename = f"last_scans_{datetime.now(timezone.utc).strftime('%Y%m%d_%H%M%S')}.csv"
             return send_file(
                 bio,
-                mimetype='text/csv',
+                mimetype='text/csv; charset=utf-8',
                 as_attachment=True,
                 download_name=filename
             )
