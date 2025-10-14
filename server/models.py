@@ -181,23 +181,23 @@ class User(db.Model, SerializerMixin):
         return bcrypt.check_password_hash(self._password_hash, password.encode('utf-8'))
 
     def deactivate(self, when=None):
-        """Mark the user as inactive and timestamp when this happened."""
+
         self.is_active = False
         # If a datetime is provided use it, otherwise use current UTC time (aware)
         self.deactivated_at = when or datetime.now(timezone.utc)
 
     def activate(self):
-        """Reactivate the user and clear the deactivation timestamp."""
+
         self.is_active = True
         self.deactivated_at = None
 
     def mark_last_login(self, when=None):
-      """Optional helper to update last login timestamp."""
+
       if hasattr(self, 'last_login_at'):
           self.last_login_at = when or datetime.now(timezone.utc)
 
     def is_locked_out(self, email=None, ip_address=None):
-        """Check if user/email is currently under login cooldown."""
+
         now = datetime.now(timezone.utc)
         # Prefer user_id lookup when available
         q = AuthThrottle.query
@@ -218,10 +218,7 @@ class User(db.Model, SerializerMixin):
 # Auth Throttle Model
 # -------------------------------------
 class AuthThrottle(db.Model, SerializerMixin):
-    """
-    Tracks authentication attempts per user/email/device/IP to enforce a cooldown
-    after too many failed attempts in a short time window.
-    """
+
     __tablename__ = 'auth_throttles'
 
     id = db.Column(db.Integer, primary_key=True)
@@ -291,12 +288,7 @@ class AuthThrottle(db.Model, SerializerMixin):
         return delta <= AUTH_THROTTLE_WINDOW_SECS
 
     def register_attempt(self, success: bool, now=None):
-        """
-        Call this on every login attempt (before final response):
-        - If success: reset counts and clear lockout.
-        - If failure: increment and lock if threshold exceeded within window.
-        Returns a tuple (is_locked: bool, attempts: int, locked_until: datetime|None).
-        """
+
         now = now or datetime.now(timezone.utc)
 
         # Respect active lockout

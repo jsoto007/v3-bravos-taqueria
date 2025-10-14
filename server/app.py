@@ -612,7 +612,10 @@ class ExportLastScans(Resource):
         # Join back to CarInventory to fetch the full rows for those latest scans
         rows = (
             db.session.query(CarInventory)
-            .options(joinedload(CarInventory.user))
+            .options(
+                joinedload(CarInventory.user),
+                joinedload(CarInventory.designated_location)
+            )
             .join(subq, and_(
                 CarInventory.vin_number == subq.c.vin,
                 CarInventory.created_at == subq.c.max_created
@@ -622,7 +625,21 @@ class ExportLastScans(Resource):
             .all()
         )
 
-        # Prepare tabular data (VIN, Location, Date, Scanned By)
+        # Prepare tabular data (VIN, Designated Location, Location, Date, Scanned By)
+        def _fmt_dt(dt):
+            if not dt:
+                return ''
+            try:
+                # Ensure timezone-aware in UTC
+                if dt.tzinfo is None:
+                    dt = dt.replace(tzinfo=timezone.utc)
+                dt_utc = dt.astimezone(timezone.utc)
+                # Example: Oct 13, 2025 04:05 PM UTC
+                return dt_utc.strftime('%b %d, %Y %I:%M %p UTC')
+            except Exception:
+                # Fallback to ISO if anything unexpected happens
+                return dt.isoformat() if hasattr(dt, 'isoformat') else str(dt)
+
         def _full_name(u):
             if not u:
                 return ''
@@ -634,8 +651,9 @@ class ExportLastScans(Resource):
         data = [
             (
                 r.vin_number or '',
+                (getattr(r, 'designated_location', None).name if getattr(r, 'designated_location', None) else ''),
                 r.location or '',
-                r.created_at.isoformat() if getattr(r, 'created_at', None) else '',
+                _fmt_dt(getattr(r, 'created_at', None)),
                 _full_name(getattr(r, 'user', None))
             )
             for r in rows
@@ -647,14 +665,14 @@ class ExportLastScans(Resource):
             wb = Workbook()
             ws = wb.active
             ws.title = "Last Scans"
-            ws.append(["VIN", "Location", "Date", "Scanned By"])
-            for vin, loc, dt, scanned_by in data:
-                ws.append([vin, loc, dt, scanned_by])
+            ws.append(["VIN", "Designated Location", "Location", "Date", "Scanned By"])
+            for vin, dloc, loc, dt, scanned_by in data:
+                ws.append([vin, dloc, loc, dt, scanned_by])
 
             bio = BytesIO()
             wb.save(bio)
             bio.seek(0)
-            filename = f"last_scans_{datetime.utcnow().strftime('%Y%m%d_%H%M%S')}.xlsx"
+            filename = f"last_scans_{datetime.now(timezone.utc).strftime('%Y%m%d_%H%M%S')}.xlsx"
             return send_file(
                 bio,
                 mimetype='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
@@ -669,12 +687,12 @@ class ExportLastScans(Resource):
             import io as _io
             text_io = _io.TextIOWrapper(bio, encoding='utf-8', newline='')
             writer = csv.writer(text_io)
-            writer.writerow(["VIN", "Location", "Date", "Scanned By"])
+            writer.writerow(["VIN", "Designated Location", "Location", "Date", "Scanned By"])
             for row in data:
                 writer.writerow(row)
             text_io.flush()
             bio.seek(0)
-            filename = f"last_scans_{datetime.utcnow().strftime('%Y%m%d_%H%M%S')}.csv"
+            filename = f"last_scans_{datetime.now(timezone.utc).strftime('%Y%m%d_%H%M%S')}.csv"
             return send_file(
                 bio,
                 mimetype='text/csv',
