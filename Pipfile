@@ -4,13 +4,13 @@ verify_ssl = true
 name = "pypi"
 
 [packages]
-flask_sqlalchemy = ">=3.0.0"
 flask-migrate = "*"
 flask-restful = "*"
 gunicorn = "*"
 honcho = "*"
 importlib-metadata = "*"
 psycopg2-binary = "*"
+stripe = "*"
 python-dotenv = "*"
 sqlalchemy-serializer = "*"
 flask-cors = "*"
@@ -20,4 +20,4 @@ flask-sqlalchemy = "*"
 [dev-packages]
 
 [requires]
-python_version = "3.8.13"
+python_version = "3.11.9"
