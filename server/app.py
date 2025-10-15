@@ -13,10 +13,9 @@ from sqlalchemy.exc import IntegrityError, SQLAlchemyError
 from flask import jsonify, request, make_response, render_template, session, send_from_directory, url_for, g, send_file
 # -------- Stripe -------- #
 
-import assigned_location_check
 
 from config import db, app
-from models import User, CarInventory, CarPhoto, MasterCarRecord, UserInventory, AccountGroup, CarNote, DesignatedLocation, OwnerDealer, NOTE_MAX_LEN
+
 
 from sqlalchemy.pool import QueuePool
 

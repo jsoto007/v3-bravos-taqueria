@@ -5,25 +5,22 @@ from sqlalchemy.orm import validates
 from sqlalchemy.ext.hybrid import hybrid_property
 from sqlalchemy.orm import relationship, backref
 
-from sqlalchemy import CheckConstraint, Index
+from sqlalchemy import CheckConstraint, Index, UniqueConstraint
+from sqlalchemy.dialects.postgresql import JSONB
 
 from config import db, bcrypt
 
-
 import re
-
-from datetime import datetime, timedelta, timezone
+from decimal import Decimal
+from datetime import datetime, timedelta, timezone, date
 
 
 # Max length for user-entered notes
 NOTE_MAX_LEN = 1000
 
 # --- Login throttle configuration ---
-# Maximum failed attempts allowed within the rolling window before cooldown
 AUTH_THROTTLE_MAX_ATTEMPTS = 5
-# Size of the rolling window (seconds) to count attempts
 AUTH_THROTTLE_WINDOW_SECS = 15 * 60  # 15 minutes
-# Lockout / cooldown duration after exceeding max attempts
 AUTH_THROTTLE_LOCKOUT_SECS = 30 * 60  # 30 minutes
 
 # --- Safe coercion helpers (handle strings from form/json payloads) ---
@@ -35,13 +32,11 @@ def _coerce_int(value, field_name):
     if isinstance(value, str):
         if value.strip() == "":
             return None
-        # allow strings like "2024\n" or " 2024 "
         try:
             return int(value.strip())
         except ValueError:
             raise ValueError(f"{field_name} must be an integer")
     if isinstance(value, bool):
-        # prevent True/False being treated as 1/0
         raise ValueError(f"{field_name} must be an integer")
     try:
         return int(value)
@@ -67,87 +62,37 @@ def _coerce_float(value, field_name):
     except (TypeError, ValueError):
         raise ValueError(f"{field_name} must be a number")
 
-
-# Association model for owner_dealers
-class OwnerDealer(db.Model, SerializerMixin):
-    __tablename__ = 'owner_dealers'
-
-    user_id = db.Column(db.Integer, db.ForeignKey('users.id'), primary_key=True)
-    account_group_id = db.Column(db.Integer, db.ForeignKey('account_groups.id'), primary_key=True)
-
-    created_at = db.Column(db.DateTime(timezone=True), server_default=db.func.now())
-
-    user = relationship('User', backref=backref('owner_dealer_links', cascade='all, delete-orphan'))
-    account_group = relationship('AccountGroup', backref=backref('owner_dealer_links', cascade='all, delete-orphan'))
-
-
-class AccountGroup(db.Model, SerializerMixin):
-    __tablename__ = 'account_groups'
-
-    serialize_rules = (
-        '-users.account_group',
-        '-user_inventories.account_group',
-        '-car_inventories.account_group',
-    )
-
-    id = db.Column(db.Integer, primary_key=True)
-    group_key = db.Column(db.String(120), unique=True, nullable=False)
-    is_active = db.Column(db.Boolean, default=True)
-    paid_until = db.Column(db.DateTime(timezone=True), nullable=True)
-
-    stripe_customer_id = db.Column(db.String(255), unique=True, index=True)
-    stripe_subscription_id = db.Column(db.String(255), unique=True, index=True)
-    created_at = db.Column(db.DateTime(timezone=True), server_default=db.func.now())
-
-    users = relationship('User', backref='account_group', cascade='all, delete-orphan')
-
-    @validates("group_key")
-    def validate_group_key(self, key, value):
-        if not value:
-            raise ValueError("group_key must not be empty")
-        cleaned = value.strip()
-        if len(cleaned) > 120:
-            raise ValueError("group_key is too long")
-        return cleaned
-
-
+# -------------------------------------
+# User & Auth
+# -------------------------------------
 class User(db.Model, SerializerMixin):
     __tablename__ = 'users'
 
     serialize_rules = (
-        '-account_group.users',
-        '-user_inventories.user',
-        '-car_inventories.user',
         '-_password_hash',
+        '-addresses.user',
+        '-carts.user',
+        '-orders.user',
+        '-auth_throttles.user',
     )
 
     id = db.Column(db.Integer, primary_key=True)
-    email = db.Column(db.String(254), unique=True, nullable=False)
+    email = db.Column(db.String(254), unique=True, nullable=False, index=True)
     _password_hash = db.Column(db.String, nullable=False)
 
-    first_name = db.Column(db.String(120), unique=False, nullable=True)
-    last_name = db.Column(db.String(120), unique=False, nullable=True)
+    first_name = db.Column(db.String(120), nullable=True)
+    last_name = db.Column(db.String(120), nullable=True)
 
+    # Roles kept here as booleans per request
     admin = db.Column(db.Boolean, default=False)
     is_owner_admin = db.Column(db.Boolean, default=False)
 
-    is_active = db.Column(db.Boolean, nullable=True, default=True, index=True)
+    is_active = db.Column(db.Boolean, nullable=False, default=True, index=True)
     deactivated_at = db.Column(db.DateTime(timezone=True), nullable=True)
-    account_group_id = db.Column(db.Integer, db.ForeignKey('account_groups.id'), nullable=False)
 
     created_at = db.Column(db.DateTime(timezone=True), server_default=db.func.now())
     updated_at = db.Column(db.DateTime(timezone=True), onupdate=db.func.now())
     last_login_at = db.Column(db.DateTime(timezone=True), nullable=True, index=True)
-    __table_args__ = (
-        Index('ix_users_account_group', 'account_group_id'),
-        Index('ix_users_is_active', 'is_active'),
-    )
-
-    owned_account_groups = relationship(
-        'AccountGroup',
-        secondary='owner_dealers',
-        backref='owner_admins'
-    )
 
     @validates("email")
     def validate_email(self, key, email):
@@ -181,25 +126,19 @@ class User(db.Model, SerializerMixin):
         return bcrypt.check_password_hash(self._password_hash, password.encode('utf-8'))
 
     def deactivate(self, when=None):
-
         self.is_active = False
-        # If a datetime is provided use it, otherwise use current UTC time (aware)
         self.deactivated_at = when or datetime.now(timezone.utc)
 
     def activate(self):
-
         self.is_active = True
         self.deactivated_at = None
 
     def mark_last_login(self, when=None):
-
-      if hasattr(self, 'last_login_at'):
-          self.last_login_at = when or datetime.now(timezone.utc)
+        if hasattr(self, 'last_login_at'):
+            self.last_login_at = when or datetime.now(timezone.utc)
 
     def is_locked_out(self, email=None, ip_address=None):
-
         now = datetime.now(timezone.utc)
-        # Prefer user_id lookup when available
         q = AuthThrottle.query
         if self.id:
             q = q.filter_by(user_id=self.id)
@@ -214,29 +153,39 @@ class User(db.Model, SerializerMixin):
         return f'User {self.email}, ID: {self.id}'
 
 
+class Address(db.Model, SerializerMixin):
+    __tablename__ = 'addresses'
+
+    id = db.Column(db.Integer, primary_key=True)
+    user_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
+    line1 = db.Column(db.String(255), nullable=False)
+    line2 = db.Column(db.String(255))
+    city = db.Column(db.String(100), nullable=False)
+    state = db.Column(db.String(100), nullable=False)
+    postal_code = db.Column(db.String(20), nullable=False)
+    country = db.Column(db.String(2), default='US', nullable=False)
+    is_default = db.Column(db.Boolean, default=False)
+
+    user = relationship('User', backref=backref('addresses', cascade='all, delete-orphan'))
+
 # -------------------------------------
-# Auth Throttle Model
+# Auth Throttle
 # -------------------------------------
 class AuthThrottle(db.Model, SerializerMixin):
-
     __tablename__ = 'auth_throttles'
 
     id = db.Column(db.Integer, primary_key=True)
 
-    # When user_id isn't known yet (login by email), store normalized email
     user_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=True, index=True)
     email = db.Column(db.String(254), nullable=True, index=True)
 
-    # Optional signals for finer-grained throttling
     ip_address = db.Column(db.String(64), nullable=True, index=True)
     device_id = db.Column(db.String(64), nullable=True, index=True)
 
-    # Rolling window
     attempts = db.Column(db.Integer, nullable=False, default=0)
     window_started_at = db.Column(db.DateTime(timezone=True), nullable=True)
     last_attempt_at = db.Column(db.DateTime(timezone=True), nullable=True)
 
-    # Cooldown
     locked_until = db.Column(db.DateTime(timezone=True), nullable=True, index=True)
 
     created_at = db.Column(db.DateTime(timezone=True), server_default=db.func.now())
@@ -248,7 +197,6 @@ class AuthThrottle(db.Model, SerializerMixin):
         Index('ix_auth_throttle_lookup', 'user_id', 'email', 'ip_address', 'device_id'),
     )
 
-    # ---------------- Convenience API ---------------- #
     @staticmethod
     def _normalize_email(email):
         return email.strip().lower() if isinstance(email, str) else None
@@ -288,348 +236,280 @@ class AuthThrottle(db.Model, SerializerMixin):
         return delta <= AUTH_THROTTLE_WINDOW_SECS
 
     def register_attempt(self, success: bool, now=None):
-
         now = now or datetime.now(timezone.utc)
-
-        # Respect active lockout
         if self.locked_until and self.locked_until > now:
             self.last_attempt_at = now
             return True, self.attempts, self.locked_until
-
         if success:
             self.attempts = 0
             self.window_started_at = None
             self.locked_until = None
             self.last_attempt_at = now
             return False, self.attempts, None
-
-        # Failure path
         if not self._within_window(now):
-            # start a new window
             self.window_started_at = now
             self.attempts = 1
         else:
             self.attempts = (self.attempts or 0) + 1
-
         self.last_attempt_at = now
-
         if self.attempts >= AUTH_THROTTLE_MAX_ATTEMPTS:
             self.locked_until = now + timedelta(seconds=AUTH_THROTTLE_LOCKOUT_SECS)
-            # reset window so next period starts fresh after lockout
             self.window_started_at = None
         else:
             self.locked_until = None
-
         return bool(self.locked_until and self.locked_until > now), self.attempts, self.locked_until
 
-
-
-class UserInventory(db.Model, SerializerMixin):
-    __tablename__ = 'user_inventories'
-
-    serialize_rules = (
-        '-user.user_inventories',
-        '-user.account_group',
-        '-account_group.user_inventories',
-        '-car_inventories.user_inventory',
-        '-car_inventories.user',
-    )
-
-    id = db.Column(db.Integer, primary_key=True)
-    user_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
-    account_group_id = db.Column(db.Integer, db.ForeignKey('account_groups.id'), nullable=False)
-
-    submitted = db.Column(db.Boolean, default=False)
-    reviewed = db.Column(db.Boolean, default=False)
-    created_at = db.Column(db.DateTime(timezone=True), server_default=db.func.now())
-
-    user = relationship('User', backref=backref('user_inventories', cascade='all, delete-orphan'))
-    account_group = relationship('AccountGroup', backref=backref('user_inventories', cascade='all, delete-orphan'))
-
-
-class DesignatedLocation(db.Model, SerializerMixin):
-    __tablename__ = 'designated_locations'
-
+# -------------------------------------
+# Menu & Modifiers
+# -------------------------------------
+class Category(db.Model, SerializerMixin):
+    __tablename__ = 'categories'
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(120), nullable=False)
-    latitude = db.Column(db.Float, nullable=False)
-    longitude = db.Column(db.Float, nullable=False)
-    account_group_id = db.Column(db.Integer, db.ForeignKey('account_groups.id'), nullable=False)
-    created_at = db.Column(db.DateTime(timezone=True), server_default=db.func.now())
+    sort_order = db.Column(db.Integer, default=0)
+    is_active = db.Column(db.Boolean, default=True, nullable=False)
 
-    __table_args__ = (
-        CheckConstraint('latitude BETWEEN -90 AND 90', name='ck_designated_loc_lat_range'),
-        CheckConstraint('longitude BETWEEN -180 AND 180', name='ck_designated_loc_lng_range'),
-        Index('ix_designated_location_group', 'account_group_id'),
-    )
+class MenuItem(db.Model, SerializerMixin):
+    __tablename__ = 'menu_items'
+    id = db.Column(db.Integer, primary_key=True)
+    category_id = db.Column(db.Integer, db.ForeignKey('categories.id'))
+    name = db.Column(db.String(160), nullable=False, index=True)
+    description = db.Column(db.Text)
+    price = db.Column(db.Numeric(10,2), nullable=False)
+    tax_class = db.Column(db.String(32), default='food')
+    is_active = db.Column(db.Boolean, default=True, nullable=False)
+    image_url = db.Column(db.String(500))
+    category = relationship('Category', backref=backref('menu_items', cascade='all, delete-orphan'))
 
-    account_group = relationship('AccountGroup', backref=backref('designated_locations', cascade='all, delete-orphan'))
-
-    @validates("latitude")
-    def validate_latitude(self, key, lat):
-        num = _coerce_float(lat, "latitude")
-        if num is None:
-            raise ValueError("latitude is required")
-        if num < -90 or num > 90:
-            raise ValueError("latitude must be between -90 and 90")
-        return num
-
-    @validates("longitude")
-    def validate_longitude(self, key, lng):
-        num = _coerce_float(lng, "longitude")
-        if num is None:
-            raise ValueError("longitude is required")
-        if num < -180 or num > 180:
-            raise ValueError("longitude must be between -180 and 180")
-        return num
-
-    @validates("name")
+    @validates('name')
     def validate_name(self, key, value):
         if not value:
-            raise ValueError("name must not be empty")
+            raise ValueError('name must not be empty')
         cleaned = value.strip()
-        if len(cleaned) > 120:
-            raise ValueError("name is too long (max 120 chars)")
+        if len(cleaned) > 160:
+            raise ValueError('name is too long (max 160 chars)')
         return cleaned
 
-
-class CarInventory(db.Model, SerializerMixin):
-    __tablename__ = 'car_inventories'
-
-    serialize_rules = (
-        '-user.car_inventories',
-        '-user_inventory.car_inventories',
-        '-account_group.car_inventories',
-        '-photos.car_inventory',
-        '-notes.car_inventory',
-    )
-
+class ModifierGroup(db.Model, SerializerMixin):
+    __tablename__ = 'modifier_groups'
     id = db.Column(db.Integer, primary_key=True)
-    location = db.Column(db.String(255), nullable=False)
-    vin_number = db.Column(db.String(17), unique=False, nullable=False, index=True)
-    year = db.Column(db.Integer, nullable=True)
-    make = db.Column(db.String(255), nullable=True)
-    color = db.Column(db.String(255), nullable=True)
-    body = db.Column(db.String(255), nullable=True)
+    name = db.Column(db.String(120), nullable=False)
+    min_choices = db.Column(db.Integer, default=0)
+    max_choices = db.Column(db.Integer)
+    required = db.Column(db.Boolean, default=False)
 
-    latitude = db.Column(db.Float, nullable=True)
-    longitude = db.Column(db.Float, nullable=True)
+class ModifierOption(db.Model, SerializerMixin):
+    __tablename__ = 'modifier_options'
+    id = db.Column(db.Integer, primary_key=True)
+    group_id = db.Column(db.Integer, db.ForeignKey('modifier_groups.id'), nullable=False)
+    name = db.Column(db.String(120), nullable=False)
+    price_delta = db.Column(db.Numeric(10,2), default=Decimal('0.00'), nullable=False)
+    is_active = db.Column(db.Boolean, default=True, nullable=False)
+    group = relationship('ModifierGroup', backref=backref('options', cascade='all, delete-orphan'))
 
-    user_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
-    user_inventory_id = db.Column(db.Integer, db.ForeignKey('user_inventories.id'), nullable=True)
-    account_group_id = db.Column(db.Integer, db.ForeignKey('account_groups.id'), nullable=False)
-    designated_location_id = db.Column(db.Integer, db.ForeignKey('designated_locations.id'), nullable=True)
+class MenuItemModifierGroup(db.Model, SerializerMixin):
+    __tablename__ = 'menu_item_modifier_groups'
+    id = db.Column(db.Integer, primary_key=True)
+    menu_item_id = db.Column(db.Integer, db.ForeignKey('menu_items.id'), nullable=False)
+    modifier_group_id = db.Column(db.Integer, db.ForeignKey('modifier_groups.id'), nullable=False)
+    __table_args__ = (UniqueConstraint('menu_item_id','modifier_group_id', name='uq_item_group'),)
+    menu_item = relationship('MenuItem', backref=backref('modifier_groups', cascade='all, delete-orphan'))
+    group = relationship('ModifierGroup')
 
+# -------------------------------------
+# Cart & Checkout
+# -------------------------------------
+class Cart(db.Model, SerializerMixin):
+    __tablename__ = 'carts'
+    id = db.Column(db.Integer, primary_key=True)
+    user_id = db.Column(db.Integer, db.ForeignKey('users.id'))  # nullable for guests
+    session_id = db.Column(db.String(64), index=True)
+    currency = db.Column(db.String(3), default='USD', nullable=False)
     created_at = db.Column(db.DateTime(timezone=True), server_default=db.func.now())
     updated_at = db.Column(db.DateTime(timezone=True), onupdate=db.func.now())
-    __table_args__ = (
-        CheckConstraint('(latitude IS NULL) OR (latitude BETWEEN -90 AND 90)', name='ck_car_inv_lat_range'),
-        CheckConstraint('(longitude IS NULL) OR (longitude BETWEEN -180 AND 180)', name='ck_car_inv_lng_range'),
-        Index('ix_car_inv_group_vin', 'account_group_id', 'vin_number'),
-        Index('ix_car_inv_group_created', 'account_group_id', 'created_at'),
-    )
+    user = relationship('User', backref=backref('carts', cascade='all, delete-orphan'))
 
-    user = relationship('User', backref=backref('car_inventories'))
-    user_inventory = relationship('UserInventory', backref=backref('car_inventories', cascade='all, delete-orphan'))
-    account_group = relationship('AccountGroup', backref=backref('car_inventories', cascade='all, delete-orphan'))
-    designated_location = relationship('DesignatedLocation', backref=backref('car_inventories'))
-    notes = relationship('CarNote', backref='car_inventory', cascade='all, delete-orphan')
-
-    @validates("vin_number")
-    def validate_vin(self, key, vin):
-        if vin is None:
-            raise ValueError("vin_number must not be empty")
-        cleaned = str(vin).strip().upper()
-        vin_regex = r"^[A-HJ-NPR-Z0-9]{17}$"
-        if not cleaned or not re.match(vin_regex, cleaned):
-            raise ValueError("vin_number must be 17 chars and may not contain I, O, or Q")
-        return cleaned
-
-    @validates("year")
-    def validate_year(self, key, year):
-        y = _coerce_int(year, "year")
-        if y is None:
-            return None
-        current_plus_one = datetime.now(timezone.utc).year + 1
-        if y < 1886 or y > current_plus_one:
-            raise ValueError(f"year must be between 1886 and {current_plus_one}")
-        return y
-
-    @validates("latitude")
-    def validate_latitude(self, key, lat):
-        num = _coerce_float(lat, "latitude")
-        if num is None:
-            return None
-        if num < -90 or num > 90:
-            raise ValueError("latitude must be between -90 and 90")
-        return num
-
-    @validates("longitude")
-    def validate_longitude(self, key, lng):
-        num = _coerce_float(lng, "longitude")
-        if num is None:
-            return None
-        if num < -180 or num > 180:
-            raise ValueError("longitude must be between -180 and 180")
-        return num
-
-    @validates("location", "make", "color", "body")
-    def normalize_strings(self, key, value):
-        if value is None:
-            return None
-        cleaned = value.strip()
-        if len(cleaned) > 255:
-            raise ValueError(f"{key} is too long (max 255 chars)")
-        return cleaned
-
-    def to_dict(self):
-        designated_location_dict = None
-        if self.designated_location:
-            designated_location_dict = {
-                "id": self.designated_location.id,
-                "name": self.designated_location.name,
-                "latitude": self.designated_location.latitude,
-                "longitude": self.designated_location.longitude,
-            }
-        return {
-            "id": self.id,
-            "location": self.location if not designated_location_dict else None,
-            "vin_number": self.vin_number,
-            "year": self.year,
-            "make": self.make,
-            "user_id": self.user_id,
-            "user_inventory_id": self.user_inventory_id,
-            "account_group_id": self.account_group_id,
-            "designated_location_id": self.designated_location_id,
-            "designated_location": designated_location_dict,
-            "created_at": self.created_at.isoformat() if self.created_at else None,
-            "updated_at": self.updated_at.isoformat() if self.updated_at else None,
-        }
-
-    def __repr__(self):
-        return f'<CarInventory VIN: {self.vin_number}>'
-
-
-class CarNote(db.Model, SerializerMixin):
-    __tablename__ = 'car_notes'
-
-    serialize_rules = (
-        '-car_inventory.notes',
-    )
-
+class CartItem(db.Model, SerializerMixin):
+    __tablename__ = 'cart_items'
     id = db.Column(db.Integer, primary_key=True)
-    car_inventory_id = db.Column(db.Integer, db.ForeignKey('car_inventories.id'), nullable=False)
-    content = db.Column(db.Text, nullable=False)
+    cart_id = db.Column(db.Integer, db.ForeignKey('carts.id'), nullable=False)
+    menu_item_id = db.Column(db.Integer, db.ForeignKey('menu_items.id'), nullable=False)
+    qty = db.Column(db.Integer, nullable=False, default=1)
+    unit_price = db.Column(db.Numeric(10,2), nullable=False)
+    notes = db.Column(db.String(300))
+    cart = relationship('Cart', backref=backref('items', cascade='all, delete-orphan'))
+    menu_item = relationship('MenuItem')
+
+class CartItemModifier(db.Model, SerializerMixin):
+    __tablename__ = 'cart_item_modifiers'
+    id = db.Column(db.Integer, primary_key=True)
+    cart_item_id = db.Column(db.Integer, db.ForeignKey('cart_items.id'), nullable=False)
+    modifier_option_id = db.Column(db.Integer, db.ForeignKey('modifier_options.id'), nullable=False)
+    price_delta = db.Column(db.Numeric(10,2), nullable=False, default=Decimal('0.00'))
+    cart_item = relationship('CartItem', backref=backref('modifiers', cascade='all, delete-orphan'))
+    option = relationship('ModifierOption')
+
+class Order(db.Model, SerializerMixin):
+    __tablename__ = 'orders'
+    id = db.Column(db.Integer, primary_key=True)
+    user_id = db.Column(db.Integer, db.ForeignKey('users.id'))
+    status = db.Column(db.String(32), default='pending', index=True)
+    channel = db.Column(db.String(16), default='web')
+    fulfillment = db.Column(db.String(16), nullable=False)  # pickup | delivery
+    subtotal = db.Column(db.Numeric(10,2), nullable=False, default=0)
+    tax_total = db.Column(db.Numeric(10,2), nullable=False, default=0)
+    discount_total = db.Column(db.Numeric(10,2), nullable=False, default=0)
+    delivery_fee = db.Column(db.Numeric(10,2), nullable=False, default=0)
+    tip = db.Column(db.Numeric(10,2), nullable=False, default=0)
+    grand_total = db.Column(db.Numeric(10,2), nullable=False, default=0)
+    currency = db.Column(db.String(3), default='USD', nullable=False)
+    placed_at = db.Column(db.DateTime(timezone=True), server_default=db.func.now())
+    user = relationship('User', backref=backref('orders', cascade='all, delete-orphan'))
+
+class OrderItem(db.Model, SerializerMixin):
+    __tablename__ = 'order_items'
+    id = db.Column(db.Integer, primary_key=True)
+    order_id = db.Column(db.Integer, db.ForeignKey('orders.id'), nullable=False)
+    menu_item_name = db.Column(db.String(160), nullable=False)
+    qty = db.Column(db.Integer, nullable=False, default=1)
+    unit_price = db.Column(db.Numeric(10,2), nullable=False)
+    line_total = db.Column(db.Numeric(10,2), nullable=False)
+    notes = db.Column(db.String(300))
+    order = relationship('Order', backref=backref('items', cascade='all, delete-orphan'))
+
+class OrderItemModifier(db.Model, SerializerMixin):
+    __tablename__ = 'order_item_modifiers'
+    id = db.Column(db.Integer, primary_key=True)
+    order_item_id = db.Column(db.Integer, db.ForeignKey('order_items.id'), nullable=False)
+    name = db.Column(db.String(160), nullable=False)
+    price_delta = db.Column(db.Numeric(10,2), nullable=False)
+    order_item = relationship('OrderItem', backref=backref('modifiers', cascade='all, delete-orphan'))
+
+class Payment(db.Model, SerializerMixin):
+    __tablename__ = 'payments'
+    id = db.Column(db.Integer, primary_key=True)
+    order_id = db.Column(db.Integer, db.ForeignKey('orders.id'), nullable=False)
+    provider = db.Column(db.String(32))  # stripe, cash, square, etc.
+    reference = db.Column(db.String(120), index=True)
+    amount = db.Column(db.Numeric(10,2), nullable=False)
+    currency = db.Column(db.String(3), default='USD', nullable=False)
+    status = db.Column(db.String(32), default='authorized')
+    processed_at = db.Column(db.DateTime(timezone=True), server_default=db.func.now())
+    raw_response = db.Column(JSONB)
+    order = relationship('Order', backref=backref('payments', cascade='all, delete-orphan'))
+
+class Receipt(db.Model, SerializerMixin):
+    __tablename__ = 'receipts'
+    id = db.Column(db.Integer, primary_key=True)
+    order_id = db.Column(db.Integer, db.ForeignKey('orders.id'), unique=True, nullable=False)
+    pdf_url = db.Column(db.String(500))
+    data = db.Column(JSONB)
     created_at = db.Column(db.DateTime(timezone=True), server_default=db.func.now())
-    __table_args__ = (
-        CheckConstraint('length(content) <= 1000', name='ck_note_max_len'),
-    )
+    order = relationship('Order', backref=backref('receipt', uselist=False, cascade='all, delete-orphan'))
 
-    @validates("content")
-    def validate_content(self, key, value):
-        if not value:
-            raise ValueError("content must not be empty")
-        cleaned = value.strip()
-        if len(cleaned) == 0:
-            raise ValueError("content must not be empty")
-        if len(cleaned) > NOTE_MAX_LEN:
-            raise ValueError(f"content is too long (max {NOTE_MAX_LEN} chars)")
-        return cleaned
-
-
-class CarPhoto(db.Model, SerializerMixin):
-    __tablename__ = 'car_photos'
-
-    serialize_rules = (
-        '-car_inventory.photos',
-        '-master_car_record.photos',
-    )
-
+class OrderDelivery(db.Model, SerializerMixin):
+    __tablename__ = 'order_deliveries'
     id = db.Column(db.Integer, primary_key=True)
-    url = db.Column(db.String(2048), nullable=False)
+    order_id = db.Column(db.Integer, db.ForeignKey('orders.id'), unique=True, nullable=False)
+    recipient_name = db.Column(db.String(120))
+    phone = db.Column(db.String(40))
+    address_snapshot = db.Column(JSONB)  # store at time of checkout
+    eta = db.Column(db.DateTime(timezone=True))
+    fee = db.Column(db.Numeric(10,2), default=0)
+    order = relationship('Order', backref=backref('delivery', uselist=False, cascade='all, delete-orphan'))
 
-    car_inventory_id = db.Column(db.Integer, db.ForeignKey('car_inventories.id'), nullable=True)
-    master_car_record_id = db.Column(db.Integer, db.ForeignKey('master_car_records.id'), nullable=True)
+# -------------------------------------
+# Inventory & Food Cost
+# -------------------------------------
+class Unit(db.Model, SerializerMixin):
+    __tablename__ = 'units'
+    id = db.Column(db.Integer, primary_key=True)
+    code = db.Column(db.String(16), unique=True, nullable=False)  # g, kg, oz, lb, ea
+    name = db.Column(db.String(64), nullable=False)
+
+class UnitConversion(db.Model, SerializerMixin):
+    __tablename__ = 'unit_conversions'
+    id = db.Column(db.Integer, primary_key=True)
+    from_unit_id = db.Column(db.Integer, db.ForeignKey('units.id'), nullable=False)
+    to_unit_id = db.Column(db.Integer, db.ForeignKey('units.id'), nullable=False)
+    factor = db.Column(db.Float, nullable=False)  # multiply to convert from->to
+    __table_args__ = (UniqueConstraint('from_unit_id','to_unit_id', name='uq_unit_pair'),)
+
+class Supplier(db.Model, SerializerMixin):
+    __tablename__ = 'suppliers'
+    id = db.Column(db.Integer, primary_key=True)
+    name = db.Column(db.String(160), unique=True, nullable=False)
+    contact = db.Column(db.String(160))
+    phone = db.Column(db.String(40))
+    email = db.Column(db.String(160))
+
+class InventoryItem(db.Model, SerializerMixin):
+    __tablename__ = 'inventory_items'
+    id = db.Column(db.Integer, primary_key=True)
+    name = db.Column(db.String(160), nullable=False, unique=True)
+    sku = db.Column(db.String(64), unique=True)
+    base_unit_id = db.Column(db.Integer, db.ForeignKey('units.id'), nullable=False)
+    par_level = db.Column(db.Float, default=0)
+    allergens = db.Column(db.String(160))
+    is_active = db.Column(db.Boolean, default=True, nullable=False)
+    base_unit = relationship('Unit')
+
+class InventoryBatch(db.Model, SerializerMixin):
+    __tablename__ = 'inventory_batches'
+    id = db.Column(db.Integer, primary_key=True)
+    inventory_item_id = db.Column(db.Integer, db.ForeignKey('inventory_items.id'), nullable=False)
+    supplier_id = db.Column(db.Integer, db.ForeignKey('suppliers.id'))
+    qty = db.Column(db.Float, nullable=False)
+    unit_cost = db.Column(db.Numeric(10,4), nullable=False)  # per base unit
+    expiration_date = db.Column(db.Date)
+    received_at = db.Column(db.DateTime(timezone=True), server_default=db.func.now())
+    lot_code = db.Column(db.String(64))
+
+    inventory_item = relationship('InventoryItem', backref=backref('batches', cascade='all, delete-orphan'))
+    supplier = relationship('Supplier')
 
     __table_args__ = (
-        CheckConstraint(
-            '(car_inventory_id IS NOT NULL) != (master_car_record_id IS NOT NULL)',
-            name='ck_photo_exactly_one_parent'
-        ),
+        Index('ix_batches_item_exp', 'inventory_item_id', 'expiration_date'),
+        CheckConstraint('qty >= 0', name='ck_batch_qty_nonneg'),
+        CheckConstraint('unit_cost >= 0', name='ck_batch_unit_cost_nonneg'),
     )
 
-    car_inventory = relationship('CarInventory', backref=backref('photos', cascade='all, delete-orphan'))
-    master_car_record = relationship('MasterCarRecord', backref=backref('photos', cascade='all, delete-orphan'))
-
-    @validates("url")
-    def validate_url(self, key, value):
-        if not value:
-            raise ValueError("url must not be empty")
-        cleaned = value.strip()
-        if len(cleaned) > 2048:
-            raise ValueError("url is too long (max 2048 chars)")
-        if not (cleaned.startswith("http://") or cleaned.startswith("https://")):
-            raise ValueError("url must start with http:// or https://")
-        return cleaned
-
-
-class MasterCarRecord(db.Model, SerializerMixin):
-    __tablename__ = 'master_car_records'
-
+class StockMovement(db.Model, SerializerMixin):
+    __tablename__ = 'stock_movements'
     id = db.Column(db.Integer, primary_key=True)
-    vin_number = db.Column(db.String(17), unique=True, nullable=False)
-    location = db.Column(db.String(255), nullable=True)
-    year = db.Column(db.Integer, nullable=True)
-    make = db.Column(db.String(255), nullable=True)
-    model = db.Column(db.String(255), nullable=True)
-    trim = db.Column(db.String(255), nullable=True)
-    body_style = db.Column(db.String(255), nullable=True)
-    color = db.Column(db.String(255), nullable=True)
-    interior_color = db.Column(db.String(255), nullable=True)
-    transmission = db.Column(db.String(255), nullable=True)
-    drivetrain = db.Column(db.String(255), nullable=True)
-    engine = db.Column(db.String(255), nullable=True)
-    fuel_type = db.Column(db.String(255), nullable=True)
-    date_acquired = db.Column(db.DateTime(timezone=True), nullable=True)
-    date_sold = db.Column(db.DateTime(timezone=True), nullable=True)
-    mileage = db.Column(db.Float, nullable=True)
-    purchase_price = db.Column(db.Float, nullable=True)
-    selling_price = db.Column(db.Float, nullable=True)
-    is_sold = db.Column(db.Boolean, default=False)
-    sold_price = db.Column(db.Float, nullable=True)
+    inventory_item_id = db.Column(db.Integer, db.ForeignKey('inventory_items.id'), nullable=False)
+    qty_change = db.Column(db.Float, nullable=False)  # +in, -out
+    reason = db.Column(db.String(32), nullable=False) # purchase, recipe, waste, adjust
+    reference_type = db.Column(db.String(32))         # order_id, batch_id, etc.
+    reference_id = db.Column(db.Integer)
+    occurred_at = db.Column(db.DateTime(timezone=True), server_default=db.func.now())
+    inventory_item = relationship('InventoryItem')
 
-    created_at = db.Column(db.DateTime(timezone=True), server_default=db.func.now())
-    updated_at = db.Column(db.DateTime(timezone=True), onupdate=db.func.now())
+    __table_args__ = (
+        Index('ix_stock_item_time', 'inventory_item_id', 'occurred_at'),
+    )
 
-    @validates("year")
-    def validate_year(self, key, year):
-        y = _coerce_int(year, "year")
-        if y is None:
-            return None
-        current_plus_one = datetime.now(timezone.utc).year + 1
-        if y < 1886 or y > current_plus_one:
-            raise ValueError(f"year must be between 1886 and {current_plus_one}")
-        return y
+class Recipe(db.Model, SerializerMixin):
+    __tablename__ = 'recipes'
+    id = db.Column(db.Integer, primary_key=True)
+    menu_item_id = db.Column(db.Integer, db.ForeignKey('menu_items.id'), unique=True, nullable=False)
+    yield_qty = db.Column(db.Float, default=1)
+    notes = db.Column(db.Text)
+    menu_item = relationship('MenuItem', backref=backref('recipe', uselist=False, cascade='all, delete-orphan'))
 
-    @validates("mileage", "purchase_price", "selling_price", "sold_price")
-    def validate_non_negative(self, key, value):
-        num = _coerce_float(value, key)
-        if num is None:
-            return None
-        if num < 0:
-            raise ValueError(f"{key} must be non-negative")
-        return num
+class RecipeComponent(db.Model, SerializerMixin):
+    __tablename__ = 'recipe_components'
+    id = db.Column(db.Integer, primary_key=True)
+    recipe_id = db.Column(db.Integer, db.ForeignKey('recipes.id'), nullable=False)
+    inventory_item_id = db.Column(db.Integer, db.ForeignKey('inventory_items.id'), nullable=False)
+    qty = db.Column(db.Float, nullable=False)         # in inventory_item.base_unit
+    waste_pct = db.Column(db.Float, default=0)        # 0..100
 
-    @validates("vin_number", "location", "make", "model", "trim", "body_style", "color", "interior_color", "transmission", "drivetrain", "engine", "fuel_type")
-    def normalize_strings(self, key, value):
-        if value is None:
-            return None
-        cleaned = str(value).strip()
-        if key == "vin_number":
-            cleaned = cleaned.upper()
-            vin_regex = r"^[A-HJ-NPR-Z0-9]{17}$"
-            if not re.match(vin_regex, cleaned):
-                raise ValueError("vin_number must be 17 chars and may not contain I, O, or Q")
-        if len(cleaned) > 255:
-            raise ValueError(f"{key} is too long (max 255 chars)")
-        return cleaned
+    recipe = relationship('Recipe', backref=backref('components', cascade='all, delete-orphan'))
+    inventory_item = relationship('InventoryItem')
+
+    __table_args__ = (
+        UniqueConstraint('recipe_id','inventory_item_id', name='uq_recipe_item'),
+        CheckConstraint('qty >= 0', name='ck_recipe_qty_nonneg'),
+        CheckConstraint('waste_pct >= 0 AND waste_pct <= 100', name='ck_recipe_waste_pct'),
+    )
