@@ -2,307 +2,297 @@ from app import app
 from config import db
 from models import (
     User,
-    CarPhoto,
-    CarInventory,
-    MasterCarRecord,
-    UserInventory,
-    AccountGroup,
-    OwnerDealer,
-    CarNote,
-    DesignatedLocation,
+    Address,
+    AuthThrottle,
+    Category,
+    MenuItem,
+    ModifierGroup,
+    ModifierOption,
+    MenuItemModifierGroup,
+    Cart,
+    CartItem,
+    CartItemModifier,
+    Order,
+    OrderItem,
+    OrderItemModifier,
+    Payment,
+    Receipt,
+    OrderDelivery,
+    Unit,
+    UnitConversion,
+    Supplier,
+    InventoryItem,
+    InventoryBatch,
+    StockMovement,
+    Recipe,
+    RecipeComponent,
 )
 
-import random
-from datetime import datetime, timezone
+from datetime import datetime, timedelta, timezone, date
+from decimal import Decimal
 
-from faker import Faker
-from faker.providers import automotive
+# ----------------------------------
+# Helper: wipe tables in FK-safe order
+# ----------------------------------
 
-# ----------------------------
-# Helper data & generators
-# ----------------------------
-ALLOWED_VIN_CHARS = "ABCDEFGHJKLMNPRSTUVWXYZ0123456789"  # I, O, Q excluded
-MAKES_MODELS = {
-    "Honda": ["Accord", "Civic", "CR-V", "Pilot"],
-    "Toyota": ["Corolla", "Camry", "RAV4", "Tacoma"],
-    "Ford": ["F-150", "Escape", "Explorer", "Mustang"],
-    "Chevrolet": ["Silverado", "Equinox", "Malibu", "Tahoe"],
-    "Nissan": ["Altima", "Rogue", "Sentra", "Pathfinder"],
-    "Hyundai": ["Elantra", "Sonata", "Tucson", "Santa Fe"],
-    "Kia": ["Optima", "Soul", "Sportage", "Sorento"],
-}
-COLORS = [
-    "Black", "White", "Silver", "Gray", "Blue", "Red", "Green", "Brown"
-]
-BODIES = ["Sedan", "Hatchback", "SUV", "Truck", "Coupe", "Wagon"]
-TRANSMISSIONS = ["Automatic", "Manual", "CVT"]
-DRIVETRAINS = ["FWD", "RWD", "AWD", "4WD"]
-FUEL_TYPES = ["Gasoline", "Diesel", "Hybrid", "Electric"]
+def wipe_all():
+    # Order-related (children first)
+    db.session.query(OrderItemModifier).delete()
+    db.session.query(OrderItem).delete()
+    db.session.query(OrderDelivery).delete()
+    db.session.query(Payment).delete()
+    db.session.query(Receipt).delete()
+    db.session.query(Order).delete()
 
-LOCATIONS = [
-    ("New York Lot A", 40.7128, -74.0060),
-    ("Los Angeles Lot B", 34.0522, -118.2437),
-    ("Miami Lot C", 25.7617, -80.1918),
-    ("Dallas Lot D", 32.7767, -96.7970),
-]
+    # Cart
+    db.session.query(CartItemModifier).delete()
+    db.session.query(CartItem).delete()
+    db.session.query(Cart).delete()
 
-CURRENT_PLUS_ONE = datetime.now(timezone.utc).year + 1
+    # Inventory & recipes (children first)
+    db.session.query(StockMovement).delete()
+    db.session.query(InventoryBatch).delete()
+    db.session.query(RecipeComponent).delete()
+    db.session.query(Recipe).delete()
 
-fake = Faker()
-fake.add_provider(automotive)
+    # Menu + modifiers (children first)
+    db.session.query(MenuItemModifierGroup).delete()
+    db.session.query(ModifierOption).delete()
+    db.session.query(ModifierGroup).delete()
+    db.session.query(MenuItem).delete()
+    db.session.query(Category).delete()
 
-def generate_unique_vins(count):
-    vins = set()
-    # Keep trying until we have `count` unique VINs
-    while len(vins) < count:
-        vin = fake.vin()  # Valid 17-char VIN (excludes I, O, Q)
-        vins.add(vin)
-    return list(vins)
+    # Units / suppliers / items
+    db.session.query(UnitConversion).delete()
+    db.session.query(InventoryItem).delete()
+    db.session.query(Supplier).delete()
+    db.session.query(Unit).delete()
 
+    # Users & support
+    db.session.query(Address).delete()
+    db.session.query(AuthThrottle).delete()
+    db.session.query(User).delete()
 
-# ----------------------------
-# Main seeding routine
-# ----------------------------
-NUM_CARS = 900
+    db.session.commit()
+
 
 with app.app_context():
-    print("🧹 Deleting old data…")
-    db.session.query(CarNote).delete()
-    db.session.query(OwnerDealer).delete()
-    db.session.query(CarPhoto).delete()
-    db.session.query(CarInventory).delete()
-    db.session.query(MasterCarRecord).delete()
-    db.session.query(UserInventory).delete()
-    db.session.query(User).delete()
-    db.session.query(DesignatedLocation).delete()
-    db.session.query(AccountGroup).delete()
-    db.session.commit()
-    print("✅ Old data deleted.")
+    print("🧹 Clearing existing data…")
+    wipe_all()
+    print("✅ Cleared.")
 
-    # --- Account group & users ---
-    print("👥 Creating account group & users…")
-    account_group = AccountGroup(group_key="group123")
-    db.session.add(account_group)
-    db.session.commit()
-
-    user1 = User(
-        email="user33@example.com",
-        first_name="Fernandito",
-        last_name="Perreo",
-        admin=False,
-        is_owner_admin=False,
-        is_active=True,
-        account_group_id=account_group.id,
-    )
-    user1.password_hash = "password123"
-
-    user2 = User(
-        email="admin33@example.com",
-        first_name="Jone",
-        last_name="Doe",
+    # -----------------
+    # Users
+    # -----------------
+    print("👥 Creating users…")
+    owner = User(
+        email="owner@example.com",
+        first_name="Owner",
+        last_name="Admin",
         admin=True,
         is_owner_admin=True,
         is_active=True,
-        account_group_id=account_group.id,
     )
-    user2.password_hash = "adminpass456"
+    owner.password_hash = "ownerpass"
 
-    db.session.add_all([user1, user2])
-    db.session.commit()
-
-    owner_dealer = OwnerDealer(user_id=user2.id, account_group_id=account_group.id)
-    db.session.add(owner_dealer)
-    db.session.commit()
-
-    # --- Locations ---
-    print("📍 Creating designated locations…")
-    dl_objects = []
-    for name, lat, lng in LOCATIONS:
-        dl_objects.append(
-            DesignatedLocation(
-                name=name, latitude=lat, longitude=lng, account_group_id=account_group.id
-            )
-        )
-    db.session.bulk_save_objects(dl_objects)
-    db.session.commit()
-
-    # --- User inventory ---
-    print("📦 Creating user inventory…")
-    user_inventory = UserInventory(
-        user_id=user1.id, account_group_id=account_group.id, submitted=False, reviewed=False
+    customer = User(
+        email="customer@example.com",
+        first_name="Casey",
+        last_name="Customer",
+        admin=False,
+        is_owner_admin=False,
+        is_active=True,
     )
-    db.session.add(user_inventory)
+    customer.password_hash = "customerpass"
+
+    db.session.add_all([owner, customer])
     db.session.commit()
 
-    # --- Generate cars ---
-    print(f"🚗 Creating {NUM_CARS} cars…")
-    vins = generate_unique_vins(NUM_CARS)
+    # -----------------
+    # Units & Conversions
+    # -----------------
+    print("📐 Seeding units…")
+    u_each = Unit(code="ea", name="each")
+    u_g = Unit(code="g", name="gram")
+    u_kg = Unit(code="kg", name="kilogram")
+    u_oz = Unit(code="oz", name="ounce")
+    u_lb = Unit(code="lb", name="pound")
+    db.session.add_all([u_each, u_g, u_kg, u_oz, u_lb])
+    db.session.flush()
 
-    master_records = []
-    car_inventories = []
-
-    # Build objects in memory and bulk insert for speed
-    for i in range(NUM_CARS):
-        vin = vins[i]
-        try:
-            make = fake.vehicle_make()
-        except Exception:
-            make = random.choice(list(MAKES_MODELS.keys()))
-        try:
-            model = fake.vehicle_model()
-        except Exception:
-            model = random.choice(MAKES_MODELS.get(make, ["Standard"]))
-        try:
-            year = int(fake.vehicle_year())
-        except Exception:
-            year = random.randint(1998, CURRENT_PLUS_ONE)
-        # Clamp year to your validator range
-        if year < 1886:
-            year = 1886
-        if year > CURRENT_PLUS_ONE:
-            year = CURRENT_PLUS_ONE
-
-        try:
-            color = fake.color_name()
-        except Exception:
-            color = random.choice(COLORS)
-        color = (color or "Unknown").strip()[:255]
-
-        body = random.choice(BODIES)
-        transmission = random.choice(TRANSMISSIONS)
-        drivetrain = random.choice(DRIVETRAINS)
-        fuel = random.choice(FUEL_TYPES)
-        mileage = round(random.uniform(10_000, 220_000), 1)
-        purchase_price = round(random.uniform(1_500, 30_000), 2)
-
-        loc_name, lat, lng = LOCATIONS[i % len(LOCATIONS)]
-
-        master_records.append(
-            MasterCarRecord(
-                vin_number=vin,
-                location=loc_name,
-                year=year,
-                make=make,
-                model=model,
-                trim=None,
-                body_style=body,
-                color=color,
-                interior_color=None,
-                transmission=transmission,
-                drivetrain=drivetrain,
-                engine=None,
-                fuel_type=fuel,
-                date_acquired=None,
-                date_sold=None,
-                mileage=mileage,
-                purchase_price=purchase_price,
-                selling_price=None,
-                is_sold=False,
-                sold_price=None,
-            )
-        )
-
-        car_inventories.append(
-            CarInventory(
-                location=loc_name,
-                vin_number=vin,
-                year=year,
-                make=make,
-                color=color,
-                body=body,
-                latitude=lat,
-                longitude=lng,
-                user_id=user1.id,
-                user_inventory_id=user_inventory.id,
-                account_group_id=account_group.id,
-                designated_location_id=dl_objects[i % len(dl_objects)].id,
-            )
-        )
-
-    # Bulk insert in two phases to respect unique vin on MasterCarRecord
-    db.session.bulk_save_objects(master_records)
+    convs = [
+        UnitConversion(from_unit_id=u_kg.id, to_unit_id=u_g.id, factor=1000.0),
+        UnitConversion(from_unit_id=u_lb.id, to_unit_id=u_oz.id, factor=16.0),
+        UnitConversion(from_unit_id=u_lb.id, to_unit_id=u_g.id, factor=453.59237),
+        UnitConversion(from_unit_id=u_oz.id, to_unit_id=u_g.id, factor=28.349523125),
+    ]
+    db.session.add_all(convs)
     db.session.commit()
 
-    db.session.bulk_save_objects(car_inventories)
+    # -----------------
+    # Suppliers
+    # -----------------
+    print("🏭 Adding suppliers…")
+    sup_main = Supplier(name="FreshPro Foods", contact="rep@freshpro.test", phone="555-111-2222", email="rep@freshpro.test")
+    sup_meat = Supplier(name="Carnitas Co.", contact="sales@carnitas.test", phone="555-333-4444", email="sales@carnitas.test")
+    db.session.add_all([sup_main, sup_meat])
     db.session.commit()
 
-    # --- Additional scans per designated location (history via extra CarInventory rows) ---
-    print("🔁 Creating additional scans per designated location…")
-    extra_scans = []
-    scan_sessions = []
-    # create a scan session (UserInventory) per designated location
-    for dl in dl_objects:
-        session_inv = UserInventory(
-            user_id=user1.id,
-            account_group_id=account_group.id,
-            submitted=False,
-            reviewed=False,
-        )
-        scan_sessions.append(session_inv)
-    db.session.bulk_save_objects(scan_sessions)
+    # -----------------
+    # Inventory items (ingredients)
+    # -----------------
+    print("🍅 Creating inventory items…")
+    ing_tortilla = InventoryItem(name="Tortilla (6in)", sku="TORT-6", base_unit=u_each)
+    ing_chicken = InventoryItem(name="Chicken Breast", sku="CHK-BRST", base_unit=u_lb)
+    ing_steak = InventoryItem(name="Flank Steak", sku="STK-FLNK", base_unit=u_lb)
+    ing_rice = InventoryItem(name="Rice (cooked)", sku="RICE-CKD", base_unit=u_lb)
+    ing_beans = InventoryItem(name="Black Beans", sku="BEAN-BLK", base_unit=u_lb)
+    ing_lettuce = InventoryItem(name="Lettuce", sku="LETT-ICE", base_unit=u_lb)
+    ing_salsa_roja = InventoryItem(name="Salsa Roja", sku="SLS-ROJA", base_unit=u_lb)
+    ing_salsa_verde = InventoryItem(name="Salsa Verde", sku="SLS-VERD", base_unit=u_lb)
+
+    db.session.add_all([
+        ing_tortilla, ing_chicken, ing_steak, ing_rice,
+        ing_beans, ing_lettuce, ing_salsa_roja, ing_salsa_verde
+    ])
     db.session.commit()
 
-    # Map each designated location to its session id
-    session_ids = [si.id for si in scan_sessions]
+    # -----------------
+    # Inventory batches with expiration & unit cost (per base unit)
+    # -----------------
+    print("📦 Receiving inventory batches…")
+    today = date.today()
+    batches = [
+        InventoryBatch(inventory_item_id=ing_tortilla.id, supplier_id=sup_main.id, qty=500, unit_cost=Decimal("0.10"), expiration_date=today + timedelta(days=10)),
+        InventoryBatch(inventory_item_id=ing_chicken.id, supplier_id=sup_meat.id, qty=100, unit_cost=Decimal("2.75"), expiration_date=today + timedelta(days=5)),
+        InventoryBatch(inventory_item_id=ing_steak.id, supplier_id=sup_meat.id, qty=80, unit_cost=Decimal("4.20"), expiration_date=today + timedelta(days=5)),
+        InventoryBatch(inventory_item_id=ing_rice.id, supplier_id=sup_main.id, qty=60, unit_cost=Decimal("0.60"), expiration_date=today + timedelta(days=7)),
+        InventoryBatch(inventory_item_id=ing_beans.id, supplier_id=sup_main.id, qty=60, unit_cost=Decimal("0.70"), expiration_date=today + timedelta(days=7)),
+        InventoryBatch(inventory_item_id=ing_lettuce.id, supplier_id=sup_main.id, qty=30, unit_cost=Decimal("1.10"), expiration_date=today + timedelta(days=4)),
+        InventoryBatch(inventory_item_id=ing_salsa_roja.id, supplier_id=sup_main.id, qty=40, unit_cost=Decimal("1.50"), expiration_date=today + timedelta(days=6)),
+        InventoryBatch(inventory_item_id=ing_salsa_verde.id, supplier_id=sup_main.id, qty=40, unit_cost=Decimal("1.60"), expiration_date=today + timedelta(days=6)),
+    ]
+    db.session.add_all(batches)
+    db.session.commit()
 
-    # for each designated location, add some extra scans for random VINs
-    for idx, dl in enumerate(dl_objects):
-        loc_name = dl.name
-        lat = dl.latitude
-        lng = dl.longitude
-        # sample 15 vins to rescan at this location
-        sampled_vins = random.sample(vins, 15 if len(vins) >= 15 else len(vins))
-        for vin in sampled_vins:
-            # pick a random master record attributes for consistency
-            # (we only need VIN; other attrs are for denormalized convenience)
-            year = random.randint(1998, CURRENT_PLUS_ONE)
-            make = random.choice(list(MAKES_MODELS.keys()))
-            color = random.choice(COLORS)
-            body = random.choice(BODIES)
-            extra_scans.append(
-                CarInventory(
-                    location=loc_name,
-                    vin_number=vin,
-                    year=year,
-                    make=make,
-                    color=color,
-                    body=body,
-                    latitude=lat,
-                    longitude=lng,
-                    user_id=user1.id,
-                    user_inventory_id=session_ids[idx],
-                    account_group_id=account_group.id,
-                    designated_location_id=dl.id,
-                )
-            )
+    # -----------------
+    # Menu & Modifiers
+    # -----------------
+    print("📋 Creating menu and modifiers…")
+    cat_tacos = Category(name="Tacos", sort_order=1)
+    cat_bowls = Category(name="Bowls", sort_order=2)
+    cat_drinks = Category(name="Drinks", sort_order=3)
+    db.session.add_all([cat_tacos, cat_bowls, cat_drinks])
+    db.session.commit()
 
-    if extra_scans:
-        db.session.bulk_save_objects(extra_scans)
-        db.session.commit()
-        print(f"✅ Added {len(extra_scans)} additional scans across {len(dl_objects)} locations.")
+    taco_chicken = MenuItem(category=cat_tacos, name="Chicken Taco", description="Grilled chicken on a 6\" tortilla", price=Decimal("3.50"))
+    taco_veggie = MenuItem(category=cat_tacos, name="Veggie Taco", description="Seasonal veggies", price=Decimal("3.25"))
+    bowl_burrito = MenuItem(category=cat_bowls, name="Burrito Bowl", description="Rice, beans, protein, toppings", price=Decimal("10.50"))
+    drink_agua = MenuItem(category=cat_drinks, name="Agua Fresca", description="Rotating flavors", price=Decimal("3.00"))
 
-    # A few sample notes/photos on first few cars for UI testing
-    print("📝 Adding sample notes & photos…")
-    first_five = (
-        db.session.query(CarInventory)
-        .filter_by(account_group_id=account_group.id)
-        .order_by(CarInventory.id.asc())
-        .limit(5)
-        .all()
+    db.session.add_all([taco_chicken, taco_veggie, bowl_burrito, drink_agua])
+    db.session.commit()
+
+    # Modifier groups
+    mg_protein = ModifierGroup(name="Protein", min_choices=0, max_choices=1, required=False)
+    mg_toppings = ModifierGroup(name="Toppings", min_choices=0, max_choices=None, required=False)
+    mg_salsa = ModifierGroup(name="Salsa", min_choices=0, max_choices=1, required=False)
+
+    db.session.add_all([mg_protein, mg_toppings, mg_salsa])
+    db.session.commit()
+
+    # Modifier options
+    opt_chicken = ModifierOption(group=mg_protein, name="Chicken", price_delta=Decimal("0.00"))
+    opt_steak = ModifierOption(group=mg_protein, name="Steak", price_delta=Decimal("1.00"))
+    opt_tofu = ModifierOption(group=mg_protein, name="Tofu", price_delta=Decimal("0.50"))
+
+    opt_lettuce = ModifierOption(group=mg_toppings, name="Lettuce", price_delta=Decimal("0.00"))
+    opt_beans = ModifierOption(group=mg_toppings, name="Beans", price_delta=Decimal("0.00"))
+
+    opt_roja = ModifierOption(group=mg_salsa, name="Roja", price_delta=Decimal("0.00"))
+    opt_verde = ModifierOption(group=mg_salsa, name="Verde", price_delta=Decimal("0.00"))
+
+    db.session.add_all([opt_chicken, opt_steak, opt_tofu, opt_lettuce, opt_beans, opt_roja, opt_verde])
+    db.session.commit()
+
+    # Link modifier groups to items
+    db.session.add_all([
+        MenuItemModifierGroup(menu_item_id=taco_chicken.id, modifier_group_id=mg_protein.id),
+        MenuItemModifierGroup(menu_item_id=taco_chicken.id, modifier_group_id=mg_toppings.id),
+        MenuItemModifierGroup(menu_item_id=taco_chicken.id, modifier_group_id=mg_salsa.id),
+        MenuItemModifierGroup(menu_item_id=taco_veggie.id, modifier_group_id=mg_toppings.id),
+        MenuItemModifierGroup(menu_item_id=bowl_burrito.id, modifier_group_id=mg_protein.id),
+        MenuItemModifierGroup(menu_item_id=bowl_burrito.id, modifier_group_id=mg_toppings.id),
+        MenuItemModifierGroup(menu_item_id=bowl_burrito.id, modifier_group_id=mg_salsa.id),
+    ])
+    db.session.commit()
+
+    # -----------------
+    # Recipes (food cost BOM)
+    # -----------------
+    print("🥣 Creating recipes…")
+    r_taco_chicken = Recipe(menu_item_id=taco_chicken.id, yield_qty=1)
+    r_taco_veggie = Recipe(menu_item_id=taco_veggie.id, yield_qty=1)
+    r_bowl = Recipe(menu_item_id=bowl_burrito.id, yield_qty=1)
+
+    db.session.add_all([r_taco_chicken, r_taco_veggie, r_bowl])
+    db.session.flush()
+
+    comps = [
+        # Chicken Taco
+        RecipeComponent(recipe_id=r_taco_chicken.id, inventory_item_id=ing_tortilla.id, qty=1),   # 1 tortilla ea
+        RecipeComponent(recipe_id=r_taco_chicken.id, inventory_item_id=ing_chicken.id, qty=0.20),# 0.20 lb chicken
+        RecipeComponent(recipe_id=r_taco_chicken.id, inventory_item_id=ing_lettuce.id, qty=0.03),
+        RecipeComponent(recipe_id=r_taco_chicken.id, inventory_item_id=ing_salsa_roja.id, qty=0.04),
+
+        # Veggie Taco
+        RecipeComponent(recipe_id=r_taco_veggie.id, inventory_item_id=ing_tortilla.id, qty=1),
+        RecipeComponent(recipe_id=r_taco_veggie.id, inventory_item_id=ing_beans.id, qty=0.10),
+        RecipeComponent(recipe_id=r_taco_veggie.id, inventory_item_id=ing_lettuce.id, qty=0.03),
+        RecipeComponent(recipe_id=r_taco_veggie.id, inventory_item_id=ing_salsa_verde.id, qty=0.04),
+
+        # Burrito Bowl
+        RecipeComponent(recipe_id=r_bowl.id, inventory_item_id=ing_rice.id, qty=0.35),
+        RecipeComponent(recipe_id=r_bowl.id, inventory_item_id=ing_beans.id, qty=0.20),
+        RecipeComponent(recipe_id=r_bowl.id, inventory_item_id=ing_chicken.id, qty=0.30),
+        RecipeComponent(recipe_id=r_bowl.id, inventory_item_id=ing_salsa_roja.id, qty=0.05),
+    ]
+    db.session.add_all(comps)
+    db.session.commit()
+
+    # -----------------
+    # Optional: a sample order to verify flows
+    # -----------------
+    print("🧾 Creating a sample order…")
+    order = Order(
+        user_id=customer.id,
+        status="paid",
+        channel="web",
+        fulfillment="pickup",
+        subtotal=Decimal("13.50"),
+        tax_total=Decimal("1.08"),
+        discount_total=Decimal("0.00"),
+        delivery_fee=Decimal("0.00"),
+        tip=Decimal("2.00"),
+        grand_total=Decimal("16.58"),
+        currency="USD",
     )
-    notes = []
-    photos = []
-    for idx, car in enumerate(first_five, start=1):
-        notes.append(
-            CarNote(
-                car_inventory_id=car.id,
-                content=f"QC note {idx}: inspected on seed; minor wear consistent with age."
-            )
-        )
-        photos.append(CarPhoto(url=f"https://example.com/car{idx}_a.jpg", car_inventory_id=car.id))
-        photos.append(CarPhoto(url=f"https://example.com/car{idx}_b.jpg", car_inventory_id=car.id))
+    db.session.add(order)
+    db.session.flush()
 
-    db.session.bulk_save_objects(notes + photos)
+    oi1 = OrderItem(order_id=order.id, menu_item_name="Chicken Taco", qty=2, unit_price=Decimal("3.50"), line_total=Decimal("7.00"))
+    oi2 = OrderItem(order_id=order.id, menu_item_name="Agua Fresca", qty=1, unit_price=Decimal("3.00"), line_total=Decimal("3.00"))
+    db.session.add_all([oi1, oi2])
+    db.session.flush()
+
+    pay = Payment(order_id=order.id, provider="test", reference="PAY-TEST-1", amount=order.grand_total, currency="USD", status="captured")
+    db.session.add(pay)
+
+    rec = Receipt(order_id=order.id, pdf_url=None, data={"lines": [
+        {"name": oi1.menu_item_name, "qty": oi1.qty, "unit_price": str(oi1.unit_price), "line_total": str(oi1.line_total)},
+        {"name": oi2.menu_item_name, "qty": oi2.qty, "unit_price": str(oi2.unit_price), "line_total": str(oi2.line_total)},
+    ]})
+    db.session.add(rec)
+
     db.session.commit()
-
     print("✅ Seeding complete.")
