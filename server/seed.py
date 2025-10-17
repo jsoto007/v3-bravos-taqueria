@@ -179,86 +179,161 @@ with app.app_context():
     # Menu & Modifiers
     # -----------------
     print("📋 Creating menu and modifiers…")
+    # Categories
     cat_tacos = Category(name="Tacos", sort_order=1)
-    cat_bowls = Category(name="Bowls", sort_order=2)
-    cat_drinks = Category(name="Drinks", sort_order=3)
-    db.session.add_all([cat_tacos, cat_bowls, cat_drinks])
-    db.session.commit()
-
-    taco_chicken = MenuItem(category=cat_tacos, name="Chicken Taco", description="Grilled chicken on a 6\" tortilla", price=Decimal("3.50"))
-    taco_veggie = MenuItem(category=cat_tacos, name="Veggie Taco", description="Seasonal veggies", price=Decimal("3.25"))
-    bowl_burrito = MenuItem(category=cat_bowls, name="Burrito Bowl", description="Rice, beans, protein, toppings", price=Decimal("10.50"))
-    drink_agua = MenuItem(category=cat_drinks, name="Agua Fresca", description="Rotating flavors", price=Decimal("3.00"))
-
-    db.session.add_all([taco_chicken, taco_veggie, bowl_burrito, drink_agua])
-    db.session.commit()
-
-    # Modifier groups
-    mg_protein = ModifierGroup(name="Protein", min_choices=0, max_choices=1, required=False)
-    mg_toppings = ModifierGroup(name="Toppings", min_choices=0, max_choices=None, required=False)
-    mg_salsa = ModifierGroup(name="Salsa", min_choices=0, max_choices=1, required=False)
-
-    db.session.add_all([mg_protein, mg_toppings, mg_salsa])
-    db.session.commit()
-
-    # Modifier options
-    opt_chicken = ModifierOption(group=mg_protein, name="Chicken", price_delta=Decimal("0.00"))
-    opt_steak = ModifierOption(group=mg_protein, name="Steak", price_delta=Decimal("1.00"))
-    opt_tofu = ModifierOption(group=mg_protein, name="Tofu", price_delta=Decimal("0.50"))
-
-    opt_lettuce = ModifierOption(group=mg_toppings, name="Lettuce", price_delta=Decimal("0.00"))
-    opt_beans = ModifierOption(group=mg_toppings, name="Beans", price_delta=Decimal("0.00"))
-
-    opt_roja = ModifierOption(group=mg_salsa, name="Roja", price_delta=Decimal("0.00"))
-    opt_verde = ModifierOption(group=mg_salsa, name="Verde", price_delta=Decimal("0.00"))
-
-    db.session.add_all([opt_chicken, opt_steak, opt_tofu, opt_lettuce, opt_beans, opt_roja, opt_verde])
-    db.session.commit()
-
-    # Link modifier groups to items
+    cat_tortas = Category(name="Tortas", sort_order=2)
+    cat_quesadillas = Category(name="Quesadillas", sort_order=3)
+    cat_burritos = Category(name="Burritos", sort_order=4)
+    cat_flautas = Category(name="Flautas", sort_order=5)
+    cat_tostadas = Category(name="Tostadas", sort_order=6)
+    cat_sopes = Category(name="Sopes", sort_order=7)
+    cat_nachos = Category(name="Nachos", sort_order=8)
+    cat_gorditas = Category(name="Gorditas", sort_order=9)
+    cat_picaditas = Category(name="Picaditas", sort_order=10)
+    cat_sides = Category(name="Sides", sort_order=11)
+    cat_drinks = Category(name="Drinks", sort_order=12)
     db.session.add_all([
-        MenuItemModifierGroup(menu_item_id=taco_chicken.id, modifier_group_id=mg_protein.id),
-        MenuItemModifierGroup(menu_item_id=taco_chicken.id, modifier_group_id=mg_toppings.id),
-        MenuItemModifierGroup(menu_item_id=taco_chicken.id, modifier_group_id=mg_salsa.id),
-        MenuItemModifierGroup(menu_item_id=taco_veggie.id, modifier_group_id=mg_toppings.id),
-        MenuItemModifierGroup(menu_item_id=bowl_burrito.id, modifier_group_id=mg_protein.id),
-        MenuItemModifierGroup(menu_item_id=bowl_burrito.id, modifier_group_id=mg_toppings.id),
-        MenuItemModifierGroup(menu_item_id=bowl_burrito.id, modifier_group_id=mg_salsa.id),
+        cat_tacos, cat_tortas, cat_quesadillas, cat_burritos,
+        cat_flautas, cat_tostadas, cat_sopes, cat_nachos,
+        cat_gorditas, cat_picaditas, cat_sides, cat_drinks
     ])
     db.session.commit()
 
-    # -----------------
-    # Recipes (food cost BOM)
-    # -----------------
-    print("🥣 Creating recipes…")
-    r_taco_chicken = Recipe(menu_item_id=taco_chicken.id, yield_qty=1)
-    r_taco_veggie = Recipe(menu_item_id=taco_veggie.id, yield_qty=1)
-    r_bowl = Recipe(menu_item_id=bowl_burrito.id, yield_qty=1)
+    # Menu Items (bilingual descriptions where provided)
+    tacos_reg = MenuItem(
+        category=cat_tacos,
+        name="Tacos (Regulares / Regular)",
+        description="Cilantro y cebolla / Cilantro & onions",
+        price=Decimal("4.00")
+    )
+    tacos_todo = MenuItem(
+        category=cat_tacos,
+        name="Tacos (Con Todo / With Everything)",
+        description="Cilantro, cebolla, queso y crema / Cilantro, onions, cheese & sour cream",
+        price=Decimal("4.50")
+    )
+    torta = MenuItem(
+        category=cat_tortas,
+        name="Tortas",
+        description="Mexican sandwich with choice of meat",
+        price=Decimal("9.00")
+    )
+    quesadilla = MenuItem(
+        category=cat_quesadillas,
+        name="Quesadillas",
+        description="Corn tortilla with melted cheese & choice of meat",
+        price=Decimal("10.00")
+    )
+    burrito = MenuItem(
+        category=cat_burritos,
+        name="Burritos",
+        description="Flour tortilla with rice, beans, cheese, and meat",
+        price=Decimal("10.00")
+    )
+    flautas = MenuItem(
+        category=cat_flautas,
+        name="Flautas (4 por orden / per order)",
+        description="Crispy rolled tacos filled with meat",
+        price=Decimal("8.00")
+    )
+    tostada = MenuItem(
+        category=cat_tostadas,
+        name="Tostadas",
+        description="Crispy flat tortilla topped with beans, lettuce, cheese & meat",
+        price=Decimal("4.00")
+    )
+    sope = MenuItem(
+        category=cat_sopes,
+        name="Sopes",
+        description="Thick corn base topped with beans, lettuce, cheese & meat",
+        price=Decimal("5.00")
+    )
+    nachos = MenuItem(
+        category=cat_nachos,
+        name="Nachos",
+        description="Corn chips with cheese, avocado, beans, jalapeños, sour cream & choice of meat",
+        price=Decimal("13.00")
+    )
+    gordita = MenuItem(
+        category=cat_gorditas,
+        name="Gorditas",
+        description="Stuffed corn pockets with meat, cheese, and lettuce",
+        price=Decimal("5.00")
+    )
+    picaditas = MenuItem(
+        category=cat_picaditas,
+        name="Picaditas (3 por orden / per order)",
+        description="Corn bases with salsa, cheese, and meat",
+        price=Decimal("10.00")
+    )
+    guac_chips = MenuItem(
+        category=cat_sides,
+        name="Guacamole with Chips",
+        description="Fresh guacamole served with chips",
+        price=Decimal("10.00")
+    )
 
-    db.session.add_all([r_taco_chicken, r_taco_veggie, r_bowl])
-    db.session.flush()
+    canned_soda = MenuItem(
+        category=cat_drinks,
+        name="Canned Sodas",
+        description="Assorted canned sodas",
+        price=Decimal("1.50")
+    )
+    bottle_soda = MenuItem(
+        category=cat_drinks,
+        name="Bottle Sodas",
+        description="Assorted bottled sodas",
+        price=Decimal("3.00")
+    )
+    aguas = MenuItem(
+        category=cat_drinks,
+        name="Aguas Frescas / Flavored Waters",
+        description="House-made aguas frescas, rotating flavors",
+        price=Decimal("5.00")
+    )
 
-    comps = [
-        # Chicken Taco
-        RecipeComponent(recipe_id=r_taco_chicken.id, inventory_item_id=ing_tortilla.id, qty=1),   # 1 tortilla ea
-        RecipeComponent(recipe_id=r_taco_chicken.id, inventory_item_id=ing_chicken.id, qty=0.20),# 0.20 lb chicken
-        RecipeComponent(recipe_id=r_taco_chicken.id, inventory_item_id=ing_lettuce.id, qty=0.03),
-        RecipeComponent(recipe_id=r_taco_chicken.id, inventory_item_id=ing_salsa_roja.id, qty=0.04),
-
-        # Veggie Taco
-        RecipeComponent(recipe_id=r_taco_veggie.id, inventory_item_id=ing_tortilla.id, qty=1),
-        RecipeComponent(recipe_id=r_taco_veggie.id, inventory_item_id=ing_beans.id, qty=0.10),
-        RecipeComponent(recipe_id=r_taco_veggie.id, inventory_item_id=ing_lettuce.id, qty=0.03),
-        RecipeComponent(recipe_id=r_taco_veggie.id, inventory_item_id=ing_salsa_verde.id, qty=0.04),
-
-        # Burrito Bowl
-        RecipeComponent(recipe_id=r_bowl.id, inventory_item_id=ing_rice.id, qty=0.35),
-        RecipeComponent(recipe_id=r_bowl.id, inventory_item_id=ing_beans.id, qty=0.20),
-        RecipeComponent(recipe_id=r_bowl.id, inventory_item_id=ing_chicken.id, qty=0.30),
-        RecipeComponent(recipe_id=r_bowl.id, inventory_item_id=ing_salsa_roja.id, qty=0.05),
-    ]
-    db.session.add_all(comps)
+    db.session.add_all([
+        tacos_reg, tacos_todo, torta, quesadilla, burrito, flautas,
+        tostada, sope, nachos, gordita, picaditas, guac_chips,
+        canned_soda, bottle_soda, aguas
+    ])
     db.session.commit()
+
+    # Modifier Groups
+    mg_meat = ModifierGroup(name="Meat Choice / Elección de Carne", min_choices=0, max_choices=1, required=False)
+    mg_extras = ModifierGroup(name="Add-ons / Extras", min_choices=0, max_choices=None, required=False)
+    db.session.add_all([mg_meat, mg_extras])
+    db.session.commit()
+
+    # Modifier Options (Add-ons pricing)
+    # Meats
+    opt_meat_chicken = ModifierOption(group=mg_meat, name="Chicken / Pollo", price_delta=Decimal("1.50"))
+    opt_meat_steak = ModifierOption(group=mg_meat, name="Steak / Bistec", price_delta=Decimal("2.00"))
+    opt_meat_pork = ModifierOption(group=mg_meat, name="Pork / Puerco (Enchilada / Al Pastor / Carnitas)", price_delta=Decimal("1.75"))
+    opt_meat_chorizo = ModifierOption(group=mg_meat, name="Chorizo", price_delta=Decimal("1.75"))
+
+    # Extras
+    opt_extra_cheese = ModifierOption(group=mg_extras, name="Cheese / Queso", price_delta=Decimal("1.00"))
+    opt_extra_sourcream = ModifierOption(group=mg_extras, name="Sour Cream / Crema", price_delta=Decimal("0.75"))
+    opt_extra_guac = ModifierOption(group=mg_extras, name="Guacamole", price_delta=Decimal("1.50"))
+    opt_extra_doublemeat = ModifierOption(group=mg_extras, name="Extra Meat / Doble Carne", price_delta=Decimal("2.00"))
+
+    db.session.add_all([
+        opt_meat_chicken, opt_meat_steak, opt_meat_pork, opt_meat_chorizo,
+        opt_extra_cheese, opt_extra_sourcream, opt_extra_guac, opt_extra_doublemeat
+    ])
+    db.session.commit()
+
+    # Link modifier groups to applicable items
+    items_with_meat = [
+        tacos_reg, tacos_todo, torta, quesadilla, burrito, flautas,
+        tostada, sope, nachos, gordita, picaditas
+    ]
+    for it in items_with_meat:
+        db.session.add(MenuItemModifierGroup(menu_item_id=it.id, modifier_group_id=mg_meat.id))
+        db.session.add(MenuItemModifierGroup(menu_item_id=it.id, modifier_group_id=mg_extras.id))
+    db.session.commit()
+
 
     # -----------------
     # Optional: a sample order to verify flows
@@ -269,19 +344,19 @@ with app.app_context():
         status="paid",
         channel="web",
         fulfillment="pickup",
-        subtotal=Decimal("13.50"),
-        tax_total=Decimal("1.08"),
+        subtotal=Decimal("9.50"),   # 2x tacos regular ($8.00) + 1x canned soda ($1.50)
+        tax_total=Decimal("0.76"),  # example 8% tax
         discount_total=Decimal("0.00"),
         delivery_fee=Decimal("0.00"),
         tip=Decimal("2.00"),
-        grand_total=Decimal("16.58"),
+        grand_total=Decimal("12.26"),
         currency="USD",
     )
     db.session.add(order)
     db.session.flush()
 
-    oi1 = OrderItem(order_id=order.id, menu_item_name="Chicken Taco", qty=2, unit_price=Decimal("3.50"), line_total=Decimal("7.00"))
-    oi2 = OrderItem(order_id=order.id, menu_item_name="Agua Fresca", qty=1, unit_price=Decimal("3.00"), line_total=Decimal("3.00"))
+    oi1 = OrderItem(order_id=order.id, menu_item_name="Tacos (Regulares / Regular)", qty=2, unit_price=Decimal("4.00"), line_total=Decimal("8.00"))
+    oi2 = OrderItem(order_id=order.id, menu_item_name="Canned Sodas", qty=1, unit_price=Decimal("1.50"), line_total=Decimal("1.50"))
     db.session.add_all([oi1, oi2])
     db.session.flush()
 
