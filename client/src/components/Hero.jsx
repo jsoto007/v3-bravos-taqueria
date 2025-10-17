@@ -1,6 +1,7 @@
 
 
 export default function Hero() {
+
   return (
     <section className="relative grid min-h-screen place-items-center overflow-hidden bg-gradient-to-br from-black to-neutral-900">
       {/* Soft radial glows */}
@@ -41,4 +42,5 @@ export default function Hero() {
       </div>
     </section>
   );
+  
 }
