@@ -1,14 +1,24 @@
 @import "tailwindcss";
 
+/* Global theme vars (light/dark) */
 :root {
   color-scheme: light dark;
   color: rgba(255, 255, 255, 0.87);
-  background-color: #121827;
+  background-color: #121827; /* slate-900-ish */
 }
 
 @media (prefers-color-scheme: light) {
   :root {
-    color: #121827;
-    background-color: #F1F5F9;
+    color: #121827;            /* slate-900 */
+    background-color: #F1F5F9; /* slate-100 */
   }
+}
+
+/* Optional: smooth fade-in on page mount */
+html, body, #root {
+  height: 100%;
+}
+
+body {
+  @apply antialiased;
 }
