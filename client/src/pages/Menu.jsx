@@ -3,6 +3,7 @@ import { api } from '../lib/api'
 import MenuCard from '../components/MenuCard'
 import Modal from '../components/Modal'
 import { useCart } from '../context/CartContext'
+import FadeIn from '../utils/FadeIn'
 
 export default function Menu(){
   const [cats, setCats] = useState([])
@@ -25,115 +26,117 @@ export default function Menu(){
 
   return (
     <div className="w-screen -mx-[calc(50vw-50%)] -mt-px">
-      {/* Top Categories */}
-      <div className="sticky top-16 z-10 border-b border-neutral-200 bg-white/95 backdrop-blur supports-[backdrop-filter]:bg-white/80">
-        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-3">
-          <div className="mb-2 text-sm font-extrabold tracking-tight text-neutral-900">Categories</div>
-          <div className="flex gap-2 overflow-x-auto">
-            {cats.map(c => (
-              <a
-                key={c.id}
-                href={`#cat-${c.id}`}
-                className="shrink-0 rounded-lg px-3 py-1.5 text-sm font-medium text-neutral-700 transition hover:bg-amber-50 hover:text-amber-700 aria-[current=true]:bg-amber-400 aria-[current=true]:text-black"
-              >
-                {c.name}
-              </a>
-            ))}
-          </div>
-        </div>
-      </div>
-
-      {/* Main */}
-      <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-8">
-        {loading ? (
-            <div className="rounded-2xl border border-neutral-200 bg-white p-6 text-neutral-800 shadow-sm">Loading menu…</div>
-        ) : (
-            cats.map(c=> (
-                <section id={`cat-${c.id}`} key={c.id} className="mb-10 scroll-mt-24">
-              <h3 className="mb-4 text-2xl font-extrabold tracking-tight text-neutral-900">{c.name}</h3>
-              <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
-                {c.items.map(it=> <MenuCard key={it.id} item={it} onAdd={startAdd} />)}
-              </div>
-            </section>
-          ))
-        )}
-      </div>
-
-      <Modal
-        open={!!active}
-        title={active? active.item.name: ''}
-        onClose={()=> setActive(null)}
-        footer={
-          <>
-            <button
-              className="rounded-2xl border border-neutral-300 bg-white px-4 py-2.5 font-semibold text-neutral-800 transition hover:border-neutral-400 hover:bg-neutral-50"
-              onClick={()=> setActive(null)}
-            >
-              Cancel
-            </button>
-            <button
-              className="rounded-2xl bg-green-600 px-4 py-2.5 font-bold text-white transition hover:scale-[1.02] hover:shadow-[0_8px_30px_rgba(22,163,74,0.35)]"
-              onClick={commitAdd}
-            >
-              Add to cart
-            </button>
-          </>
-        }
-      >
-        {active && (
-          <div className="space-y-5">
-            {active.item.modifier_groups?.map(g=> (
-              <div key={g.id}>
-                <div className="text-base font-bold text-neutral-900">
-                  {g.name}{' '}
-                  {g.required && <span className="align-middle text-xs font-semibold text-rose-700">(required)</span>}
+        <FadeIn>
+            {/* Top Categories */}
+            <div className="sticky top-16 z-10 border-b border-neutral-200 bg-white/95 backdrop-blur supports-[backdrop-filter]:bg-white/80">
+                <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-3">
+                <div className="mb-2 text-sm font-extrabold tracking-tight text-neutral-900">Categories</div>
+                <div className="flex gap-2 overflow-x-auto">
+                    {cats.map(c => (
+                    <a
+                        key={c.id}
+                        href={`#cat-${c.id}`}
+                        className="shrink-0 rounded-lg px-3 py-1.5 text-sm font-medium text-neutral-700 transition hover:bg-amber-50 hover:text-amber-700 aria-[current=true]:bg-amber-400 aria-[current=true]:text-black"
+                    >
+                        {c.name}
+                    </a>
+                    ))}
                 </div>
-                <div className="mt-3 grid grid-cols-1 gap-2 sm:grid-cols-2">
-                  {g.options.map(o=>{
-                    const checked = active.options.includes(o.id)
-                    const toggle = ()=> setActive(prev=> ({...prev, options: checked? prev.options.filter(x=>x!==o.id) : [...prev.options, o.id]}))
-                    return (
-                      <label
-                        key={o.id}
-                        className={`flex cursor-pointer items-center gap-3 rounded-xl border px-3 py-2 transition ${checked ? 'border-amber-300 bg-amber-50 ring-2 ring-amber-200' : 'border-neutral-300 bg-white hover:bg-neutral-50'}`}
-                      >
-                        <input type="checkbox" checked={checked} onChange={toggle} className="size-4 accent-amber-500" />
-                        <span className="text-sm font-medium text-neutral-800">
-                          {o.name}{' '}
-                          {Number(o.price_delta)>0 && (
-                            <span className="text-neutral-500">(+${Number(o.price_delta).toFixed(2)})</span>
-                          )}
-                        </span>
-                      </label>
-                    )
-                  })}
                 </div>
-              </div>
-            ))}
-
-            <div className="flex items-center gap-3">
-              <label className="text-sm font-semibold text-neutral-800">Qty</label>
-              <input
-                type="number"
-                min={1}
-                value={active.qty}
-                onChange={e=> setActive(prev=> ({...prev, qty: Math.max(1, Number(e.target.value||1))}))}
-                className="w-24 rounded-xl border-2 border-neutral-300 bg-white px-3 py-2 text-center text-neutral-900 outline-none transition focus:border-amber-400 focus:ring-4 focus:ring-amber-400/20"
-              />
             </div>
 
-            <div>
-              <label className="mb-1 block text-sm font-semibold text-neutral-800">Notes</label>
-              <textarea
-                value={active.notes}
-                onChange={e=> setActive(prev=> ({...prev, notes: e.target.value.slice(0,300)}))}
-                className="min-h-28 w-full rounded-2xl border-2 border-neutral-300 bg-white px-3 py-2 text-neutral-900 outline-none transition placeholder:text-neutral-400 focus:border-amber-400 focus:ring-4 focus:ring-amber-400/20"
-                placeholder="No onions, allergies... (max 300)"
-              />
+            {/* Main */}
+            <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-8">
+                {loading ? (
+                    <div className="rounded-2xl border border-neutral-200 bg-white p-6 text-neutral-800 shadow-sm">Loading menu…</div>
+                ) : (
+                    cats.map(c=> (
+                        <section id={`cat-${c.id}`} key={c.id} className="mb-10 scroll-mt-24">
+                    <h3 className="mb-4 text-2xl font-extrabold tracking-tight text-neutral-900">{c.name}</h3>
+                    <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+                        {c.items.map(it=> <MenuCard key={it.id} item={it} onAdd={startAdd} />)}
+                    </div>
+                    </section>
+                ))
+                )}
             </div>
-          </div>
-        )}
-      </Modal>
+
+            <Modal
+                open={!!active}
+                title={active? active.item.name: ''}
+                onClose={()=> setActive(null)}
+                footer={
+                <>
+                    <button
+                    className="rounded-2xl border border-neutral-300 bg-white px-4 py-2.5 font-semibold text-neutral-800 transition hover:border-neutral-400 hover:bg-neutral-50"
+                    onClick={()=> setActive(null)}
+                    >
+                    Cancel
+                    </button>
+                    <button
+                    className="rounded-2xl bg-green-600 px-4 py-2.5 font-bold text-white transition hover:scale-[1.02] hover:shadow-[0_8px_30px_rgba(22,163,74,0.35)]"
+                    onClick={commitAdd}
+                    >
+                    Add to cart
+                    </button>
+                </>
+                }
+            >
+                {active && (
+                <div className="space-y-5">
+                    {active.item.modifier_groups?.map(g=> (
+                    <div key={g.id}>
+                        <div className="text-base font-bold text-neutral-900">
+                        {g.name}{' '}
+                        {g.required && <span className="align-middle text-xs font-semibold text-rose-700">(required)</span>}
+                        </div>
+                        <div className="mt-3 grid grid-cols-1 gap-2 sm:grid-cols-2">
+                        {g.options.map(o=>{
+                            const checked = active.options.includes(o.id)
+                            const toggle = ()=> setActive(prev=> ({...prev, options: checked? prev.options.filter(x=>x!==o.id) : [...prev.options, o.id]}))
+                            return (
+                            <label
+                                key={o.id}
+                                className={`flex cursor-pointer items-center gap-3 rounded-xl border px-3 py-2 transition ${checked ? 'border-amber-300 bg-amber-50 ring-2 ring-amber-200' : 'border-neutral-300 bg-white hover:bg-neutral-50'}`}
+                            >
+                                <input type="checkbox" checked={checked} onChange={toggle} className="size-4 accent-amber-500" />
+                                <span className="text-sm font-medium text-neutral-800">
+                                {o.name}{' '}
+                                {Number(o.price_delta)>0 && (
+                                    <span className="text-neutral-500">(+${Number(o.price_delta).toFixed(2)})</span>
+                                )}
+                                </span>
+                            </label>
+                            )
+                        })}
+                        </div>
+                    </div>
+                    ))}
+
+                    <div className="flex items-center gap-3">
+                    <label className="text-sm font-semibold text-neutral-800">Qty</label>
+                    <input
+                        type="number"
+                        min={1}
+                        value={active.qty}
+                        onChange={e=> setActive(prev=> ({...prev, qty: Math.max(1, Number(e.target.value||1))}))}
+                        className="w-24 rounded-xl border-2 border-neutral-300 bg-white px-3 py-2 text-center text-neutral-900 outline-none transition focus:border-amber-400 focus:ring-4 focus:ring-amber-400/20"
+                    />
+                    </div>
+
+                    <div>
+                    <label className="mb-1 block text-sm font-semibold text-neutral-800">Notes</label>
+                    <textarea
+                        value={active.notes}
+                        onChange={e=> setActive(prev=> ({...prev, notes: e.target.value.slice(0,300)}))}
+                        className="min-h-28 w-full rounded-2xl border-2 border-neutral-300 bg-white px-3 py-2 text-neutral-900 outline-none transition placeholder:text-neutral-400 focus:border-amber-400 focus:ring-4 focus:ring-amber-400/20"
+                        placeholder="No onions, allergies... (max 300)"
+                    />
+                    </div>
+                </div>
+                )}
+            </Modal>
+      </FadeIn>
     </div>
   )
 }
