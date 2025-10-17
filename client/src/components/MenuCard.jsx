@@ -3,14 +3,45 @@ import { fmtCurrency } from '../lib/api'
 
 export default function MenuCard({ item, onAdd }){
   return (
-    <div className="bg-white rounded-2xl shadow overflow-hidden flex flex-col">
-      {item.image_url && <img loading="lazy" src={item.image_url} alt={item.name} className="h-40 w-full object-cover" />}
-      <div className="p-4 flex-1 flex flex-col">
-        <div className="font-semibold">{item.name}</div>
-        {item.description && <p className="text-sm text-slate-600 line-clamp-3 mt-1">{item.description}</p>}
-        <div className="mt-auto flex items-center justify-between pt-3">
-          <div className="text-lg font-semibold">{fmtCurrency(item.price)}</div>
-          <button onClick={()=> onAdd(item)} className="px-3 py-1.5 rounded bg-indigo-600 text-white hover:bg-indigo-700">Add</button>
+    <div className="group relative overflow-hidden rounded-3xl border border-white/5 bg-neutral-900 transition hover:-translate-y-2 hover:border-amber-400/30 hover:shadow-[0_25px_60px_rgba(0,0,0,0.5)] flex flex-col">
+      {/* New badge (optional) */}
+      {item?.is_new && (
+        <span className="absolute right-5 top-5 z-10 rounded-full bg-green-600 px-3 py-1 text-[10px] font-extrabold uppercase tracking-wider text-white shadow-[0_4px_20px_rgba(22,163,74,0.45)]">
+          New
+        </span>
+      )}
+
+      {/* Image / placeholder */}
+      {item?.image_url ? (
+        <img
+          loading="lazy"
+          src={item.image_url}
+          alt={item.name}
+          className="h-56 w-full object-cover"
+        />
+      ) : (
+        <div className="grid h-56 w-full place-items-center bg-gradient-to-br from-amber-400/20 to-rose-800/20 text-6xl">🌮</div>
+      )}
+
+      <div className="p-6 flex-1 flex flex-col">
+        <div className="mb-2 flex items-start justify-between gap-4">
+          <h3 className="text-xl font-extrabold tracking-tight text-white line-clamp-2">{item.name}</h3>
+          <span className="bg-gradient-to-br from-amber-400 to-amber-200 bg-clip-text text-2xl font-extrabold text-transparent whitespace-nowrap">
+            {fmtCurrency(item.price)}
+          </span>
+        </div>
+
+        {item?.description && (
+          <p className="mb-4 text-sm leading-relaxed text-white/60 line-clamp-3">{item.description}</p>
+        )}
+
+        <div className="mt-auto pt-2">
+          <button
+            onClick={() => onAdd(item)}
+            className="w-full rounded-2xl bg-amber-400 px-4 py-3 font-bold text-black transition hover:scale-[1.02] hover:shadow-[0_8px_30px_rgba(251,191,36,0.5)]"
+          >
+            Add to Cart
+          </button>
         </div>
       </div>
     </div>

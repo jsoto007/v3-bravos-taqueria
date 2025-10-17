@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react'
 import { api } from '../lib/api'
 import MenuCard from '../components/MenuCard'
 import { useCart } from '../context/CartContext'
+import Hero from '../components/Hero'
 
 export default function Home(){
   const [featured, setFeatured] = useState([])
@@ -19,11 +20,7 @@ export default function Home(){
 
   return (
     <div>
-      <section className="bg-gradient-to-r from-indigo-600 to-purple-600 text-white rounded-2xl p-8">
-        <h1 className="text-3xl font-bold">Bravo's Taqueria</h1>
-        <p className="mt-2 text-white/90">Fresh tacos, bowls, and more — order online for fast pickup or delivery.</p>
-      </section>
-
+        <Hero />
       <h2 className="mt-8 mb-4 text-xl font-semibold">Featured</h2>
       {loading ? <div>Loading...</div> : (
         <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
