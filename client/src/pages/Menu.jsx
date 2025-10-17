@@ -24,30 +24,32 @@ export default function Menu(){
   }
 
   return (
-    <div className="mt-10 mx-auto grid max-w-6xl gap-6 lg:grid-cols-[240px_1fr]">
-      {/* Sidebar */}
-      <aside className="hidden lg:block">
-        <div className="sticky top-20 rounded-2xl border border-neutral-200 bg-white p-4 shadow-sm">
+    <div className="w-screen -mx-[calc(50vw-50%)] -mt-px">
+      {/* Top Categories */}
+      <div className="sticky top-16 z-10 border-b border-neutral-200 bg-white/95 backdrop-blur supports-[backdrop-filter]:bg-white/80">
+        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-3">
           <div className="mb-2 text-sm font-extrabold tracking-tight text-neutral-900">Categories</div>
-          <ul className="space-y-1">
-            {cats.map(c=> (
-              <li key={c.id}>
-                <a href={`#cat-${c.id}`} className="block rounded-lg px-2 py-1.5 text-sm text-neutral-700 transition hover:bg-amber-50 hover:text-amber-700">
-                  {c.name}
-                </a>
-              </li>
+          <div className="flex gap-2 overflow-x-auto">
+            {cats.map(c => (
+              <a
+                key={c.id}
+                href={`#cat-${c.id}`}
+                className="shrink-0 rounded-lg px-3 py-1.5 text-sm font-medium text-neutral-700 transition hover:bg-amber-50 hover:text-amber-700 aria-[current=true]:bg-amber-400 aria-[current=true]:text-black"
+              >
+                {c.name}
+              </a>
             ))}
-          </ul>
+          </div>
         </div>
-      </aside>
+      </div>
 
       {/* Main */}
-      <div>
+      <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-8">
         {loading ? (
-          <div className="rounded-2xl border border-neutral-200 bg-white p-6 text-neutral-800 shadow-sm">Loading menu…</div>
+            <div className="rounded-2xl border border-neutral-200 bg-white p-6 text-neutral-800 shadow-sm">Loading menu…</div>
         ) : (
-          cats.map(c=> (
-            <section id={`cat-${c.id}`} key={c.id} className="mb-10 scroll-mt-24">
+            cats.map(c=> (
+                <section id={`cat-${c.id}`} key={c.id} className="mb-10 scroll-mt-24">
               <h3 className="mb-4 text-2xl font-extrabold tracking-tight text-neutral-900">{c.name}</h3>
               <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
                 {c.items.map(it=> <MenuCard key={it.id} item={it} onAdd={startAdd} />)}
