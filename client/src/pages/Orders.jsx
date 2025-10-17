@@ -32,7 +32,7 @@ export default function Orders(){
   }
 
   return (
-    <div className="space-y-6">
+    <div className="mt-10 space-y-6">
       <div>
         <h1 className="text-2xl font-extrabold tracking-tight text-neutral-900">Your Orders</h1>
         <p className="mt-1 text-sm text-neutral-600">Track your recent orders and reorder your favorites.</p>

@@ -22,7 +22,7 @@ export default function OrderCard({ order }){
     : '—'
 
   return (
-    <div className="rounded-3xl border border-neutral-200 bg-white p-5 text-neutral-900 shadow-sm transition hover:shadow-md">
+    <div className="mt-10 rounded-3xl border border-neutral-200 bg-white p-5 text-neutral-900 shadow-sm transition hover:shadow-md">
       <div className="flex items-start justify-between gap-3">
         <div>
           <div className="text-sm font-semibold tracking-tight text-neutral-600">Order</div>

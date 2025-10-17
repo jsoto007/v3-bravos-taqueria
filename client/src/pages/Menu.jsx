@@ -24,7 +24,7 @@ export default function Menu(){
   }
 
   return (
-    <div className="mx-auto grid max-w-6xl gap-6 lg:grid-cols-[240px_1fr]">
+    <div className="mt-10 mx-auto grid max-w-6xl gap-6 lg:grid-cols-[240px_1fr]">
       {/* Sidebar */}
       <aside className="hidden lg:block">
         <div className="sticky top-20 rounded-2xl border border-neutral-200 bg-white p-4 shadow-sm">

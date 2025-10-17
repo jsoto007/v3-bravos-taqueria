@@ -3,7 +3,7 @@ import { fmtCurrency } from '../lib/api'
 
 export default function MenuCard({ item, onAdd }){
   return (
-    <div className="group relative overflow-hidden rounded-3xl border border-white/5 bg-neutral-900 transition hover:-translate-y-2 hover:border-amber-400/30 hover:shadow-[0_25px_60px_rgba(0,0,0,0.5)] flex flex-col">
+    <div className="mt-10 group relative overflow-hidden rounded-3xl border border-white/5 bg-neutral-900 transition hover:-translate-y-2 hover:border-amber-400/30 hover:shadow-[0_25px_60px_rgba(0,0,0,0.5)] flex flex-col">
       {/* New badge (optional) */}
       {item?.is_new && (
         <span className="absolute right-5 top-5 z-10 rounded-full bg-green-600 px-3 py-1 text-[10px] font-extrabold uppercase tracking-wider text-white shadow-[0_4px_20px_rgba(22,163,74,0.45)]">
