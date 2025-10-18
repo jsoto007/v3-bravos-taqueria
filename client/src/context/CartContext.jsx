@@ -26,6 +26,10 @@ export function CartProvider({ children }) {
   const [cartId, setCartId] = useState(()=> Number(localStorage.getItem('cart_id')||0) || null)
   const [cart, setCart] = useState(null)
   const [loading, setLoading] = useState(false)
+  const [cartError, setCartError] = useState(null)
+  const snapshotCart = () => JSON.parse(JSON.stringify(cart))
+  const restoreCart = (snap) => setCart(snap)
+  const clearCartError = () => setCartError(null)
 
   useEffect(()=>{
     (async ()=>{
@@ -70,20 +74,50 @@ export function CartProvider({ children }) {
     }
   }
 
-  const addItem = async (menu_item_id, { qty=1, notes=null, modifier_option_ids=[] }={}) => {
+  const addItem = async (menuItemOrId, { qty=1, notes=null, modifier_option_ids=[] }={}) => {
+    clearCartError()
     const id = await ensureCart()
+
+    const asObj = (typeof menuItemOrId === 'object' && menuItemOrId !== null) ? menuItemOrId : null
+    const menu_item_id = asObj ? asObj.id : menuItemOrId
+    const canOptimistic = !!(asObj && (asObj.price != null))
+
+    const prev = snapshotCart()
+
+    // --- optimistic update (only if we know unit price to avoid NaNs in totals) ---
+    if (canOptimistic) {
+      setCart((c)=>{
+        const base = c ? { ...c } : { id, items: [], currency: 'USD' }
+        const items = Array.isArray(base.items) ? [...base.items] : []
+        const idx = items.findIndex(it => Number(it.menu_item_id) === Number(menu_item_id))
+        if (idx >= 0) {
+          items[idx] = { ...items[idx], qty: (items[idx].qty || 0) + qty }
+        } else {
+          items.push({
+            id: `temp-${crypto.randomUUID()}`,
+            menu_item_id,
+            name: asObj.name,
+            unit_price: asObj.price,
+            qty,
+            notes,
+            _optimistic: true
+          })
+        }
+        base.items = items
+        return base
+      })
+    }
+
     try {
       await api.cartAddItem(id, { menu_item_id, qty, notes, modifier_option_ids })
+      // reconcile with server (source of truth)
+      const updated = await api.cartGet(localStorage.getItem('cart_id'))
+      setCart(updated)
     } catch (e) {
-      if (isNotFound(e)) {
-        const newId = await createFreshCart(setCartId, setCart)
-        await api.cartAddItem(newId, { menu_item_id, qty, notes, modifier_option_ids })
-      } else {
-        throw e
-      }
+      // rollback & surface error
+      restoreCart(prev)
+      setCartError(e?.message || 'Failed to add item to cart')
     }
-    const updated = await api.cartGet(localStorage.getItem('cart_id'))
-    setCart(updated)
   }
 
   const updateQty = async (item_id, qty) => {
@@ -125,7 +159,17 @@ export function CartProvider({ children }) {
   }, [cart])
 
   return (
-    <CartCtx.Provider value={{ cartId, cart, loading, addItem, updateQty, removeItem, totals }}>
+    <CartCtx.Provider value={{
+      cartId,
+      cart,
+      loading,
+      addItem,
+      updateQty,
+      removeItem,
+      cartError,
+      clearCartError,
+      totals
+    }}>
       {children}
     </CartCtx.Provider>
   )
