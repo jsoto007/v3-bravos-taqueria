@@ -1,6 +1,5 @@
 import React, { useEffect, useState } from 'react'
 import { api } from '../lib/api'
-import MenuCard from '../components/MenuCard'
 import Modal from '../components/Modal'
 import { useCart } from '../context/CartContext'
 import FadeIn from '../utils/FadeIn'
@@ -23,6 +22,8 @@ export default function Menu(){
     await addItem(active.item.id, { qty: active.qty, notes: active.notes, modifier_option_ids: active.options })
     setActive(null)
   }
+
+  const fmt = (n)=> `$${Number(n).toFixed(2)}`
 
   return (
     <div className="w-screen -mx-[calc(50vw-50%)] -mt-px">
@@ -53,8 +54,57 @@ export default function Menu(){
                     cats.map(c=> (
                         <section id={`cat-${c.id}`} key={c.id} className="mb-10 scroll-mt-24">
                     <h3 className="mb-4 text-2xl font-extrabold tracking-tight text-neutral-900">{c.name}</h3>
-                    <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
-                        {c.items.map(it=> <MenuCard key={it.id} item={it} onAdd={startAdd} />)}
+                    <div className="space-y-4">
+                      {c.items.map(it => (
+                        <div
+                          key={it.id}
+                          className="group relative flex items-stretch justify-between rounded-2xl border border-neutral-200 bg-white p-4 transition hover:shadow-md"
+                        >
+                          {/* LEFT: name, price, description */}
+                          <button
+                            type="button"
+                            onClick={() => startAdd(it)}
+                            className="flex-1 text-left"
+                          >
+                            <div className="mb-1 text-base font-extrabold tracking-tight text-neutral-900">
+                              {it.name}
+                            </div>
+                            <div className="mb-1 text-sm font-semibold text-neutral-800">
+                              {typeof it.price !== 'undefined' ? fmt(it.price) : null}
+                            </div>
+                            {it.description ? (
+                              <p className="line-clamp-2 max-w-prose text-sm text-neutral-600">
+                                {it.description}
+                              </p>
+                            ) : null}
+                          </button>
+
+                          {/* RIGHT: image with + button */}
+                          <div className="relative ml-4 h-28 w-28 shrink-0 overflow-hidden rounded-xl border border-neutral-200 bg-neutral-50">
+                            {(it.photo_url || it.image_url) ? (
+                              <img
+                                src={it.photo_url || it.image_url}
+                                alt={it.name}
+                                className="h-full w-full object-cover"
+                                onError={(e) => { e.currentTarget.style.display = 'none' }}
+                              />
+                            ) : (
+                              <div className="flex h-full w-full items-center justify-center text-5xl">
+                                {/burrito/i.test(it.name) ? '🌯' : '🌮'}
+                              </div>
+                            )}
+                            <button
+                              type="button"
+                              onClick={() => startAdd(it)}
+                              className="absolute bottom-2 right-2 inline-flex size-8 items-center justify-center rounded-full bg-amber-400 font-bold text-black shadow transition hover:scale-105"
+                              aria-label={`Add ${it.name}`}
+                              title="Add"
+                            >
+                              +
+                            </button>
+                          </div>
+                        </div>
+                      ))}
                     </div>
                     </section>
                 ))
@@ -66,24 +116,26 @@ export default function Menu(){
                 title={active? active.item.name: ''}
                 onClose={()=> setActive(null)}
                 footer={
-                <>
+                  <div className="fixed inset-x-0 bottom-0 z-[60] flex flex-col gap-3 border-t bg-white/95 px-4 py-4 pb-[calc(env(safe-area-inset-bottom)+1rem)] shadow-[0_-6px_24px_rgba(0,0,0,0.08)] backdrop-blur supports-[backdrop-filter]:bg-white/70 sm:flex-row sm:items-center sm:justify-end sm:px-6">
                     <button
-                    className="rounded-2xl border border-neutral-300 bg-white px-4 py-2.5 font-semibold text-neutral-800 transition hover:border-neutral-400 hover:bg-neutral-50"
-                    onClick={()=> setActive(null)}
+                      type="button"
+                      className="w-full rounded-2xl border border-neutral-300 bg-white px-4 py-2.5 font-semibold text-neutral-800 transition hover:border-neutral-400 hover:bg-neutral-50 sm:w-auto"
+                      onClick={() => setActive(null)}
                     >
-                    Cancel
+                      Cancel
                     </button>
                     <button
-                    className="rounded-2xl bg-green-600 px-4 py-2.5 font-bold text-white transition hover:scale-[1.02] hover:shadow-[0_8px_30px_rgba(22,163,74,0.35)]"
-                    onClick={commitAdd}
+                      type="button"
+                      className="w-full rounded-2xl bg-green-600 px-4 py-2.5 font-bold text-white transition hover:scale-[1.02] hover:shadow-[0_8px_30px_rgba(22,163,74,0.35)] sm:w-auto"
+                      onClick={commitAdd}
                     >
-                    Add to cart
+                      Add to cart
                     </button>
-                </>
+                  </div>
                 }
             >
                 {active && (
-                <div className="space-y-5">
+                <div className="space-y-5 pb-40 sm:pb-8 max-h-[70vh] overflow-y-auto pr-2">
                     {active.item.modifier_groups?.map(g=> (
                     <div key={g.id}>
                         <div className="text-base font-bold text-neutral-900">
