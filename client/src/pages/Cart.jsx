@@ -1,6 +1,7 @@
 import React from 'react'
 import { useCart } from '../context/CartContext'
 import FadeIn from '../utils/FadeIn'
+import DeleteBtn from '../components/ui/DeleteBtn'
 
 export default function Cart(){
   const { cart, totals, updateQty, removeItem } = useCart()
@@ -45,12 +46,11 @@ export default function Cart(){
                         </span>
                     </div>
 
-                    <button
-                        onClick={() => removeItem(i.id)}
-                        className="rounded-full bg-rose-50 px-3 py-1.5 text-sm font-semibold text-rose-700 transition hover:bg-rose-100"
-                    >
-                        Remove
-                    </button>
+                    <DeleteBtn
+                      onClick={() => removeItem(i.id)}
+                      title="Remove item"
+                      className="shrink-0"
+                    />
                     </li>
                 ))}
                 </ul>

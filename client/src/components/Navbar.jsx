@@ -87,8 +87,15 @@ export default function Navbar(){
     <header className="bg-neutral-950 border-b border-neutral-800 sticky top-0 z-40">
       <div className="container mx-auto px-4 h-16 flex items-center justify-between">
         {/* Brand — ensure visible on mobile */}
-        <Link to="/" className="font-bold text-lg text-amber-400 hover:text-white transition-colors">
-          Bravo&apos;s Taqueria
+        <Link to="/" className="group flex items-center gap-2 font-bold text-lg text-amber-400 hover:text-white transition-colors">
+          <img
+            src="/vite.svg"
+            alt="Bravo's Taqueria logo"
+            className="h-8 w-8"
+            loading="eager"
+            decoding="async"
+          />
+          <span>Bravo&apos;s Taqueria</span>
         </Link>
 
         {/* Desktop nav */}
@@ -165,8 +172,15 @@ export default function Navbar(){
           >
             {/* Panel header */}
             <div className="flex items-center justify-between">
-              <Link to="/" className="font-bold text-lg text-amber-400" onClick={() => setIsOpen(false)}>
-                Bravo&apos;s Taqueria
+              <Link to="/" className="group flex items-center gap-2 font-bold text-lg text-amber-400" onClick={() => setIsOpen(false)}>
+                <img
+                  src="/vite.svg"
+                  alt="Bravo's Taqueria logo"
+                  className="h-8 w-8"
+                  loading="eager"
+                  decoding="async"
+                />
+                <span>Bravo&apos;s Taqueria</span>
               </Link>
               <button
                 type="button"
