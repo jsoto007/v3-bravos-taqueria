@@ -48,7 +48,7 @@ export default function Orders(){
               Create account
             </a>
             <a
-              href="/#menu"
+              href="/menu"
               className="inline-flex items-center justify-center rounded-2xl px-5 py-2.5 text-sm text-neutral-700 hover:text-neutral-900 underline underline-offset-4"
             >
               Continue as guest →
@@ -88,7 +88,7 @@ export default function Orders(){
                 <div className="mb-2 text-3xl">📦</div>
                 <p className="text-sm">No orders yet. Start your first order and we’ll list it here.</p>
                 <a
-                    href="/#menu"
+                    href="/menu"
                     className="mt-4 inline-block rounded-2xl bg-green-600 px-5 py-2.5 font-bold text-white transition hover:scale-[1.02] hover:shadow-[0_8px_30px_rgba(22,163,74,0.35)]"
                 >
                     Browse Menu
