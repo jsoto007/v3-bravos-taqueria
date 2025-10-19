@@ -20,8 +20,7 @@ export default function Hero() {
           <br />
           Culinary Experience
         </h1>
-
-        <p className="mx-auto mt-5 max-w-xl text-base md:text-lg leading-relaxed text-white/70">
+        <p className="text-pretty mx-auto mt-5 max-w-xl text-base md:text-lg leading-relaxed text-white/70">
           Where authentic tradition meets contemporary sophistication. Crafted with passion, served with pride.
         </p>
 
@@ -33,7 +32,7 @@ export default function Hero() {
             Start Your Order
           </a>
           <a
-            href="#menu"
+            href="/menu"
             className="inline-block rounded-full border border-white/20 px-8 py-3 font-semibold text-white/90 transition hover:border-amber-400 hover:bg-amber-400/10 hover:-translate-y-0.5"
           >
             Explore Menu
