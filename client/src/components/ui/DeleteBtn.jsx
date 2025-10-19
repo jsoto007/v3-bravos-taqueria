@@ -26,7 +26,7 @@ export default function DeleteBtn({
       onClick={handleClick}
       disabled={disabled}
       className={
-        `group relative flex h-10 w-10 flex-col items-center justify-center overflow-hidden rounded-xl border-2 border-rose-200 bg-amber-50 text-rose-800 transition-colors hover:bg-amber-100
+        `group relative flex h-10 w-10 flex-col items-center justify-center overflow-hidden rounded-xl border-rose-200 text-rose-800 transition-colors hover:bg-amber-100
          focus:outline-none focus-visible:ring-2 focus-visible:ring-rose-400 focus-visible:ring-offset-2 disabled:opacity-60 disabled:cursor-not-allowed ${className}`
       }
       {...rest}
