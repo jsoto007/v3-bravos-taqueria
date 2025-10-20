@@ -100,9 +100,11 @@ export default function Navbar(){
           <NavLink to="/menu" className={baseLink}>Menu</NavLink>
           <NavLink to="/orders" className={baseLink}>My Orders</NavLink>
           <NavLink to="/cart" className={baseLink}>
-            Cart
-            <span className="ml-1 inline-flex items-center justify-center text-xs font-semibold bg-amber-400 text-black px-2 py-0.5 rounded-full min-w-5">
-              {itemsCount}
+            <span className="inline-flex items-center">
+              Cart
+              <span className="ml-0.5 inline-flex items-center justify-center text-xs font-semibold bg-amber-400 text-black px-2 py-0.5 rounded-full min-w-5">
+                {itemsCount}
+              </span>
             </span>
           </NavLink>
           {user ? (
@@ -119,9 +121,11 @@ export default function Navbar(){
         {/* Mobile actions */}
         <div className="md:hidden flex items-center gap-3">
           <Link to="/cart" className="relative px-2 py-1 text-white/90 hover:text-amber-400 transition-colors" aria-label="Open cart">
-            Cart
-            <span className="ml-1 inline-flex items-center justify-center text-xs font-semibold bg-amber-400 text-black px-2 py-0.5 rounded-full min-w-5">
-              {itemsCount}
+            <span className="inline-flex items-center">
+              Cart
+              <span className="ml-0.5 inline-flex items-center justify-center text-xs font-semibold bg-amber-400 text-black px-2 py-0.5 rounded-full min-w-5">
+                {itemsCount}
+              </span>
             </span>
           </Link>
           <button
@@ -195,7 +199,7 @@ export default function Navbar(){
               <NavLink to="/orders" className={baseLink} onClick={() => setIsOpen(false)}>My Orders</NavLink>
               <NavLink to="/cart" className={baseLink} onClick={() => setIsOpen(false)}>
                 Cart
-                <span className="ml-1 inline-flex items-center justify-center text-xs font-semibold bg-amber-400 text-black px-2 py-0.5 rounded-full min-w-5">
+                <span className="ml-0.5 inline-flex items-center justify-center text-xs font-semibold bg-amber-400 text-black px-2 py-0.5 rounded-full min-w-5">
                   {itemsCount}
                 </span>
               </NavLink>
