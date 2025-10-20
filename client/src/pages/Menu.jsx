@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react'
+import React, { useEffect, useState, useRef, useLayoutEffect } from 'react'
 import { api } from '../lib/api'
 import Modal from '../components/Modal'
 import { useCart } from '../context/CartContext'
@@ -9,6 +9,77 @@ export default function Menu(){
   const [loading, setLoading] = useState(true)
   const [active, setActive] = useState(null) // for modifiers modal
   const { addItem } = useCart()
+  const [activeCatId, setActiveCatId] = useState(null)
+
+  const catBarRef = useRef(null)
+  const [catBarH, setCatBarH] = useState(0)
+  const catListRef = useRef(null)
+
+  useLayoutEffect(() => {
+    if (!catBarRef.current) return
+    const el = catBarRef.current
+    const measure = () => setCatBarH(el.offsetHeight || 0)
+    measure()
+    const ro = new ResizeObserver(measure)
+    ro.observe(el)
+    window.addEventListener('resize', measure)
+    return () => {
+      ro.disconnect()
+      window.removeEventListener('resize', measure)
+    }
+  }, [])
+
+  useEffect(() => {
+    if (!cats?.length) return
+
+    const observer = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((entry) => {
+          if (entry.isIntersecting) {
+            const id = entry.target.getAttribute('id')
+            if (id && id.startsWith('cat-')) {
+              const num = Number(id.replace('cat-', ''))
+              if (!Number.isNaN(num)) setActiveCatId(num)
+            }
+          }
+        })
+      },
+      {
+        // Trigger when the section's top comes into the upper half of the viewport
+        rootMargin: '0px 0px -60% 0px',
+        threshold: 0.1,
+      }
+    )
+
+    cats.forEach((c) => {
+      const el = document.getElementById(`cat-${c.id}`)
+      if (el) observer.observe(el)
+    })
+
+    return () => observer.disconnect()
+  }, [cats])
+
+  useEffect(() => {
+    if (activeCatId == null) return
+    const list = catListRef.current
+    if (!list) return
+    const el = list.querySelector(`a[data-cat-id="${activeCatId}"]`)
+    if (!el) return
+    // Only scroll if it's outside the visible bounds to avoid jitter
+    const elRect = el.getBoundingClientRect()
+    const listRect = list.getBoundingClientRect()
+    const isLeftOverflow = elRect.left < listRect.left
+    const isRightOverflow = elRect.right > listRect.right
+    if (isLeftOverflow || isRightOverflow) {
+      el.scrollIntoView({ behavior: 'smooth', inline: 'center', block: 'nearest' })
+    }
+  }, [activeCatId])
+
+  const scrollToCategory = (id) => {
+    const el = document.getElementById(`cat-${id}`)
+    if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' })
+    setActiveCatId(id)
+  }
 
   useEffect(()=>{
     (async()=>{
@@ -29,15 +100,22 @@ export default function Menu(){
     <div className="w-screen -mx-[calc(50vw-50%)] -mt-px">
         <FadeIn>
             {/* Top Categories */}
-            <div className="sticky top-16 z-10 border-b border-neutral-200 bg-white/95 backdrop-blur supports-[backdrop-filter]:bg-white/80">
+            <div
+              ref={catBarRef}
+              className="fixed top-16 inset-x-0 z-30 border-b border-neutral-200 bg-white supports-[backdrop-filter]:bg-white transform-gpu will-change-[transform]"
+              style={{ backfaceVisibility: 'hidden', transform: 'translateZ(0)' }}
+            >
                 <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-3">
                 <div className="mb-2 text-sm font-extrabold tracking-tight text-neutral-900">Categories</div>
-                <div className="flex gap-2 overflow-x-auto">
+                <div ref={catListRef} className="flex gap-2 overflow-x-auto">
                     {cats.map(c => (
                     <a
                         key={c.id}
+                        data-cat-id={c.id}
                         href={`#cat-${c.id}`}
-                        className="shrink-0 rounded-lg px-3 py-1.5 text-sm font-medium text-neutral-700 transition hover:bg-amber-50 hover:text-amber-700 aria-[current=true]:bg-amber-400 aria-[current=true]:text-black"
+                        onClick={(e) => { e.preventDefault(); scrollToCategory(c.id) }}
+                        aria-current={activeCatId === c.id}
+                        className="shrink-0 rounded-lg px-3 py-1.5 text-sm font-semibold text-neutral-700 transition border-b-2 border-transparent hover:bg-amber-50 hover:text-amber-700 aria-[current=true]:text-amber-700 aria-[current=true]:border-amber-500 aria-[current=true]:underline aria-[current=true]:underline-offset-8"
                     >
                         {c.name}
                     </a>
@@ -45,6 +123,7 @@ export default function Menu(){
                 </div>
                 </div>
             </div>
+            <div style={{ height: catBarH }} />
 
             {/* Main */}
             <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-8">
