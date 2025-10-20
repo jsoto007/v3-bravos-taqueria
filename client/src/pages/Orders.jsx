@@ -21,7 +21,7 @@ export default function Orders(){
 
   if (!user) {
     return (
-      <div className="mt-10">
+      <div className="mt-20">
         <div className="rounded-3xl border border-neutral-200 bg-amber-50 p-8 text-neutral-800 shadow-sm">
           <h1 className="text-2xl font-extrabold tracking-tight text-neutral-900">Please log in</h1>
           <p className="mt-2 text-sm text-neutral-700">
@@ -76,7 +76,7 @@ export default function Orders(){
   }
 
   return (
-    <div className="mt-10 space-y-6">
+    <div className="mt-20 space-y-6">
         <FadeIn>
             <div>
                 <h1 className="text-2xl font-extrabold tracking-tight text-neutral-900">Your Orders</h1>
