@@ -2,6 +2,7 @@ import React, { useEffect, useRef, useState } from 'react'
 import { Link, NavLink, useNavigate } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
 import { useCart } from '../context/CartContext'
+import viteLogo from '/vite.svg'
 
 export default function Navbar(){
   const { user, logout } = useAuth()
@@ -88,7 +89,10 @@ export default function Navbar(){
       <div className="container mx-auto px-4 h-16 flex items-center justify-between">
         {/* Brand — ensure visible on mobile */}
         <Link to="/" className="font-bold text-lg text-amber-400 hover:text-white transition-colors">
-          Bravo&apos;s Taqueria
+          <span className="inline-flex items-center gap-2">
+            <img src={viteLogo} alt="Bravo's Taqueria logo" className="h-10 w-10" loading="eager" decoding="async" />
+            <span>Bravo&apos;s Taqueria</span>
+          </span>
         </Link>
 
         {/* Desktop nav */}
@@ -166,7 +170,10 @@ export default function Navbar(){
             {/* Panel header */}
             <div className="flex items-center justify-between">
               <Link to="/" className="font-bold text-lg text-amber-400" onClick={() => setIsOpen(false)}>
-                Bravo&apos;s Taqueria
+                <span className="inline-flex items-center gap-2">
+                  <img src={viteLogo} alt="Bravo's Taqueria logo" className="h-14 w-14" loading="eager" decoding="async" />
+                  <span>Bravo&apos;s Taqueria</span>
+                </span>
               </Link>
               <button
                 type="button"
