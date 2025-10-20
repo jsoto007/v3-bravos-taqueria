@@ -1,7 +1,17 @@
-import React from 'react'
+import React, { useEffect, useRef, useState } from 'react'
+import CheckmarkOverlay from './ui/CheckmarkOverlay'
 import { fmtCurrency } from '../lib/api'
 
 export default function MenuCard({ item, onAdd }){
+  const [showAnim, setShowAnim] = useState(false);
+  const hideTimerRef = useRef(null);
+
+  useEffect(() => {
+    return () => {
+      if (hideTimerRef.current) clearTimeout(hideTimerRef.current);
+    };
+  }, []);
+
   return (
     <div className="mt-10 group relative overflow-hidden rounded-3xl border border-white/5 bg-neutral-900 transition hover:-translate-y-2 hover:border-amber-400/30 hover:shadow-[0_25px_60px_rgba(0,0,0,0.5)] flex flex-col">
       {/* New badge (optional) */}
@@ -37,13 +47,29 @@ export default function MenuCard({ item, onAdd }){
 
         <div className="mt-auto pt-2">
           <button
-            onClick={() => onAdd(item)}
+            onClick={() => {
+              setShowAnim(true);
+              onAdd(item);
+              if (hideTimerRef.current) clearTimeout(hideTimerRef.current);
+              hideTimerRef.current = setTimeout(() => setShowAnim(false), 900);
+            }}
             className="w-full rounded-2xl bg-amber-400 px-4 py-3 font-bold text-black transition hover:scale-[1.02] hover:shadow-[0_8px_30px_rgba(251,191,36,0.5)]"
           >
             Add to Cart
           </button>
         </div>
       </div>
+      <CheckmarkOverlay
+        open={showAnim}
+        onClosed={() => setShowAnim(false)}
+        durationMs={900}
+        message="Added to cart!"
+        backdropClass="bg-black/30"
+        bubbleClass="bg-amber-400"
+        ringClass="bg-amber-400/40"
+        showRing
+        sizePx={96}
+      />
     </div>
   )
 }

@@ -8,6 +8,7 @@ export default function Menu(){
   const [cats, setCats] = useState([])
   const [loading, setLoading] = useState(true)
   const [active, setActive] = useState(null) // for modifiers modal
+  const [pendingAdd, setPendingAdd] = useState(false)
   const { addItem } = useCart()
   const [activeCatId, setActiveCatId] = useState(null)
 
@@ -94,10 +95,36 @@ export default function Menu(){
     })()
   }, [])
 
-  const startAdd = (item)=> setActive({ item, qty:1, notes:'', options:[] })
-  const commitAdd = async ()=>{
-    await addItem(active.item.id, { qty: active.qty, notes: active.notes, modifier_option_ids: active.options })
+  const startAdd = (item) => {
+    // Always open the modal so the user can review/modify options and quantity
+    setActive({ item, qty: 1, notes: '', options: [] })
+  }
+
+  const commitAdd = () => {
+    if (!active?.item) return
+
+    // Block submit if any required group has no selected option
+    const missingRequired = (active.item.modifier_groups || []).some(g =>
+      g.required && !(active.options || []).some(optId => (g.options || []).some(o => o.id === optId))
+    )
+    if (missingRequired) {
+      alert('Please select the required options.')
+      return
+    }
+
+    // Fire-and-forget: trigger optimistic update immediately; close modal without awaiting network
+    setPendingAdd(true)
+    const p = addItem(active.item, {
+      qty: active.qty,
+      notes: active.notes,
+      modifier_option_ids: active.options,
+    })
+
+    // Close modal right away so the app feels snappy; reconciliation/rollback will still occur in context
     setActive(null)
+
+    // Clear pending flag when the async work completes
+    p.finally(() => setPendingAdd(false))
   }
 
   const fmt = (n)=> `$${Number(n).toFixed(2)}`
@@ -134,7 +161,7 @@ export default function Menu(){
             {/* Main */}
             <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-8">
                 {loading ? (
-                    <div className="rounded-2xl border border-neutral-200 bg-white p-6 text-neutral-800 shadow-sm">Loading menu…</div>
+                    <div className="mt-10 rounded-2xl border border-neutral-200 bg-white p-6 text-neutral-800 shadow-sm">Loading menu…</div>
                 ) : (
                     cats.map(c=> (
                         <section id={`cat-${c.id}`} key={c.id} className="mb-10 scroll-mt-24">
@@ -184,6 +211,7 @@ export default function Menu(){
                               className="absolute bottom-2 right-2 inline-flex size-8 items-center justify-center rounded-full bg-amber-400 font-bold text-black shadow transition hover:scale-105"
                               aria-label={`Add ${it.name}`}
                               title="Add"
+                              disabled={pendingAdd}
                             >
                               +
                             </button>
@@ -213,6 +241,7 @@ export default function Menu(){
                       type="button"
                       className="w-full rounded-2xl bg-green-600 px-4 py-2.5 font-bold text-white transition hover:scale-[1.02] hover:shadow-[0_8px_30px_rgba(22,163,74,0.35)] sm:w-auto"
                       onClick={commitAdd}
+                      disabled={pendingAdd}
                     >
                       Add to cart
                     </button>

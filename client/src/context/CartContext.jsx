@@ -84,12 +84,26 @@ export function CartProvider({ children }) {
 
     const prev = snapshotCart()
 
+    const optIds = Array.isArray(modifier_option_ids) ? [...modifier_option_ids].sort() : []
+    const variantKey = `${menu_item_id}::${optIds.join(',') || 'base'}`
+
+    const computeClientUnitPrice = () => {
+      if (!asObj?.price) return null
+      // Build a price lookup for modifier options from the provided menu item object
+      const optionPriceMap = new Map()
+      for (const g of asObj.modifier_groups || []) {
+        for (const o of g.options || []) optionPriceMap.set(Number(o.id), Number(o.price_delta || 0))
+      }
+      const deltas = optIds.reduce((sum, oid) => sum + (optionPriceMap.get(Number(oid)) || 0), 0)
+      return Number(asObj.price) + deltas
+    }
+
     // --- optimistic update (only if we know unit price to avoid NaNs in totals) ---
     if (canOptimistic) {
       setCart((c)=>{
         const base = c ? { ...c } : { id, items: [], currency: 'USD' }
         const items = Array.isArray(base.items) ? [...base.items] : []
-        const idx = items.findIndex(it => Number(it.menu_item_id) === Number(menu_item_id))
+        const idx = items.findIndex(it => Number(it.menu_item_id) === Number(menu_item_id) && it.variant_key === variantKey)
         if (idx >= 0) {
           items[idx] = { ...items[idx], qty: (items[idx].qty || 0) + qty }
         } else {
@@ -97,9 +111,11 @@ export function CartProvider({ children }) {
             id: `temp-${crypto.randomUUID()}`,
             menu_item_id,
             name: asObj.name,
-            unit_price: asObj.price,
+            unit_price: computeClientUnitPrice() ?? asObj.price,
             qty,
             notes,
+            modifier_option_ids: optIds,
+            variant_key: variantKey,
             _optimistic: true
           })
         }

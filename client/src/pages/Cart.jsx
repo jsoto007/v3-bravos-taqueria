@@ -9,7 +9,7 @@ export default function Cart(){
 
   return (
     <FadeIn>
-        <div className="mt-10 grid gap-6 lg:grid-cols-[1fr_360px] w-screen -mx-[calc(50vw-50%)] sm:w-auto sm:mx-0">
+        <div className="mt-20 grid gap-6 lg:grid-cols-[1fr_360px] w-screen -mx-[calc(50vw-50%)] sm:w-auto sm:mx-0">
         {/* Cart list */}
             <div className="rounded-3xl border border-neutral-200 bg-white text-neutral-900 shadow-sm">
                 <div className="border-b border-neutral-200 p-5 text-lg font-extrabold tracking-tight">Your Cart</div>
