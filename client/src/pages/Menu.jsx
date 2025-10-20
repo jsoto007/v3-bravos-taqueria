@@ -77,7 +77,13 @@ export default function Menu(){
 
   const scrollToCategory = (id) => {
     const el = document.getElementById(`cat-${id}`)
-    if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' })
+    if (!el) return
+    // Measure fixed header + fixed categories bar
+    const header = document.querySelector('header')
+    const navH = header ? header.offsetHeight : 0
+    const offset = navH + catBarH + 8 // add a small breathing room
+    const targetY = el.getBoundingClientRect().top + window.scrollY - offset
+    window.scrollTo({ top: Math.max(0, targetY), behavior: 'smooth' })
     setActiveCatId(id)
   }
 
