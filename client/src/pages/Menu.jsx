@@ -3,6 +3,7 @@ import { api } from '../lib/api'
 import Modal from '../components/Modal'
 import { useCart } from '../context/CartContext'
 import FadeIn from '../utils/FadeIn'
+import CheckmarkOverlay from '../components/ui/CheckmarkOverlay'
 
 export default function Menu(){
   const [cats, setCats] = useState([])
@@ -11,6 +12,7 @@ export default function Menu(){
   const [pendingAdd, setPendingAdd] = useState(false)
   const { addItem } = useCart()
   const [activeCatId, setActiveCatId] = useState(null)
+  const [showCheck, setShowCheck] = useState(false)
 
   const catBarRef = useRef(null)
   const [catBarH, setCatBarH] = useState(0)
@@ -122,6 +124,7 @@ export default function Menu(){
 
     // Close modal right away so the app feels snappy; reconciliation/rollback will still occur in context
     setActive(null)
+    setShowCheck(true)
 
     // Clear pending flag when the async work completes
     p.finally(() => setPendingAdd(false))
@@ -302,6 +305,17 @@ export default function Menu(){
                 </div>
                 )}
             </Modal>
+            <CheckmarkOverlay
+              open={showCheck}
+              onClosed={() => setShowCheck(false)}
+              durationMs={900}
+              message="Added to cart!"
+              backdropClass="bg-black/30"
+              bubbleClass="bg-amber-400"
+              ringClass="bg-amber-400/40"
+              showRing
+              sizePx={96}
+            />
       </FadeIn>
     </div>
   )
