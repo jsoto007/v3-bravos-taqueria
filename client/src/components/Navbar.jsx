@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from 'react'
+import React, { useEffect, useRef, useState, useLayoutEffect } from 'react'
 import { Link, NavLink, useNavigate } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
 import { useCart } from '../context/CartContext'
@@ -11,6 +11,23 @@ export default function Navbar(){
 
   const [isOpen, setIsOpen] = useState(false)
   const panelRef = useRef(null)
+
+  const navRef = useRef(null)
+  const [navH, setNavH] = useState(64)
+
+  useLayoutEffect(() => {
+    if (!navRef.current) return
+    const el = navRef.current
+    const measure = () => setNavH(el.offsetHeight || 64)
+    measure()
+    const ro = new ResizeObserver(measure)
+    ro.observe(el)
+    window.addEventListener('resize', measure)
+    return () => {
+      ro.disconnect()
+      window.removeEventListener('resize', measure)
+    }
+  }, [])
 
   // Close on Escape
   useEffect(() => {
@@ -84,7 +101,12 @@ export default function Navbar(){
   )
 
   return (
-    <header className="bg-neutral-950 border-b border-neutral-800 sticky top-0 z-40">
+    <>
+    <header
+      ref={navRef}
+      className="bg-neutral-950 border-b border-neutral-800 fixed top-0 inset-x-0 z-50 transform-gpu will-change-[transform]"
+      style={{ backfaceVisibility: 'hidden', transform: 'translateZ(0)' }}
+    >
       <div className="container mx-auto px-4 h-16 flex items-center justify-between">
         {/* Brand — ensure visible on mobile */}
         <Link to="/" className="group flex items-center gap-2 font-bold text-lg text-amber-400 hover:text-white transition-colors">
@@ -230,5 +252,7 @@ export default function Navbar(){
         </div>
       )}
     </header>
+    <div style={{ height: navH }} />
+    </>
   )
 }
