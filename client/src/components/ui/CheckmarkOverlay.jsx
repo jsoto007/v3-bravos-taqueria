@@ -1,25 +1,6 @@
 import React, { useEffect, useRef, useState, useCallback } from "react";
 
-/**
- * CheckmarkOverlay (standalone)
- * A self-contained success overlay that animates in, holds, and animates out.
- * Uses only Tailwind utilities (no external keyframes). Timings and visuals are configurable via props.
- *
- * Props:
- * - open: boolean — controls visibility. When true, the animation flow runs automatically.
- * - onClosed?: () => void — called after the exit animation completes (ideal place to flip parent state).
- * - durationMs?: number — how long the success bubble remains visible before exiting (default 1200).
- * - message?: string — optional caption beneath the check icon.
- * - exitMs?: number — duration of the exit transition (default 220).
- * - backdropClass?: string — Tailwind classes for the overlay backdrop (default "bg-black/20").
- * - bubbleClass?: string — Tailwind classes for the success bubble color (default "bg-green-600").
- * - ringClass?: string — Tailwind classes for the pulse ring (default "bg-green-600/30").
- * - showRing?: boolean — toggle the outer pulse ring (default true).
- * - captureClicks?: boolean — if true, overlay intercepts pointer events (default false lets clicks pass through).
- * - closeOnBackdropClick?: boolean — if true and captureClicks is true, clicking the backdrop exits early.
- * - sizePx?: number — diameter for the success bubble in pixels (default 96).
- * - ariaLabel?: string — accessible label for screen readers (default "Added successfully").
- */
+
 export default function CheckmarkOverlay({
   open,
   onClosed,
