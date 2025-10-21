@@ -16,6 +16,18 @@ from sqlalchemy import func
 
 from config import db, app
 
+# --- Stripe integration ---
+import stripe
+from services.checkout import money_to_cents
+
+stripe.api_key = os.environ.get('STRIPE_SECRET_KEY')
+STRIPE_CURRENCY = os.environ.get('STRIPE_CURRENCY', 'usd').lower()
+STRIPE_WEBHOOK_SECRET = os.environ.get('STRIPE_WEBHOOK_SECRET', '')
+try:
+    TAX_RATE = Decimal(os.environ.get('TAX_RATE', '0.0'))
+except Exception:
+    TAX_RATE = Decimal('0.0')
+
 # Ensure a SECRET_KEY exists for session signing (required to use Flask sessions)
 app.config['SECRET_KEY'] = os.environ.get('SECRET_KEY', app.config.get('SECRET_KEY') or 'dev-secret-change-me')
 # Sensible defaults for cookies
@@ -354,35 +366,43 @@ class CartItemById(Resource):
         db.session.commit()
         return '', 204
 
+
 # ------------- Checkout / Orders ------------- #
-class Checkout(Resource):
-    def post(self, cart_id):
+class CheckoutPrepare(Resource):
+    def post(self):
+        data = request.get_json() or {}
+        cart_id = data.get('cart_id')
+        tip_cents = int(data.get('tip_cents') or 0)
+        fulfillment = (data.get('fulfillment') or 'pickup').strip().lower()
+
         cart = Cart.query.get(cart_id)
         if not cart or not cart.items:
             return {"error": "Cart is empty or not found"}, 400
-        # Totals
+
+        # Authoritative totals from cart snapshot (unit_price already includes modifiers in this app)
         subtotal = Decimal('0.00')
         for ci in cart.items:
-            line_price = Decimal(ci.unit_price) * ci.qty
-            # modifiers are already in unit_price per our calc; if you prefer separate, add them here
-            subtotal += line_price
-        tax_total = (subtotal * Decimal('0.08')).quantize(Decimal('0.01'))  # simple 8% example
+            subtotal += (Decimal(ci.unit_price) * int(ci.qty))
+        tax_total = (subtotal * TAX_RATE).quantize(Decimal('0.01'))
         delivery_fee = Decimal('0.00')
-        tip = Decimal(str(request.get_json().get('tip', '0') if request.get_json() else '0')) or Decimal('0.00')
-        grand_total = (subtotal + tax_total + delivery_fee + tip).quantize(Decimal('0.01'))
+        discount_total = Decimal('0.00')
+        tip = (Decimal(tip_cents) / Decimal(100)).quantize(Decimal('0.01'))
+        grand_total = (subtotal + tax_total + delivery_fee + tip - discount_total).quantize(Decimal('0.01'))
+        amount_cents = money_to_cents(grand_total)
 
+        # Create pending order and snapshot items
         order = Order(
             user_id=session.get('user_id'),
-            status='paid',
+            status='pending',
             channel='web',
-            fulfillment=request.get_json().get('fulfillment', 'pickup') if request.get_json() else 'pickup',
+            fulfillment=fulfillment,
             subtotal=subtotal,
             tax_total=tax_total,
-            discount_total=Decimal('0.00'),
+            discount_total=discount_total,
             delivery_fee=delivery_fee,
             tip=tip,
             grand_total=grand_total,
-            currency='USD',
+            currency=STRIPE_CURRENCY.upper(),
         )
         db.session.add(order)
         db.session.flush()
@@ -401,25 +421,107 @@ class Checkout(Resource):
             for m in ci.modifiers:
                 db.session.add(OrderItemModifier(order_item_id=oi.id, name=m.option.name if m.option else 'Modifier', price_delta=m.price_delta))
 
-        # Example payment record (mock)
-        pay = Payment(order_id=order.id, provider='test', reference=f'TEST-{uuid.uuid4().hex[:8]}', amount=order.grand_total, currency='USD', status='captured')
-        db.session.add(pay)
+        # Create Stripe PaymentIntent
+        metadata = {
+            'order_id': str(order.id),
+            'cart_id': str(cart.id),
+            'user_id': str(cart.user_id or ''),
+        }
+        intent = stripe.PaymentIntent.create(
+            amount=amount_cents,
+            currency=STRIPE_CURRENCY,
+            automatic_payment_methods={"enabled": True},
+            metadata=metadata
+        )
 
-        # Optional receipt snapshot
-        rec = Receipt(order_id=order.id, data={
-            "subtotal": str(subtotal),
-            "tax_total": str(tax_total),
-            "tip": str(tip),
-            "grand_total": str(grand_total),
-        })
-        db.session.add(rec)
+        order.stripe_payment_intent_id = intent.id
 
-        # Clear cart after checkout (or you can leave it)
-        for ci in list(cart.items):
-            db.session.delete(ci)
+        payment = Payment(
+            order_id=order.id,
+            provider='stripe',
+            reference=intent.id,
+            amount=grand_total,
+            currency=STRIPE_CURRENCY.upper(),
+            status='authorized',
+            raw_response=intent
+        )
+        db.session.add(payment)
         db.session.commit()
 
-        return {"order_id": order.id, "grand_total": str(order.grand_total)}, 201
+        return {
+            'order_id': order.id,
+            'client_secret': intent.client_secret,
+            'payment_intent_id': intent.id,
+            'amount_cents': amount_cents,
+            'currency': STRIPE_CURRENCY,
+        }, 201
+
+class CheckoutUpdateTip(Resource):
+    def post(self):
+        data = request.get_json() or {}
+        order_id = data.get('order_id')
+        tip_cents = int(data.get('tip_cents') or 0)
+        order = Order.query.get(order_id)
+        if not order or order.status != 'pending':
+            return {"error": "Invalid order"}, 400
+
+        tip = (Decimal(tip_cents) / Decimal(100)).quantize(Decimal('0.01'))
+        new_grand = (Decimal(order.subtotal) + Decimal(order.tax_total) + Decimal(order.delivery_fee) + tip - Decimal(order.discount_total)).quantize(Decimal('0.01'))
+        new_amount_cents = money_to_cents(new_grand)
+
+        if not order.stripe_payment_intent_id:
+            return {"error": "Payment intent not found for order"}, 400
+
+        stripe.PaymentIntent.modify(order.stripe_payment_intent_id, amount=new_amount_cents)
+
+        # Update order + payment row
+        order.tip = tip
+        order.grand_total = new_grand
+        payment = Payment.query.filter_by(order_id=order.id, provider='stripe', reference=order.stripe_payment_intent_id).first()
+        if payment:
+            payment.amount = new_grand
+        db.session.commit()
+
+        return {"ok": True, "amount_cents": new_amount_cents}, 200
+
+class StripeWebhook(Resource):
+    def post(self):
+        payload = request.data
+        sig_header = request.headers.get('Stripe-Signature', '')
+        try:
+            event = stripe.Webhook.construct_event(payload, sig_header, STRIPE_WEBHOOK_SECRET)
+        except stripe.error.SignatureVerificationError:
+            return {"error": "Invalid signature"}, 400
+
+        etype = event.get('type')
+        obj = event.get('data', {}).get('object', {})
+
+        if etype == 'payment_intent.succeeded':
+            pi_id = obj.get('id')
+            payment = Payment.query.filter_by(provider='stripe', reference=pi_id).first()
+            if payment:
+                order = Order.query.get(payment.order_id)
+                if order and order.status != 'paid':
+                    order.status = 'paid'
+                    payment.status = 'captured'
+                    payment.raw_response = obj
+                    # Optionally close the cart here if you link it
+                    db.session.commit()
+            return {"received": True}, 200
+
+        if etype in ('payment_intent.payment_failed', 'payment_intent.canceled'):
+            pi_id = obj.get('id')
+            payment = Payment.query.filter_by(provider='stripe', reference=pi_id).first()
+            if payment:
+                order = Order.query.get(payment.order_id)
+                if order and order.status == 'pending':
+                    order.status = 'failed'
+                payment.status = 'failed'
+                payment.raw_response = obj
+                db.session.commit()
+            return {"received": True}, 200
+
+        return {"received": True}, 200
 
 class Orders(Resource):
     @require_login
@@ -596,7 +698,9 @@ api.add_resource(Carts, '/api/carts')
 api.add_resource(CartById, '/api/carts/<int:cart_id>')
 api.add_resource(CartItems, '/api/carts/<int:cart_id>/items')
 api.add_resource(CartItemById, '/api/carts/<int:cart_id>/items/<int:item_id>')
-api.add_resource(Checkout, '/api/carts/<int:cart_id>/checkout')
+api.add_resource(CheckoutPrepare, '/api/checkout/prepare')
+api.add_resource(CheckoutUpdateTip, '/api/checkout/update_tip')
+api.add_resource(StripeWebhook, '/api/webhook/stripe')
 
 api.add_resource(Orders, '/api/orders')
 api.add_resource(OrderById, '/api/orders/<int:order_id>')

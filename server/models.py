@@ -327,6 +327,7 @@ class Cart(db.Model, SerializerMixin):
     currency = db.Column(db.String(3), default='USD', nullable=False)
     created_at = db.Column(db.DateTime(timezone=True), server_default=db.func.now())
     updated_at = db.Column(db.DateTime(timezone=True), onupdate=db.func.now())
+    closed_at = db.Column(db.DateTime(timezone=True), nullable=True)
     user = relationship('User', backref=backref('carts', cascade='all, delete-orphan'))
 
 class CartItem(db.Model, SerializerMixin):
@@ -362,9 +363,19 @@ class Order(db.Model, SerializerMixin):
     delivery_fee = db.Column(db.Numeric(10,2), nullable=False, default=0)
     tip = db.Column(db.Numeric(10,2), nullable=False, default=0)
     grand_total = db.Column(db.Numeric(10,2), nullable=False, default=0)
+    stripe_payment_intent_id = db.Column(db.String(120), index=True, unique=True)
     currency = db.Column(db.String(3), default='USD', nullable=False)
     placed_at = db.Column(db.DateTime(timezone=True), server_default=db.func.now())
     user = relationship('User', backref=backref('orders', cascade='all, delete-orphan'))
+
+    __table_args__ = (
+        CheckConstraint('subtotal >= 0', name='ck_order_subtotal_nonneg'),
+        CheckConstraint('tax_total >= 0', name='ck_order_tax_nonneg'),
+        CheckConstraint('discount_total >= 0', name='ck_order_discount_nonneg'),
+        CheckConstraint('delivery_fee >= 0', name='ck_order_delivery_fee_nonneg'),
+        CheckConstraint('tip >= 0', name='ck_order_tip_nonneg'),
+        CheckConstraint('grand_total >= 0', name='ck_order_grand_total_nonneg'),
+    )
 
 class OrderItem(db.Model, SerializerMixin):
     __tablename__ = 'order_items'
@@ -396,6 +407,10 @@ class Payment(db.Model, SerializerMixin):
     status = db.Column(db.String(32), default='authorized')
     processed_at = db.Column(db.DateTime(timezone=True), server_default=db.func.now())
     raw_response = db.Column(JSONB)
+    __table_args__ = (
+        UniqueConstraint('provider','reference', name='uq_payment_provider_reference'),
+        CheckConstraint('amount >= 0', name='ck_payment_amount_nonneg'),
+    )
     order = relationship('Order', backref=backref('payments', cascade='all, delete-orphan'))
 
 class Receipt(db.Model, SerializerMixin):
