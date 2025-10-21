@@ -28,6 +28,14 @@ try:
 except Exception:
     TAX_RATE = Decimal('0.0')
 
+# Flask 3.x no longer exposes `app.env`. Derive "production" safely.
+IS_PROD = (
+    (os.environ.get('ENV') or os.environ.get('FLASK_ENV') or '').lower() == 'production'
+    or (not getattr(app, 'debug', False) and not getattr(app, 'testing', False))
+)
+if IS_PROD and not STRIPE_WEBHOOK_SECRET:
+    raise RuntimeError("STRIPE_WEBHOOK_SECRET must be set in production.")
+
 # Ensure a SECRET_KEY exists for session signing (required to use Flask sessions)
 app.config['SECRET_KEY'] = os.environ.get('SECRET_KEY', app.config.get('SECRET_KEY') or 'dev-secret-change-me')
 # Sensible defaults for cookies
@@ -67,7 +75,10 @@ from models import (
 )
 
 # ---------- App config ---------- #
-CORS(app)
+_cors_origins = [o.strip() for o in os.environ.get("CORS_ORIGINS", "*").split(",") if o.strip()]
+if not _cors_origins:
+    _cors_origins = ["*"]
+CORS(app, supports_credentials=True, resources={r"/api/*": {"origins": _cors_origins}})
 app.config['PERMANENT_SESSION_LIFETIME'] = timedelta(days=7)
 app.config["SEND_FILE_MAX_AGE_DEFAULT"] = 31536000  # 1 year for send_file defaults
 
@@ -86,6 +97,7 @@ migrate = Migrate(app, db)
 @app.after_request
 def add_cache_headers(resp):
     p = (request.path or "").lower()
+    resp.headers.setdefault("Vary", "Origin")
     if p.startswith("/api/"):
         resp.headers["Cache-Control"] = "no-store"
         return resp
@@ -105,7 +117,7 @@ def require_login(fn):
         user_id = session.get('user_id')
         if not user_id:
             return {"error": "Unauthorized"}, 401
-        user = User.query.get(user_id)
+        user = db.session.get(User, user_id)
         if not user:
             return {"error": "User not found"}, 404
         request.user = user  # attach for convenience
@@ -118,12 +130,98 @@ def require_admin(fn):
         user_id = session.get('user_id')
         if not user_id:
             return {"error": "Unauthorized"}, 401
-        user = User.query.get(user_id)
+        user = db.session.get(User, user_id)
         if not user or not getattr(user, 'admin', False):
             return {"error": "Forbidden: Admins only"}, 403
         request.user = user
         return fn(*args, **kwargs)
     return wrapper
+
+# --------- Session helpers --------- #
+
+_GUEST_CART_SESSION_KEY = 'guest_cart_tokens'
+_GUEST_ORDER_SESSION_KEY = 'guest_order_ids'
+
+
+def _get_session_token_list(key):
+    tokens = session.get(key) or []
+    if not isinstance(tokens, list):
+        tokens = []
+    # keep only strings to avoid surprises when serializing
+    return [str(t) for t in tokens if isinstance(t, (str, int))]
+
+
+def _remember_session_token(key, token):
+    if not token:
+        return
+    tokens = _get_session_token_list(key)
+    token = str(token)
+    if token not in tokens:
+        tokens.append(token)
+        session[key] = tokens
+        session.modified = True
+
+
+def _cart_access_granted(cart, provided_session_id=None):
+    if not cart:
+        return False
+    user_id = session.get('user_id')
+    if cart.user_id and user_id and cart.user_id == user_id:
+        return True
+    session_tokens = set(_get_session_token_list(_GUEST_CART_SESSION_KEY))
+    if cart.session_id and cart.session_id in session_tokens:
+        return True
+    if provided_session_id and cart.session_id == provided_session_id:
+        _remember_session_token(_GUEST_CART_SESSION_KEY, cart.session_id)
+        return True
+    return False
+
+
+def _ensure_cart_access(cart, provided_session_id=None):
+    if not _cart_access_granted(cart, provided_session_id):
+        return {"error": "Cart not found"}, 404
+    return None
+
+
+def _order_access_granted(order):
+    if not order:
+        return False
+    user_id = session.get('user_id')
+    if order.user_id and user_id and order.user_id == user_id:
+        return True
+    guest_order_ids = set(_get_session_token_list(_GUEST_ORDER_SESSION_KEY))
+    if str(order.id) in guest_order_ids:
+        return True
+    return False
+
+
+def _ensure_order_access(order):
+    if not _order_access_granted(order):
+        return {"error": "Order not found"}, 404
+    return None
+
+
+def _require_int(value, field_name, *, minimum=None):
+    if value in (None, '', 'null', 'None'):
+        raise ValueError(f"{field_name} is required")
+    try:
+        parsed = int(value)
+    except (TypeError, ValueError):
+        raise ValueError(f"{field_name} must be an integer")
+    if minimum is not None and parsed < minimum:
+        raise ValueError(f"{field_name} must be >= {minimum}")
+    return parsed
+
+
+def _require_non_negative_int(value, field_name):
+    parsed = _require_int(value, field_name)
+    if parsed < 0:
+        raise ValueError(f"{field_name} must be >= 0")
+    return parsed
+
+
+CART_NOTE_MAX_LEN = min(NOTE_MAX_LEN, 300)
+MAX_TIP_CENTS = 5000 * 100
 
 # --------- Error Handlers --------- #
 @app.errorhandler(ValueError)
@@ -142,7 +240,10 @@ def handle_sqla_error(err):
 
 @app.errorhandler(404)
 def not_found(e):
-    return render_template("index.html")
+    p = (request.path or "").lower()
+    if p.startswith("/api/"):
+        return jsonify({"error": "not found"}), 404
+    return render_template("index.html"), 200
 
 api = Api(app)
 
@@ -180,6 +281,13 @@ def s_modifier_group(g: ModifierGroup):
     }
 
 def s_menu_item(m: MenuItem):
+    active_groups = []
+    for link in m.modifier_groups:
+        group = getattr(link, "group", None)
+        if not group:
+            continue
+        if getattr(group, "is_active", True):
+            active_groups.append(group)
     return {
         "id": m.id,
         "name": m.name,
@@ -188,7 +296,7 @@ def s_menu_item(m: MenuItem):
         "tax_class": m.tax_class,
         "image_url": m.image_url,
         "is_active": m.is_active,
-        "modifier_groups": [s_modifier_group(link.group) for link in m.modifier_groups],
+        "modifier_groups": [s_modifier_group(g) for g in active_groups],
     }
 
 def s_category(c: Category):
@@ -241,7 +349,8 @@ class Login(Resource):
 class Logout(Resource):
     @require_login
     def delete(self):
-        session['user_id'] = None
+        session.clear()
+        session.modified = True
         return {}, 204
 
 class CheckSession(Resource):
@@ -270,7 +379,7 @@ class Menu(Resource):
 # ------------- Cart endpoints ------------- #
 
 def _calc_item_unit_price(menu_item_id: int, modifier_option_ids):
-    item = MenuItem.query.get(menu_item_id)
+    item = db.session.get(MenuItem, menu_item_id)
     if not item or not item.is_active:
         raise ValueError("invalid menu item")
     price = Decimal(item.price)
@@ -289,13 +398,16 @@ class Carts(Resource):
         cart = Cart(user_id=user_id, session_id=session_id, currency='USD')
         db.session.add(cart)
         db.session.commit()
+        _remember_session_token(_GUEST_CART_SESSION_KEY, cart.session_id)
         return {"id": cart.id, "session_id": cart.session_id, "currency": cart.currency}, 201
 
 class CartById(Resource):
     def get(self, cart_id):
-        cart = Cart.query.get(cart_id)
-        if not cart:
-            return {"error": "Cart not found"}, 404
+        cart = db.session.get(Cart, cart_id)
+        session_token = request.args.get('session_id')
+        err = _ensure_cart_access(cart, session_token)
+        if err:
+            return err
         return {
             "id": cart.id,
             "user_id": cart.user_id,
@@ -320,20 +432,39 @@ class CartById(Resource):
 
 class CartItems(Resource):
     def post(self, cart_id):
-        cart = Cart.query.get(cart_id)
-        if not cart:
-            return {"error": "Cart not found"}, 404
         data = request.get_json() or {}
-        menu_item_id = data.get('menu_item_id')
-        qty = max(1, int(data.get('qty') or 1))
-        notes = (data.get('notes') or None)
-        modifier_option_ids = data.get('modifier_option_ids') or []
+        cart = db.session.get(Cart, cart_id)
+        err = _ensure_cart_access(cart, data.get('session_id'))
+        if err:
+            return err
+        menu_item_id = _require_int(data.get('menu_item_id'), 'menu_item_id', minimum=1)
+        qty_raw = data.get('qty', 1)
+        try:
+            qty = int(qty_raw)
+        except (TypeError, ValueError):
+            raise ValueError("qty must be an integer")
+        if qty < 1:
+            raise ValueError("qty must be >= 1")
+        raw_notes = data.get('notes')
+        notes = (raw_notes or '')
+        if not isinstance(raw_notes, str):
+            notes = str(raw_notes or '')
+        notes = notes.strip()
+        if notes and len(notes) > CART_NOTE_MAX_LEN:
+            return {"error": f"notes too long (max {CART_NOTE_MAX_LEN} chars)"}, 400
+        notes = notes or None
+        raw_modifier_option_ids = data.get('modifier_option_ids') or []
+        if raw_modifier_option_ids and not isinstance(raw_modifier_option_ids, (list, tuple)):
+            raise ValueError("modifier_option_ids must be a list of integers")
+        modifier_option_ids = [
+            _require_int(oid, 'modifier_option_id', minimum=1) for oid in raw_modifier_option_ids
+        ]
         unit_price = _calc_item_unit_price(menu_item_id, modifier_option_ids)
         ci = CartItem(cart_id=cart.id, menu_item_id=menu_item_id, qty=qty, unit_price=unit_price, notes=notes)
         db.session.add(ci)
         db.session.flush()
-        for oid in modifier_option_ids:
-            opt = ModifierOption.query.get(oid)
+        for opt_id in modifier_option_ids:
+            opt = db.session.get(ModifierOption, opt_id)
             if opt:
                 db.session.add(CartItemModifier(cart_item_id=ci.id, modifier_option_id=opt.id, price_delta=opt.price_delta))
         db.session.commit()
@@ -341,26 +472,40 @@ class CartItems(Resource):
 
 class CartItemById(Resource):
     def patch(self, cart_id, item_id):
-        ci = CartItem.query.filter_by(id=item_id, cart_id=cart_id).first()
-        if not ci:
-            return {"error": "Cart item not found"}, 404
         data = request.get_json() or {}
+        cart = db.session.get(Cart, cart_id)
+        err = _ensure_cart_access(cart, data.get('session_id'))
+        if err:
+            return err
+        ci = db.session.get(CartItem, item_id)
+        if not ci or ci.cart_id != cart_id:
+            return {"error": "Cart item not found"}, 404
         if 'qty' in data:
-            q = int(data['qty'])
+            try:
+                q = int(data['qty'])
+            except (TypeError, ValueError):
+                raise ValueError("qty must be an integer")
             if q < 1:
-                return {"error": "qty must be >= 1"}, 400
+                raise ValueError("qty must be >= 1")
             ci.qty = q
         if 'notes' in data:
-            notes = (data.get('notes') or '').strip()
-            if len(notes) > 300:
-                return {"error": "notes too long"}, 400
+            raw_notes = data.get('notes')
+            notes = str(raw_notes or '').strip()
+            if len(notes) > CART_NOTE_MAX_LEN:
+                return {"error": f"notes too long (max {CART_NOTE_MAX_LEN} chars)"}, 400
             ci.notes = notes or None
         db.session.commit()
         return {"id": ci.id, "qty": ci.qty, "notes": ci.notes}, 200
 
     def delete(self, cart_id, item_id):
-        ci = CartItem.query.filter_by(id=item_id, cart_id=cart_id).first()
-        if not ci:
+        payload = request.get_json(silent=True) or {}
+        session_token = payload.get('session_id') or request.args.get('session_id')
+        cart = db.session.get(Cart, cart_id)
+        err = _ensure_cart_access(cart, session_token)
+        if err:
+            return err
+        ci = db.session.get(CartItem, item_id)
+        if not ci or ci.cart_id != cart_id:
             return {"error": "Cart item not found"}, 404
         db.session.delete(ci)
         db.session.commit()
@@ -371,13 +516,16 @@ class CartItemById(Resource):
 class CheckoutPrepare(Resource):
     def post(self):
         data = request.get_json() or {}
-        cart_id = data.get('cart_id')
-        tip_cents = int(data.get('tip_cents') or 0)
+        cart_id = _require_int(data.get('cart_id'), 'cart_id', minimum=1)
+        tip_cents = _require_non_negative_int(data.get('tip_cents', 0), 'tip_cents')
         fulfillment = (data.get('fulfillment') or 'pickup').strip().lower()
 
-        cart = Cart.query.get(cart_id)
+        cart = db.session.get(Cart, cart_id)
         if not cart or not cart.items:
             return {"error": "Cart is empty or not found"}, 400
+        err = _ensure_cart_access(cart, data.get('session_id'))
+        if err:
+            return err
 
         # Authoritative totals from cart snapshot (unit_price already includes modifiers in this app)
         subtotal = Decimal('0.00')
@@ -427,12 +575,18 @@ class CheckoutPrepare(Resource):
             'cart_id': str(cart.id),
             'user_id': str(cart.user_id or ''),
         }
-        intent = stripe.PaymentIntent.create(
-            amount=amount_cents,
-            currency=STRIPE_CURRENCY,
-            automatic_payment_methods={"enabled": True},
-            metadata=metadata
-        )
+        idempotency_key = f"order-{order.id}-v1"
+        try:
+            intent = stripe.PaymentIntent.create(
+                amount=amount_cents,
+                currency=STRIPE_CURRENCY,
+                automatic_payment_methods={"enabled": True},
+                metadata=metadata,
+                idempotency_key=idempotency_key,
+            )
+        except stripe.error.StripeError as exc:
+            db.session.rollback()
+            return {"error": exc.user_message or "Unable to create payment intent"}, 400
 
         order.stripe_payment_intent_id = intent.id
 
@@ -442,11 +596,12 @@ class CheckoutPrepare(Resource):
             reference=intent.id,
             amount=grand_total,
             currency=STRIPE_CURRENCY.upper(),
-            status='authorized',
+            status='pending',
             raw_response=intent
         )
         db.session.add(payment)
         db.session.commit()
+        _remember_session_token(_GUEST_ORDER_SESSION_KEY, str(order.id))
 
         return {
             'order_id': order.id,
@@ -459,10 +614,15 @@ class CheckoutPrepare(Resource):
 class CheckoutUpdateTip(Resource):
     def post(self):
         data = request.get_json() or {}
-        order_id = data.get('order_id')
-        tip_cents = int(data.get('tip_cents') or 0)
-        order = Order.query.get(order_id)
-        if not order or order.status != 'pending':
+        order_id = _require_int(data.get('order_id'), 'order_id', minimum=1)
+        tip_cents = _require_non_negative_int(data.get('tip_cents', 0), 'tip_cents')
+        if tip_cents > MAX_TIP_CENTS:
+            return {"error": "tip too large"}, 400
+        order = db.session.get(Order, order_id)
+        err = _ensure_order_access(order)
+        if err:
+            return err
+        if order.status != 'pending':
             return {"error": "Invalid order"}, 400
 
         tip = (Decimal(tip_cents) / Decimal(100)).quantize(Decimal('0.01'))
@@ -472,7 +632,16 @@ class CheckoutUpdateTip(Resource):
         if not order.stripe_payment_intent_id:
             return {"error": "Payment intent not found for order"}, 400
 
-        stripe.PaymentIntent.modify(order.stripe_payment_intent_id, amount=new_amount_cents)
+        try:
+            current_intent = stripe.PaymentIntent.retrieve(order.stripe_payment_intent_id)
+        except stripe.error.StripeError as exc:
+            return {"error": exc.user_message or "Unable to retrieve payment intent"}, 400
+        if current_intent.status in ('succeeded', 'canceled'):
+            return {"error": "payment already finalized"}, 400
+        try:
+            updated_intent = stripe.PaymentIntent.modify(order.stripe_payment_intent_id, amount=new_amount_cents)
+        except stripe.error.StripeError as exc:
+            return {"error": exc.user_message or "Unable to update payment intent"}, 400
 
         # Update order + payment row
         order.tip = tip
@@ -480,12 +649,15 @@ class CheckoutUpdateTip(Resource):
         payment = Payment.query.filter_by(order_id=order.id, provider='stripe', reference=order.stripe_payment_intent_id).first()
         if payment:
             payment.amount = new_grand
+            payment.raw_response = updated_intent
         db.session.commit()
 
         return {"ok": True, "amount_cents": new_amount_cents}, 200
 
 class StripeWebhook(Resource):
     def post(self):
+        if not STRIPE_WEBHOOK_SECRET:
+            return {"error": "Webhook secret not configured"}, 400
         payload = request.data
         sig_header = request.headers.get('Stripe-Signature', '')
         try:
@@ -500,12 +672,21 @@ class StripeWebhook(Resource):
             pi_id = obj.get('id')
             payment = Payment.query.filter_by(provider='stripe', reference=pi_id).first()
             if payment:
-                order = Order.query.get(payment.order_id)
+                order = db.session.get(Order, payment.order_id)
                 if order and order.status != 'paid':
                     order.status = 'paid'
+                    order.placed_at = datetime.now(timezone.utc)
                     payment.status = 'captured'
                     payment.raw_response = obj
-                    # Optionally close the cart here if you link it
+                    cart_id = obj.get('metadata', {}).get('cart_id')
+                    try:
+                        cart_ref = int(cart_id)
+                    except (TypeError, ValueError):
+                        cart_ref = None
+                    if cart_ref:
+                        cart_obj = db.session.get(Cart, cart_ref)
+                        if cart_obj and not cart_obj.closed_at:
+                            cart_obj.closed_at = datetime.now(timezone.utc)
                     db.session.commit()
             return {"received": True}, 200
 
@@ -513,7 +694,7 @@ class StripeWebhook(Resource):
             pi_id = obj.get('id')
             payment = Payment.query.filter_by(provider='stripe', reference=pi_id).first()
             if payment:
-                order = Order.query.get(payment.order_id)
+                order = db.session.get(Order, payment.order_id)
                 if order and order.status == 'pending':
                     order.status = 'failed'
                 payment.status = 'failed'
@@ -622,7 +803,7 @@ class AdminInventoryBatches(Resource):
         if qty <= 0 or unit_cost < 0:
             return {"error": "invalid batch parameters"}, 400
 
-        item = InventoryItem.query.get(item_id)
+        item = db.session.get(InventoryItem, item_id)
         if not item:
             return {"error": "inventory item not found"}, 404
 
