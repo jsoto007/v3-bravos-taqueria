@@ -13,15 +13,22 @@ export default function Menu(){
   const { addItem } = useCart()
   const [activeCatId, setActiveCatId] = useState(null)
   const [showCheck, setShowCheck] = useState(false)
+  const suppressUntilRef = useRef(0)
 
   const catBarRef = useRef(null)
   const [catBarH, setCatBarH] = useState(0)
+  const [headerH, setHeaderH] = useState(0)
   const catListRef = useRef(null)
+  const sectionScrollMargin = headerH + catBarH + 12
 
   useLayoutEffect(() => {
     if (!catBarRef.current) return
     const el = catBarRef.current
-    const measure = () => setCatBarH(el.offsetHeight || 0)
+    const measure = () => {
+      setCatBarH(el.offsetHeight || 0)
+      const header = document.querySelector('header')
+      setHeaderH(header ? header.offsetHeight || 0 : 0)
+    }
     measure()
     const ro = new ResizeObserver(measure)
     ro.observe(el)
@@ -37,20 +44,26 @@ export default function Menu(){
 
     const observer = new IntersectionObserver(
       (entries) => {
-        entries.forEach((entry) => {
-          if (entry.isIntersecting) {
-            const id = entry.target.getAttribute('id')
-            if (id && id.startsWith('cat-')) {
-              const num = Number(id.replace('cat-', ''))
-              if (!Number.isNaN(num)) setActiveCatId(num)
-            }
+        // Ignore observer updates while we're doing a programmatic smooth scroll
+        if (Date.now() < suppressUntilRef.current) return
+
+        // Choose the entry with the largest intersection ratio that is intersecting
+        const visible = entries
+          .filter(e => e.isIntersecting)
+          .sort((a, b) => b.intersectionRatio - a.intersectionRatio)
+
+        if (visible.length) {
+          const id = visible[0].target.getAttribute('id')
+          if (id && id.startsWith('cat-')) {
+            const num = Number(id.replace('cat-', ''))
+            if (!Number.isNaN(num)) setActiveCatId(num)
           }
-        })
+        }
       },
       {
-        // Trigger when the section's top comes into the upper half of the viewport
-        rootMargin: '0px 0px -60% 0px',
-        threshold: 0.1,
+        // Offset the top by the fixed header + categories bar so we don't "advance" to the next section
+        rootMargin: `${-(headerH + catBarH + 8)}px 0px -55% 0px`,
+        threshold: [0, 0.25, 0.5, 0.75, 1],
       }
     )
 
@@ -60,7 +73,7 @@ export default function Menu(){
     })
 
     return () => observer.disconnect()
-  }, [cats])
+  }, [cats, catBarH, headerH])
 
   useEffect(() => {
     if (activeCatId == null) return
@@ -84,10 +97,13 @@ export default function Menu(){
     // Measure fixed header + fixed categories bar
     const header = document.querySelector('header')
     const navH = header ? header.offsetHeight : 0
-    const offset = navH + catBarH + 8 // add a small breathing room
+    const offset = navH + catBarH + 16 // extra room to ensure the title is not tucked under bars
     const targetY = el.getBoundingClientRect().top + window.scrollY - offset
-    window.scrollTo({ top: Math.max(0, targetY), behavior: 'smooth' })
+    // Immediately mark as active for instant UI feedback
     setActiveCatId(id)
+    // Suppress observer updates briefly while smooth scrolling to prevent it from flipping to the next section
+    suppressUntilRef.current = Date.now() + 800
+    window.scrollTo({ top: Math.max(0, targetY), behavior: 'smooth' })
   }
 
   useEffect(()=>{
@@ -159,15 +175,20 @@ export default function Menu(){
                 </div>
                 </div>
             </div>
-            <div style={{ height: catBarH }} />
+            <div style={{ height: catBarH + 12 }} />
 
             {/* Main */}
-            <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-8">
+            <div className="mt-10 mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-8">
                 {loading ? (
                     <div className="mt-10 rounded-2xl border border-neutral-200 bg-white p-6 text-neutral-800 shadow-sm">Loading menu…</div>
                 ) : (
                     cats.map(c=> (
-                        <section id={`cat-${c.id}`} key={c.id} className="mb-10 scroll-mt-24">
+                        <section
+                          id={`cat-${c.id}`}
+                          key={c.id}
+                          className="mb-10"
+                          style={{ scrollMarginTop: sectionScrollMargin }}
+                        >
                     <h3 className="mb-4 text-2xl font-extrabold tracking-tight text-neutral-900">{c.name}</h3>
                     <div className="space-y-4">
                       {c.items.map(it => (
