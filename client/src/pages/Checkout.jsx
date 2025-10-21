@@ -4,7 +4,7 @@ import { useCart } from '../context/CartContext'
 import { api } from '../lib/api'
 
 export default function Checkout(){
-  const { cartId, totals } = useCart()
+  const { cartId, sessionId, totals } = useCart()
   const [fulfillment, setFulfillment] = useState('pickup')
   const [tip, setTip] = useState(0)
   const [loading, setLoading] = useState(false)
@@ -16,12 +16,26 @@ export default function Checkout(){
     const val = Math.max(0, Math.round((totals.subtotal * p) * 100) / 100);
     setTip(val.toFixed(2));
   };
-  const grandTotal = totals.tax + totals.subtotal + Number(tip || 0);
+  const rawTip = Number(tip || 0)
+  const tipValue = Number.isFinite(rawTip) && rawTip >= 0 ? rawTip : 0
+  const grandTotal = totals.tax + totals.subtotal + tipValue;
 
   const placeOrder = async ()=>{
     try {
       setLoading(true); setError('')
-      const res = await api.checkout(cartId, { fulfillment, tip: Number(tip||0) })
+      const numericTip = Number(tip || 0)
+      if (!Number.isFinite(numericTip) || numericTip < 0) {
+        setError('Tip must be a non-negative number')
+        return
+      }
+      const tip_cents = Math.max(0, Math.round(numericTip * 100))
+      const payload = {
+        cart_id: cartId,
+        session_id: sessionId,
+        fulfillment,
+        tip_cents
+      }
+      await api.checkout(payload)
       navigate(`/orders`)
     } catch (e) { setError(e.message) } finally { setLoading(false) }
   }
@@ -74,7 +88,7 @@ export default function Checkout(){
                   type="button"
                   onClick={() => setTipPercent(p)}
                   className={`rounded-lg border px-2 py-1.5 text-sm ${
-                    Number(tip || 0) === Math.round((totals.subtotal * p) * 100) / 100
+                    tipValue === Math.round((totals.subtotal * p) * 100) / 100
                       ? 'border-amber-400 bg-white font-semibold'
                       : 'border-slate-300 bg-white hover:border-amber-300'
                   }`}

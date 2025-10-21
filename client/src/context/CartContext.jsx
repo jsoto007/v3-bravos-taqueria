@@ -14,12 +14,46 @@ function isNotFound(err) {
   return (err && (err.status === 404 || /not found/i.test(err.message || "")))
 }
 
-async function createFreshCart(setCartId, setCart) {
-  const c = await api.cartCreate(ensureSessionId())
+async function createFreshCart(sessionId, setCartId, setCart) {
+  const c = await api.cartCreate(sessionId)
   setCartId(c.id)
   localStorage.setItem('cart_id', String(c.id))
   setCart({ ...c, items: [] })
   return c.id
+}
+
+const patchCartItem = (cartState, itemId, updater) => {
+  if (!cartState || !Array.isArray(cartState.items)) return cartState
+  let changed = false
+  const items = cartState.items.map(item => {
+    if (item.id !== itemId) return item
+    changed = true
+    const next = typeof updater === 'function' ? updater(item) : { ...item, ...updater }
+    return next
+  })
+  return changed ? { ...cartState, items } : cartState
+}
+
+const mergeCartItems = (prevCart, nextCart) => {
+  if (!prevCart) return nextCart
+  const prevOrder = Array.isArray(prevCart.items) ? prevCart.items.map(i => i.id) : []
+  const nextItems = Array.isArray(nextCart?.items) ? nextCart.items : []
+  if (!prevOrder.length) return nextCart
+  const nextMap = new Map(nextItems.map(item => [item.id, item]))
+  const merged = []
+  for (const id of prevOrder) {
+    if (nextMap.has(id)) {
+      merged.push(nextMap.get(id))
+      nextMap.delete(id)
+    }
+  }
+  for (const item of nextItems) {
+    if (nextMap.has(item.id)) {
+      merged.push(item)
+      nextMap.delete(item.id)
+    }
+  }
+  return { ...nextCart, items: merged }
 }
 
 export function CartProvider({ children }) {
@@ -27,6 +61,7 @@ export function CartProvider({ children }) {
   const [cart, setCart] = useState(null)
   const [loading, setLoading] = useState(false)
   const [cartError, setCartError] = useState(null)
+  const [sessionId] = useState(()=> ensureSessionId())
   const snapshotCart = () => JSON.parse(JSON.stringify(cart))
   const restoreCart = (snap) => setCart(snap)
   const clearCartError = () => setCartError(null)
@@ -36,16 +71,16 @@ export function CartProvider({ children }) {
       try {
         setLoading(true)
         if (!cartId) {
-          await createFreshCart(setCartId, setCart)
+          await createFreshCart(sessionId, setCartId, setCart)
         } else {
           try {
-            const c = await api.cartGet(cartId)
-            setCart(c)
+            const c = await api.cartGet(cartId, sessionId)
+            setCart(prev => mergeCartItems(prev, c))
           } catch (e) {
             if (isNotFound(e)) {
               // local cart id is stale (DB reset/expired). Make a new cart transparently.
               localStorage.removeItem('cart_id')
-              await createFreshCart(setCartId, setCart)
+              await createFreshCart(sessionId, setCartId, setCart)
             } else {
               throw e
             }
@@ -55,20 +90,20 @@ export function CartProvider({ children }) {
         console.error('Cart init failed', e)
       } finally { setLoading(false) }
     })()
-  }, [cartId])
+  }, [cartId, sessionId])
 
   const ensureCart = async () => {
     if (!cartId) {
-      return await createFreshCart(setCartId, setCart)
+      return await createFreshCart(sessionId, setCartId, setCart)
     }
     try {
       // quick ping to verify the cart still exists
-      await api.cartGet(cartId)
+      await api.cartGet(cartId, sessionId)
       return cartId
     } catch (e) {
       if (isNotFound(e)) {
         localStorage.removeItem('cart_id')
-        return await createFreshCart(setCartId, setCart)
+        return await createFreshCart(sessionId, setCartId, setCart)
       }
       throw e
     }
@@ -125,10 +160,10 @@ export function CartProvider({ children }) {
     }
 
     try {
-      await api.cartAddItem(id, { menu_item_id, qty, notes, modifier_option_ids })
+      await api.cartAddItem(id, sessionId, { menu_item_id, qty, notes, modifier_option_ids })
       // reconcile with server (source of truth)
-      const updated = await api.cartGet(localStorage.getItem('cart_id'))
-      setCart(updated)
+      const updated = await api.cartGet(localStorage.getItem('cart_id'), sessionId)
+      setCart(prev => mergeCartItems(prev, updated))
     } catch (e) {
       // rollback & surface error
       restoreCart(prev)
@@ -137,33 +172,62 @@ export function CartProvider({ children }) {
   }
 
   const updateQty = async (item_id, qty) => {
+    clearCartError()
     const id = await ensureCart()
+    const safeQty = Math.max(1, Number.isFinite(qty) ? qty : 1)
+    const previous = snapshotCart()
+    setCart(curr => patchCartItem(curr, item_id, item => ({
+      ...item,
+      qty: safeQty,
+      _pending: true
+    })))
     try {
-      await api.cartUpdateItem(id, item_id, { qty })
+      await api.cartUpdateItem(id, item_id, sessionId, { qty: safeQty })
     } catch (e) {
       if (isNotFound(e)) {
-        const newId = await createFreshCart(setCartId, setCart)
-        await api.cartUpdateItem(newId, item_id, { qty })
+        const newId = await createFreshCart(sessionId, setCartId, setCart)
+        await api.cartUpdateItem(newId, item_id, sessionId, { qty: safeQty })
       } else {
+        restoreCart(previous)
         throw e
       }
     }
-    setCart(await api.cartGet(localStorage.getItem('cart_id')))
+    try {
+      const fresh = await api.cartGet(localStorage.getItem('cart_id'), sessionId)
+      setCart(prev => {
+        const merged = mergeCartItems(prev, fresh)
+        return patchCartItem(merged, item_id, item => {
+          const { _pending, _optimistic, ...rest } = item
+          return rest
+        })
+      })
+    } catch (err) {
+      restoreCart(previous)
+      setCartError(err?.message || 'Failed to update quantity')
+    }
   }
 
   const removeItem = async (item_id) => {
     const id = await ensureCart()
+    const previous = snapshotCart()
     try {
-      await api.cartDeleteItem(id, item_id)
+      await api.cartDeleteItem(id, item_id, sessionId)
     } catch (e) {
       if (isNotFound(e)) {
-        const newId = await createFreshCart(setCartId, setCart)
-        await api.cartDeleteItem(newId, item_id)
+        const newId = await createFreshCart(sessionId, setCartId, setCart)
+        await api.cartDeleteItem(newId, item_id, sessionId)
       } else {
+        restoreCart(previous)
         throw e
       }
     }
-    setCart(await api.cartGet(localStorage.getItem('cart_id')))
+    try {
+      const fresh = await api.cartGet(localStorage.getItem('cart_id'), sessionId)
+      setCart(prev => mergeCartItems(prev, fresh))
+    } catch (err) {
+      restoreCart(previous)
+      setCartError(err?.message || 'Failed to remove item')
+    }
   }
 
   const totals = useMemo(()=>{
@@ -177,6 +241,7 @@ export function CartProvider({ children }) {
   return (
     <CartCtx.Provider value={{
       cartId,
+      sessionId,
       cart,
       loading,
       addItem,
