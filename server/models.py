@@ -91,7 +91,7 @@ class User(db.Model, SerializerMixin):
     deactivated_at = db.Column(db.DateTime(timezone=True), nullable=True)
 
     created_at = db.Column(db.DateTime(timezone=True), server_default=db.func.now())
-    updated_at = db.Column(db.DateTime(timezone=True), onupdate=db.func.now())
+    updated_at = db.Column(db.DateTime(timezone=True), server_default=db.func.now(), onupdate=db.func.now())
     last_login_at = db.Column(db.DateTime(timezone=True), nullable=True, index=True)
 
     @validates("email")
@@ -354,6 +354,7 @@ class Order(db.Model, SerializerMixin):
     __tablename__ = 'orders'
     id = db.Column(db.Integer, primary_key=True)
     user_id = db.Column(db.Integer, db.ForeignKey('users.id'))
+    guest_session_id = db.Column(db.String(64), index=True, nullable=True)
     status = db.Column(db.String(32), default='pending', index=True)
     channel = db.Column(db.String(16), default='web')
     fulfillment = db.Column(db.String(16), nullable=False)  # pickup | delivery
@@ -412,6 +413,28 @@ class Payment(db.Model, SerializerMixin):
         CheckConstraint('amount >= 0', name='ck_payment_amount_nonneg'),
     )
     order = relationship('Order', backref=backref('payments', cascade='all, delete-orphan'))
+
+
+class CheckoutSession(db.Model, SerializerMixin):
+    __tablename__ = 'checkout_sessions'
+    id = db.Column(db.Integer, primary_key=True)
+    cart_id = db.Column(db.Integer, db.ForeignKey('carts.id'), nullable=False)
+    user_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=True, index=True)
+    guest_session_id = db.Column(db.String(64), index=True, nullable=True)
+    stripe_session_id = db.Column(db.String(255), unique=True, nullable=True, index=True)
+    stripe_client_secret = db.Column(db.String(255), nullable=True)
+    amount_total = db.Column(db.Numeric(10,2), nullable=False)
+    currency = db.Column(db.String(3), nullable=False, default='USD')
+    status = db.Column(db.String(32), nullable=False, default='pending', index=True)
+    tip_cents = db.Column(db.Integer, nullable=False, default=0, server_default='0')
+    cart_snapshot = db.Column(JSONB)
+    order_id = db.Column(db.Integer, db.ForeignKey('orders.id'), nullable=True, index=True)
+    created_at = db.Column(db.DateTime(timezone=True), server_default=db.func.now())
+    updated_at = db.Column(db.DateTime(timezone=True), onupdate=db.func.now())
+
+    cart = relationship('Cart')
+    user = relationship('User')
+    order = relationship('Order', backref=backref('checkout_session', uselist=False))
 
 class Receipt(db.Model, SerializerMixin):
     __tablename__ = 'receipts'

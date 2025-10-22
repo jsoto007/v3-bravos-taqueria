@@ -2,17 +2,33 @@ import React from 'react'
 import { fmtCurrency } from '../lib/api'
 
 const STATUS_STYLES = {
-  pending:   'bg-amber-100 text-amber-800 border border-amber-200',
-  preparing: 'bg-amber-100 text-amber-800 border border-amber-200',
-  ready:     'bg-green-100 text-green-800 border border-green-200',
-  completed: 'bg-green-50 text-green-700 border border-green-200',
-  cancelled: 'bg-rose-50 text-rose-700 border border-rose-200',
+  in_progress: 'bg-amber-100 text-amber-800 border border-amber-200',
+  ready_for_pickup: 'bg-blue-100 text-blue-800 border border-blue-200',
+  out_for_delivery: 'bg-indigo-100 text-indigo-800 border border-indigo-200',
+  completed: 'bg-emerald-100 text-emerald-700 border border-emerald-200',
+  canceled: 'bg-rose-100 text-rose-700 border border-rose-200',
+  pending: 'bg-amber-100 text-amber-800 border border-amber-200',
+  failed: 'bg-rose-100 text-rose-700 border border-rose-200',
+}
+
+const STATUS_LABELS = {
+  in_progress: 'In Progress',
+  ready_for_pickup: 'Ready for Pickup',
+  out_for_delivery: 'Out for Delivery',
+  completed: 'Completed',
+  canceled: 'Canceled',
+  pending: 'Pending',
+  failed: 'Payment Failed',
 }
 
 export default function OrderCard({ order }){
   const d = order?.placed_at ? new Date(order.placed_at) : null
   const status = String(order?.status || '').toLowerCase()
   const pill = STATUS_STYLES[status] || 'bg-neutral-100 text-neutral-700 border border-neutral-200'
+  const statusLabel = STATUS_LABELS[status] || order.status
+  const detailsHref = order?.guest_session_id
+    ? `/orders/${order.id}?guest_session_id=${encodeURIComponent(order.guest_session_id)}`
+    : `/orders/${order.id}`
 
   const dateText = d
     ? d.toLocaleDateString(undefined, {
@@ -29,7 +45,7 @@ export default function OrderCard({ order }){
           <div className="text-xl font-extrabold tracking-tight">#{order.id}</div>
         </div>
         <span className={`rounded-full px-3 py-1 text-xs font-bold uppercase tracking-wide ${pill}`}>
-          {order.status}
+          {statusLabel}
         </span>
       </div>
 
@@ -46,7 +62,7 @@ export default function OrderCard({ order }){
 
       <div className="mt-4 flex items-center gap-2">
         <a
-          href={`/orders/${order.id}`}
+          href={detailsHref}
           className="flex-1 rounded-2xl border border-neutral-300 bg-white px-4 py-2.5 text-center text-sm font-semibold text-neutral-800 transition hover:border-neutral-400 hover:bg-neutral-50"
         >
           Details

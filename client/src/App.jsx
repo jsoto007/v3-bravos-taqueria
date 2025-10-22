@@ -26,6 +26,9 @@ function Protected({ children, role }) {
   return children
 }
 
+console.log('publishable key', import.meta.env.VITE_STRIPE_PUBLISHABLE_KEY);
+
+
 export default function App() {
   return (
     <Routes>

@@ -1,26 +1,36 @@
-import React, { useEffect, useState } from 'react'
+import React, { useEffect, useMemo, useState } from 'react'
 import { api } from '../lib/api'
 import OrderCard from '../components/OrderCard'
 import FadeIn from '../utils/FadeIn'
 import { useAuth } from '../context/AuthContext'
+import { useCart } from '../context/CartContext'
+import { useSearchParams } from 'react-router-dom'
 
 export default function Orders(){
   const [orders, setOrders] = useState([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
   const { user } = useAuth()
+  const { sessionId } = useCart()
+  const [searchParams] = useSearchParams()
+  const checkoutSessionParam = searchParams.get('session_id')
+  const guestSessionParam = searchParams.get('guest_session_id') || ''
+
+  const guestToken = useMemo(() => guestSessionParam || sessionId || '', [guestSessionParam, sessionId])
+  const viewingAsGuest = !user && Boolean(guestToken)
 
   useEffect(()=>{
     (async()=>{
-      if (!user) { setLoading(false); return }
-      try { setOrders(await api.myOrders()) }
+      const token = user ? undefined : (guestToken || undefined)
+      if (!user && !token) { setLoading(false); return }
+      try { setOrders(await api.myOrders(token)) }
       catch(e){ setError(e.message) }
       finally { setLoading(false) }
     })()
-  }, [user])
+  }, [user, guestToken])
   
 
-  if (!user) {
+  if (!user && !guestToken) {
     return (
       <div className="mt-20">
         <div className="rounded-3xl border border-neutral-200 bg-amber-50 p-8 text-neutral-800 shadow-sm">
@@ -81,7 +91,16 @@ export default function Orders(){
         <FadeIn>
             <div>
                 <h1 className="text-2xl font-extrabold tracking-tight text-neutral-900">Your Orders</h1>
-                <p className="mt-1 text-sm text-neutral-600">Track your recent orders and reorder your favorites.</p>
+                <p className="mt-1 text-sm text-neutral-600">
+                  {viewingAsGuest
+                    ? 'Thanks for ordering! Save this page to track your order status.'
+                    : 'Track your recent orders and reorder your favorites.'}
+                </p>
+                {checkoutSessionParam && (
+                  <div className="mt-4 rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-800">
+                    Payment confirmed! We’re getting started on your order. Refresh this page to see live status updates.
+                  </div>
+                )}
             </div>
 
             {orders.length === 0 ? (

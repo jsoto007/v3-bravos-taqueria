@@ -1,7 +1,11 @@
-import React, { useState } from 'react'
-import { useNavigate } from 'react-router-dom'
+import React, { useMemo, useState } from 'react'
+import { EmbeddedCheckoutProvider, EmbeddedCheckout } from '@stripe/react-stripe-js'
+import { loadStripe } from '@stripe/stripe-js'
 import { useCart } from '../context/CartContext'
 import { api } from '../lib/api'
+
+const publishableKey = import.meta.env.VITE_STRIPE_PUBLISHABLE_KEY
+const stripePromise = publishableKey ? loadStripe(publishableKey) : null
 
 export default function Checkout(){
   const { cartId, sessionId, totals } = useCart()
@@ -9,35 +13,52 @@ export default function Checkout(){
   const [tip, setTip] = useState(0)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
-  const navigate = useNavigate()
+  const [clientSecret, setClientSecret] = useState('')
+  const [stripeSessionId, setStripeSessionId] = useState('')
 
-  const tipPercents = [0, 0.1, 0.15, 0.2];
+  const tipPercents = [0, 0.1, 0.15, 0.2]
+  const subtotal = totals.subtotal
+  const numericTip = Number(tip || 0)
+  const tipValue = Number.isFinite(numericTip) && numericTip >= 0 ? numericTip : 0
+  const grandTotal = useMemo(() => totals.tax + subtotal + tipValue, [totals.tax, subtotal, tipValue])
+
   const setTipPercent = (p) => {
-    const val = Math.max(0, Math.round((totals.subtotal * p) * 100) / 100);
-    setTip(val.toFixed(2));
-  };
-  const rawTip = Number(tip || 0)
-  const tipValue = Number.isFinite(rawTip) && rawTip >= 0 ? rawTip : 0
-  const grandTotal = totals.tax + totals.subtotal + tipValue;
+    const val = Math.max(0, Math.round((subtotal * p) * 100) / 100)
+    setTip(val.toFixed(2))
+  }
 
-  const placeOrder = async ()=>{
+  const beginCheckout = async ()=>{
     try {
       setLoading(true); setError('')
-      const numericTip = Number(tip || 0)
+      if (!cartId) {
+        setError('Cart not found. Please add items before checking out.')
+        return
+      }
+      if (!stripePromise) {
+        setError('Stripe publishable key is not configured.')
+        return
+      }
       if (!Number.isFinite(numericTip) || numericTip < 0) {
         setError('Tip must be a non-negative number')
         return
       }
-      const tip_cents = Math.max(0, Math.round(numericTip * 100))
+      const tip_cents = Math.max(0, Math.round(tipValue * 100))
       const payload = {
         cart_id: cartId,
         session_id: sessionId,
         fulfillment,
         tip_cents
       }
-      await api.checkout(payload)
-      navigate(`/orders`)
+      const res = await api.checkout(payload)
+      setClientSecret(res.client_secret)
+      setStripeSessionId(res.stripe_session_id)
     } catch (e) { setError(e.message) } finally { setLoading(false) }
+  }
+
+  const resetCheckout = ()=>{
+    setClientSecret('')
+    setStripeSessionId('')
+    setError('')
   }
 
   return (
@@ -115,7 +136,7 @@ export default function Checkout(){
         <div className="mt-6 border-t border-slate-200 pt-4">
           <div className="flex justify-between text-sm text-slate-700">
             <span>Subtotal</span>
-            <span className="text-slate-900 font-medium">{totals.fmt(totals.subtotal)}</span>
+            <span className="text-slate-900 font-medium">{totals.fmt(subtotal)}</span>
           </div>
           <div className="mt-1 flex justify-between text-sm text-slate-700">
             <span>Tax</span>
@@ -138,16 +159,51 @@ export default function Checkout(){
               <span role="img" aria-label="guarantee">✅</span>
               <span>No surprise fees at checkout.</span>
             </div>
-            <button
-              disabled={loading}
-              onClick={placeOrder}
-              className="flex-1 rounded-lg bg-amber-400 text-black font-semibold py-3 shadow hover:brightness-95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-400 disabled:opacity-50 disabled:cursor-not-allowed"
-              aria-label={`Place order, total ${totals.fmt(grandTotal)}`}
-            >
-              {loading ? 'Placing…' : `Place Order • ${totals.fmt(grandTotal)}`}
-            </button>
+            {!clientSecret ? (
+              <button
+                disabled={loading || !cartId}
+                onClick={beginCheckout}
+                className="flex-1 rounded-lg bg-amber-400 text-black font-semibold py-3 shadow hover:brightness-95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-400 disabled:opacity-50 disabled:cursor-not-allowed"
+                aria-label={`Start secure checkout, total ${totals.fmt(grandTotal)}`}
+              >
+                {loading ? 'Preparing…' : `Secure checkout • ${totals.fmt(grandTotal)}`}
+              </button>
+            ) : (
+              <button
+                type="button"
+                onClick={resetCheckout}
+                className="rounded-lg border border-amber-300 px-4 py-2 text-sm font-semibold text-amber-700 transition hover:bg-amber-100"
+              >
+                Adjust tip or fulfillment
+              </button>
+            )}
           </div>
         </div>
+
+        {clientSecret && stripePromise && (
+          <div className="mt-8 rounded-2xl border border-slate-200 bg-white p-4 shadow-inner">
+            <div className="mb-3 flex items-center justify-between">
+              <div>
+                <p className="text-sm font-semibold text-slate-900">Secure Payment</p>
+                <p className="text-xs text-slate-500">Complete your payment below. You’ll return here when finished.</p>
+              </div>
+              <span className="rounded-full bg-emerald-100 px-2 py-1 text-[10px] font-semibold uppercase tracking-wide text-emerald-700">
+                Stripe Embedded Checkout
+              </span>
+            </div>
+            <EmbeddedCheckoutProvider
+              stripe={stripePromise}
+              options={{ clientSecret }}
+            >
+              <EmbeddedCheckout />
+            </EmbeddedCheckoutProvider>
+            {stripeSessionId && (
+              <p className="mt-3 text-[11px] text-slate-500">
+                Session ID: <span className="font-mono">{stripeSessionId}</span>
+              </p>
+            )}
+          </div>
+        )}
 
         <div className="mt-4 flex sm:hidden items-center justify-center gap-2 text-[11px] text-slate-600">
           <span role="img" aria-label="secure">🔒</span>

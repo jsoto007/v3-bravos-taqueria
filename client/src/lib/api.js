@@ -39,16 +39,58 @@ export const api = {
   cartAddItem:(cart_id, session_id, payload) => fetch(`${API_BASE}/api/carts/${cart_id}/items`, { method:'POST', headers:JSON_HEADERS, body: JSON.stringify({ ...payload, session_id }), credentials:'include' }).then(handle),
   cartUpdateItem:(cart_id, item_id, session_id, patch) => fetch(`${API_BASE}/api/carts/${cart_id}/items/${item_id}`, { method:'PATCH', headers:JSON_HEADERS, body: JSON.stringify({ ...patch, session_id }), credentials:'include' }).then(handle),
   cartDeleteItem:(cart_id, item_id, session_id) => fetch(`${API_BASE}${withSessionQuery(`/api/carts/${cart_id}/items/${item_id}`, session_id)}`, { method:'DELETE', headers:JSON_HEADERS, body: JSON.stringify({ session_id }), credentials:'include' }).then(handle),
-  checkout:   (payload) => fetch(`${API_BASE}/api/checkout/prepare`, { method:'POST', headers:JSON_HEADERS, body: JSON.stringify(payload), credentials:'include' }).then(handle),
+  checkout:   (...args) => {
+    let cid
+    let sid
+    let payload = {}
+
+    if (args.length === 1 && typeof args[0] === 'object' && args[0] !== null) {
+      const { cart_id, cartId, session_id, sessionId, ...rest } = args[0]
+      cid = cart_id ?? cartId
+      sid = session_id ?? sessionId
+      payload = rest
+    } else {
+      ;[cid, sid, payload = {}] = args
+    }
+
+    if (cid == null) {
+      return Promise.reject(new Error('cart_id is required for checkout'))
+    }
+    const body = {
+      cart_id: cid,
+      session_id: sid,
+      ...payload,
+    }
+    return fetch(`${API_BASE}/api/checkout/prepare`, {
+      method:'POST',
+      headers: JSON_HEADERS,
+      body: JSON.stringify(body),
+      credentials:'include'
+    }).then(handle)
+  },
 
   // Orders (user)
-  myOrders:   () => fetch(`${API_BASE}/api/orders`, { credentials:'include' }).then(handle),
-  orderById:  (id) => fetch(`${API_BASE}/api/orders/${id}`, { credentials:'include' }).then(handle),
+  myOrders:   (session_id) => fetch(`${API_BASE}${withSessionQuery('/api/orders', session_id)}`, { credentials:'include' }).then(handle),
+  orderById:  (id, session_id) => fetch(`${API_BASE}${withSessionQuery(`/api/orders/${id}`, session_id)}`, { credentials:'include' }).then(handle),
 
   // Admin
   adminCreateInventoryItem: (payload) => fetch(`${API_BASE}/api/admin/inventory/items`, { method:'POST', headers:{ 'Content-Type':'application/json' }, body: JSON.stringify(payload), credentials:'include' }).then(handle),
   adminCreateBatch: (payload) => fetch(`${API_BASE}/api/admin/inventory/batches`, { method:'POST', headers:{ 'Content-Type':'application/json' }, body: JSON.stringify(payload), credentials:'include' }).then(handle),
   adminFoodCost: (menu_item_id) => fetch(`${API_BASE}/api/admin/food_cost/${menu_item_id}`, { credentials:'include' }).then(handle),
+  adminOrders: (params = {}) => {
+    const url = new URL('/api/admin/orders', window.location.origin)
+    if (params.status) url.searchParams.set('status', params.status)
+    if (params.limit) url.searchParams.set('limit', params.limit)
+    const relative = url.pathname + url.search
+    return fetch(`${API_BASE}${relative}`, { credentials:'include' }).then(handle)
+  },
+  adminUpdateOrderStatus: (order_id, status) =>
+    fetch(`${API_BASE}/api/admin/orders/${order_id}/status`, {
+      method: 'PATCH',
+      headers: JSON_HEADERS,
+      body: JSON.stringify({ status }),
+      credentials: 'include',
+    }).then(handle),
 }
 
 export function fmtCurrency(n, currency='USD') {

@@ -5,6 +5,7 @@ import functools
 from io import BytesIO
 from datetime import timezone, datetime, timedelta, date
 from decimal import Decimal
+from urllib.parse import quote_plus
 
 from flask import jsonify, request, make_response, render_template, session, send_file
 from flask_cors import CORS
@@ -18,11 +19,17 @@ from config import db, app
 
 # --- Stripe integration ---
 import stripe
-from services.checkout import money_to_cents
+try:
+    from stripe.error import StripeError, SignatureVerificationError
+except ModuleNotFoundError:
+    StripeError = getattr(stripe, "StripeError", Exception)
+    SignatureVerificationError = getattr(stripe, "SignatureVerificationError", StripeError)
+from services.checkout import money_to_cents, calculate_totals_for_cart
 
 stripe.api_key = os.environ.get('STRIPE_SECRET_KEY')
 STRIPE_CURRENCY = os.environ.get('STRIPE_CURRENCY', 'usd').lower()
 STRIPE_WEBHOOK_SECRET = os.environ.get('STRIPE_WEBHOOK_SECRET', '')
+CLIENT_APP_URL = os.environ.get('CLIENT_URL', 'http://localhost:5173').rstrip('/')
 try:
     TAX_RATE = Decimal(os.environ.get('TAX_RATE', '0.0'))
 except Exception:
@@ -72,6 +79,7 @@ from models import (
     StockMovement,
     Recipe,
     RecipeComponent,
+    CheckoutSession,
 )
 
 # ---------- App config ---------- #
@@ -222,6 +230,15 @@ def _require_non_negative_int(value, field_name):
 
 CART_NOTE_MAX_LEN = min(NOTE_MAX_LEN, 300)
 MAX_TIP_CENTS = 5000 * 100
+ADMIN_ORDER_STATUSES = {
+    "in_progress",
+    "ready_for_pickup",
+    "out_for_delivery",
+    "completed",
+    "canceled",
+    "pending",
+    "failed",
+}
 
 # --------- Error Handlers --------- #
 @app.errorhandler(ValueError)
@@ -519,140 +536,135 @@ class CheckoutPrepare(Resource):
         cart_id = _require_int(data.get('cart_id'), 'cart_id', minimum=1)
         tip_cents = _require_non_negative_int(data.get('tip_cents', 0), 'tip_cents')
         fulfillment = (data.get('fulfillment') or 'pickup').strip().lower()
+        guest_session_token = data.get('session_id')
 
         cart = db.session.get(Cart, cart_id)
         if not cart or not cart.items:
             return {"error": "Cart is empty or not found"}, 400
-        err = _ensure_cart_access(cart, data.get('session_id'))
+
+        err = _ensure_cart_access(cart, guest_session_token)
         if err:
             return err
 
-        # Authoritative totals from cart snapshot (unit_price already includes modifiers in this app)
-        subtotal = Decimal('0.00')
-        for ci in cart.items:
-            subtotal += (Decimal(ci.unit_price) * int(ci.qty))
-        tax_total = (subtotal * TAX_RATE).quantize(Decimal('0.01'))
-        delivery_fee = Decimal('0.00')
-        discount_total = Decimal('0.00')
-        tip = (Decimal(tip_cents) / Decimal(100)).quantize(Decimal('0.01'))
-        grand_total = (subtotal + tax_total + delivery_fee + tip - discount_total).quantize(Decimal('0.01'))
+        _remember_session_token(_GUEST_CART_SESSION_KEY, cart.session_id)
+        if guest_session_token:
+            _remember_session_token(_GUEST_CART_SESSION_KEY, guest_session_token)
+
+        totals = calculate_totals_for_cart(cart, tip_cents=tip_cents, tax_rate=TAX_RATE)
+        subtotal = totals['subtotal']
+        tax_total = totals['tax_total']
+        delivery_fee = totals['delivery_fee']
+        discount_total = totals['discount_total']
+        tip = totals['tip']
+        grand_total = totals['grand_total']
         amount_cents = money_to_cents(grand_total)
 
-        # Create pending order and snapshot items
-        order = Order(
+        snapshot_items = []
+        line_items = []
+        for item in cart.items:
+            unit_price = Decimal(item.unit_price or 0)
+            modifiers = []
+            for mod in item.modifiers:
+                modifiers.append({
+                    "name": mod.option.name if mod.option else "Modifier",
+                    "price_delta": str(Decimal(mod.price_delta or 0))
+                })
+            snapshot_items.append({
+                "menu_item_id": item.menu_item_id,
+                "menu_item_name": item.menu_item.name if item.menu_item else "Item",
+                "qty": int(item.qty),
+                "unit_price": str(unit_price),
+                "notes": item.notes,
+                "modifiers": modifiers,
+            })
+            line_items.append({
+                "price_data": {
+                    "currency": STRIPE_CURRENCY.lower(),
+                    "product_data": {
+                        "name": item.menu_item.name if item.menu_item else "Menu item",
+                    },
+                    "unit_amount": money_to_cents(unit_price),
+                },
+                "quantity": int(item.qty),
+            })
+
+        if tip_cents > 0:
+            line_items.append({
+                "price_data": {
+                    "currency": STRIPE_CURRENCY.lower(),
+                    "product_data": {"name": "Tip"},
+                    "unit_amount": int(tip_cents),
+                },
+                "quantity": 1,
+            })
+
+        metadata = {
+            "cart_id": str(cart.id),
+            "checkout_fulfillment": fulfillment,
+            "user_id": str(session.get('user_id') or ''),
+            "guest_session_id": guest_session_token or '',
+        }
+
+        # Persist checkout session snapshot before creating Stripe session
+        checkout_session = CheckoutSession(
+            cart_id=cart.id,
             user_id=session.get('user_id'),
-            status='pending',
-            channel='web',
-            fulfillment=fulfillment,
-            subtotal=subtotal,
-            tax_total=tax_total,
-            discount_total=discount_total,
-            delivery_fee=delivery_fee,
-            tip=tip,
-            grand_total=grand_total,
+            guest_session_id=guest_session_token,
+            tip_cents=int(tip_cents),
             currency=STRIPE_CURRENCY.upper(),
+            amount_total=grand_total,
+            status='pending',
+            cart_snapshot={
+                "items": snapshot_items,
+                "totals": {
+                    "subtotal": str(subtotal),
+                    "tax_total": str(tax_total),
+                    "delivery_fee": str(delivery_fee),
+                    "discount_total": str(discount_total),
+                    "tip": str(tip),
+                    "grand_total": str(grand_total),
+                },
+                "fulfillment": fulfillment,
+            }
         )
-        db.session.add(order)
+        db.session.add(checkout_session)
         db.session.flush()
 
-        for ci in cart.items:
-            oi = OrderItem(
-                order_id=order.id,
-                menu_item_name=ci.menu_item.name if ci.menu_item else 'Item',
-                qty=ci.qty,
-                unit_price=ci.unit_price,
-                line_total=(Decimal(ci.unit_price) * ci.qty).quantize(Decimal('0.01')),
-                notes=ci.notes,
-            )
-            db.session.add(oi)
-            db.session.flush()
-            for m in ci.modifiers:
-                db.session.add(OrderItemModifier(order_item_id=oi.id, name=m.option.name if m.option else 'Modifier', price_delta=m.price_delta))
-
-        # Create Stripe PaymentIntent
-        metadata = {
-            'order_id': str(order.id),
-            'cart_id': str(cart.id),
-            'user_id': str(cart.user_id or ''),
-        }
-        idempotency_key = f"order-{order.id}-v1"
+        guest_token_param = quote_plus(guest_session_token) if guest_session_token else ""
+        return_url = f"{CLIENT_APP_URL}/orders?session_id={{CHECKOUT_SESSION_ID}}"
+        return_url += f"&guest_session_id={guest_token_param}"
         try:
-            intent = stripe.PaymentIntent.create(
-                amount=amount_cents,
-                currency=STRIPE_CURRENCY,
-                automatic_payment_methods={"enabled": True},
-                metadata=metadata,
-                idempotency_key=idempotency_key,
-            )
-        except stripe.error.StripeError as exc:
+            session_kwargs = {
+                "mode": "payment",
+                "ui_mode": "embedded",
+                "line_items": line_items,
+                "return_url": return_url,
+                "metadata": {
+                    **metadata,
+                    "checkout_session_id": str(checkout_session.id),
+                },
+            }
+            stripe_session = stripe.checkout.Session.create(**session_kwargs)
+        except StripeError as exc:
             db.session.rollback()
-            return {"error": exc.user_message or "Unable to create payment intent"}, 400
+            return {"error": exc.user_message or "Unable to create checkout session"}, 400
 
-        order.stripe_payment_intent_id = intent.id
-
-        payment = Payment(
-            order_id=order.id,
-            provider='stripe',
-            reference=intent.id,
-            amount=grand_total,
-            currency=STRIPE_CURRENCY.upper(),
-            status='pending',
-            raw_response=intent
-        )
-        db.session.add(payment)
+        checkout_session.stripe_session_id = stripe_session.id
+        checkout_session.stripe_client_secret = stripe_session.client_secret
         db.session.commit()
-        _remember_session_token(_GUEST_ORDER_SESSION_KEY, str(order.id))
 
         return {
-            'order_id': order.id,
-            'client_secret': intent.client_secret,
-            'payment_intent_id': intent.id,
-            'amount_cents': amount_cents,
-            'currency': STRIPE_CURRENCY,
+            "checkout_session_id": checkout_session.id,
+            "stripe_session_id": stripe_session.id,
+            "client_secret": stripe_session.client_secret,
+            "return_url": return_url,
         }, 201
 
 class CheckoutUpdateTip(Resource):
     def post(self):
-        data = request.get_json() or {}
-        order_id = _require_int(data.get('order_id'), 'order_id', minimum=1)
-        tip_cents = _require_non_negative_int(data.get('tip_cents', 0), 'tip_cents')
-        if tip_cents > MAX_TIP_CENTS:
-            return {"error": "tip too large"}, 400
-        order = db.session.get(Order, order_id)
-        err = _ensure_order_access(order)
-        if err:
-            return err
-        if order.status != 'pending':
-            return {"error": "Invalid order"}, 400
-
-        tip = (Decimal(tip_cents) / Decimal(100)).quantize(Decimal('0.01'))
-        new_grand = (Decimal(order.subtotal) + Decimal(order.tax_total) + Decimal(order.delivery_fee) + tip - Decimal(order.discount_total)).quantize(Decimal('0.01'))
-        new_amount_cents = money_to_cents(new_grand)
-
-        if not order.stripe_payment_intent_id:
-            return {"error": "Payment intent not found for order"}, 400
-
-        try:
-            current_intent = stripe.PaymentIntent.retrieve(order.stripe_payment_intent_id)
-        except stripe.error.StripeError as exc:
-            return {"error": exc.user_message or "Unable to retrieve payment intent"}, 400
-        if current_intent.status in ('succeeded', 'canceled'):
-            return {"error": "payment already finalized"}, 400
-        try:
-            updated_intent = stripe.PaymentIntent.modify(order.stripe_payment_intent_id, amount=new_amount_cents)
-        except stripe.error.StripeError as exc:
-            return {"error": exc.user_message or "Unable to update payment intent"}, 400
-
-        # Update order + payment row
-        order.tip = tip
-        order.grand_total = new_grand
-        payment = Payment.query.filter_by(order_id=order.id, provider='stripe', reference=order.stripe_payment_intent_id).first()
-        if payment:
-            payment.amount = new_grand
-            payment.raw_response = updated_intent
-        db.session.commit()
-
-        return {"ok": True, "amount_cents": new_amount_cents}, 200
+        return {
+            "error": "Tip updates after checkout has begun are not supported with embedded checkout."
+        }, 410
 
 class StripeWebhook(Resource):
     def post(self):
@@ -662,52 +674,124 @@ class StripeWebhook(Resource):
         sig_header = request.headers.get('Stripe-Signature', '')
         try:
             event = stripe.Webhook.construct_event(payload, sig_header, STRIPE_WEBHOOK_SECRET)
-        except stripe.error.SignatureVerificationError:
+        except SignatureVerificationError:
             return {"error": "Invalid signature"}, 400
 
         etype = event.get('type')
         obj = event.get('data', {}).get('object', {})
 
-        if etype == 'payment_intent.succeeded':
-            pi_id = obj.get('id')
-            payment = Payment.query.filter_by(provider='stripe', reference=pi_id).first()
-            if payment:
-                order = db.session.get(Order, payment.order_id)
-                if order and order.status != 'paid':
-                    order.status = 'paid'
-                    order.placed_at = datetime.now(timezone.utc)
-                    payment.status = 'captured'
-                    payment.raw_response = obj
-                    cart_id = obj.get('metadata', {}).get('cart_id')
-                    try:
-                        cart_ref = int(cart_id)
-                    except (TypeError, ValueError):
-                        cart_ref = None
-                    if cart_ref:
-                        cart_obj = db.session.get(Cart, cart_ref)
-                        if cart_obj and not cart_obj.closed_at:
-                            cart_obj.closed_at = datetime.now(timezone.utc)
+        if etype == 'checkout.session.completed':
+            session_id = obj.get('id')
+            payment_intent_id = obj.get('payment_intent')
+            checkout_session = CheckoutSession.query.filter_by(stripe_session_id=session_id).first()
+            if checkout_session and checkout_session.status != 'completed':
+                try:
+                    snapshot = checkout_session.cart_snapshot or {}
+                    totals = snapshot.get('totals', {})
+                    order = Order(
+                        user_id=checkout_session.user_id,
+                        guest_session_id=checkout_session.guest_session_id,
+                        status='in_progress',
+                        channel='web',
+                        fulfillment=snapshot.get('fulfillment') or 'pickup',
+                        subtotal=Decimal(totals.get('subtotal', '0')),
+                        tax_total=Decimal(totals.get('tax_total', '0')),
+                        discount_total=Decimal(totals.get('discount_total', '0')),
+                        delivery_fee=Decimal(totals.get('delivery_fee', '0')),
+                        tip=Decimal(totals.get('tip', '0')),
+                        grand_total=Decimal(totals.get('grand_total', '0')),
+                        currency=checkout_session.currency.upper() if checkout_session.currency else STRIPE_CURRENCY.upper(),
+                        placed_at=datetime.now(timezone.utc),
+                    )
+                    db.session.add(order)
+                    db.session.flush()
+
+                    for item in snapshot.get('items', []):
+                        order_item = OrderItem(
+                            order_id=order.id,
+                            menu_item_name=item.get('menu_item_name') or 'Item',
+                            qty=int(item.get('qty') or 1),
+                            unit_price=Decimal(str(item.get('unit_price') or '0')),
+                            line_total=(Decimal(str(item.get('unit_price') or '0')) * int(item.get('qty') or 1)).quantize(Decimal('0.01')),
+                            notes=item.get('notes'),
+                        )
+                        db.session.add(order_item)
+                        db.session.flush()
+                        for mod in item.get('modifiers', []):
+                            db.session.add(
+                                OrderItemModifier(
+                                    order_item_id=order_item.id,
+                                    name=mod.get('name') or 'Modifier',
+                                    price_delta=Decimal(str(mod.get('price_delta') or '0')),
+                                )
+                            )
+
+                    payment_reference = payment_intent_id or session_id
+                    payment = Payment(
+                        order_id=order.id,
+                        provider='stripe',
+                        reference=payment_reference,
+                        amount=checkout_session.amount_total,
+                        currency=checkout_session.currency.upper() if checkout_session.currency else STRIPE_CURRENCY.upper(),
+                        status='captured',
+                        raw_response=obj,
+                    )
+                    db.session.add(payment)
+
+                    checkout_session.status = 'completed'
+                    checkout_session.order_id = order.id
+
+                    cart = db.session.get(Cart, checkout_session.cart_id)
+                    if cart and not cart.closed_at:
+                        cart.closed_at = datetime.now(timezone.utc)
+
                     db.session.commit()
+                except Exception:
+                    db.session.rollback()
+                    raise
+            return {"received": True}, 200
+
+        if etype in ('checkout.session.expired', 'checkout.session.async_payment_failed'):
+            session_id = obj.get('id')
+            checkout_session = CheckoutSession.query.filter_by(stripe_session_id=session_id).first()
+            if checkout_session and checkout_session.status == 'pending':
+                checkout_session.status = 'canceled'
+                db.session.commit()
             return {"received": True}, 200
 
         if etype in ('payment_intent.payment_failed', 'payment_intent.canceled'):
-            pi_id = obj.get('id')
-            payment = Payment.query.filter_by(provider='stripe', reference=pi_id).first()
-            if payment:
-                order = db.session.get(Order, payment.order_id)
-                if order and order.status == 'pending':
-                    order.status = 'failed'
-                payment.status = 'failed'
-                payment.raw_response = obj
+            metadata = obj.get('metadata') or {}
+            checkout_session_id = metadata.get('checkout_session_id')
+            checkout_session = None
+            if checkout_session_id:
+                try:
+                    checkout_session = CheckoutSession.query.get(int(checkout_session_id))
+                except Exception:
+                    checkout_session = None
+            if checkout_session and checkout_session.status == 'pending':
+                checkout_session.status = 'failed'
                 db.session.commit()
             return {"received": True}, 200
 
         return {"received": True}, 200
 
 class Orders(Resource):
-    @require_login
     def get(self):
-        orders = Order.query.filter_by(user_id=request.user.id).order_by(Order.placed_at.desc()).all()
+        user_id = session.get('user_id')
+        guest_param = (request.args.get('session_id') or '').strip()
+        session_tokens = set(_get_session_token_list(_GUEST_CART_SESSION_KEY))
+
+        if user_id:
+            orders = Order.query.filter_by(user_id=user_id).order_by(Order.placed_at.desc()).all()
+        elif guest_param and guest_param in session_tokens:
+            orders = (
+                Order.query.filter_by(guest_session_id=guest_param)
+                .order_by(Order.placed_at.desc())
+                .all()
+            )
+        else:
+            return {"error": "Unauthorized"}, 401
+
         return [
             {
                 "id": o.id,
@@ -715,26 +799,39 @@ class Orders(Resource):
                 "fulfillment": o.fulfillment,
                 "grand_total": str(o.grand_total),
                 "placed_at": o.placed_at.isoformat() if o.placed_at else None,
+                "guest_session_id": o.guest_session_id,
             }
             for o in orders
         ], 200
 
+
 class OrderById(Resource):
-    @require_login
     def get(self, order_id):
-        o = Order.query.filter_by(id=order_id, user_id=request.user.id).first()
-        if not o:
+        user_id = session.get('user_id')
+        guest_param = (request.args.get('session_id') or '').strip()
+        session_tokens = set(_get_session_token_list(_GUEST_CART_SESSION_KEY))
+
+        order = db.session.get(Order, order_id)
+        if not order:
             return {"error": "Order not found"}, 404
+
+        user_allowed = user_id and order.user_id == user_id
+        guest_allowed = order.guest_session_id and guest_param and guest_param == order.guest_session_id and guest_param in session_tokens
+
+        if not user_allowed and not guest_allowed:
+            return {"error": "Unauthorized"}, 401
+
         return {
-            "id": o.id,
-            "status": o.status,
-            "fulfillment": o.fulfillment,
-            "subtotal": str(o.subtotal),
-            "tax_total": str(o.tax_total),
-            "discount_total": str(o.discount_total),
-            "delivery_fee": str(o.delivery_fee),
-            "tip": str(o.tip),
-            "grand_total": str(o.grand_total),
+            "id": order.id,
+            "status": order.status,
+            "fulfillment": order.fulfillment,
+            "subtotal": str(order.subtotal),
+            "tax_total": str(order.tax_total),
+            "discount_total": str(order.discount_total),
+            "delivery_fee": str(order.delivery_fee),
+            "tip": str(order.tip),
+            "grand_total": str(order.grand_total),
+            "guest_session_id": order.guest_session_id,
             "items": [
                 {
                     "name": i.menu_item_name,
@@ -745,11 +842,11 @@ class OrderById(Resource):
                         {"name": m.name, "price_delta": str(m.price_delta)} for m in i.modifiers
                     ],
                 }
-                for i in o.items
+                for i in order.items
             ],
             "payments": [
                 {"provider": p.provider, "reference": p.reference, "amount": str(p.amount), "status": p.status}
-                for p in o.payments
+                for p in order.payments
             ],
         }, 200
 
@@ -866,6 +963,62 @@ class AdminFoodCost(Resource):
             })
         return {"menu_item_id": menu_item_id, "food_cost": str(total.quantize(Decimal('0.01'))), "breakdown": breakdown}, 200
 
+
+class AdminOrders(Resource):
+    @require_admin
+    def get(self):
+        status_param = (request.args.get('status') or '').strip().lower()
+        limit = min(int(request.args.get('limit') or 100), 500)
+        query = Order.query.order_by(Order.placed_at.desc())
+        if status_param:
+            query = query.filter(func.lower(Order.status) == status_param)
+        orders = query.limit(limit).all()
+        results = []
+        for order in orders:
+            items = [
+                {
+                    "name": item.menu_item_name,
+                    "qty": item.qty,
+                    "line_total": str(item.line_total),
+                }
+                for item in order.items
+            ]
+            results.append({
+                "id": order.id,
+                "status": order.status,
+                "fulfillment": order.fulfillment,
+                "placed_at": order.placed_at.isoformat() if order.placed_at else None,
+                "grand_total": str(order.grand_total),
+                "customer": {
+                    "id": order.user.id if order.user else None,
+                    "name": f"{order.user.first_name or ''} {order.user.last_name or ''}".strip() if order.user else None,
+                    "email": order.user.email if order.user else None,
+                    "guest_session_id": order.guest_session_id,
+                },
+                "items": items,
+            })
+        return results, 200
+
+
+class AdminOrderStatus(Resource):
+    @require_admin
+    def patch(self, order_id):
+        order = db.session.get(Order, order_id)
+        if not order:
+            return {"error": "Order not found"}, 404
+        data = request.get_json() or {}
+        new_status = (data.get('status') or '').strip().lower()
+        if new_status not in ADMIN_ORDER_STATUSES:
+            return {"error": "Invalid status"}, 400
+        order.status = new_status
+        db.session.commit()
+        return {
+            "id": order.id,
+            "status": order.status,
+            "fulfillment": order.fulfillment,
+            "grand_total": str(order.grand_total),
+        }, 200
+
 # --------- Routes --------- #
 api.add_resource(Signup, '/api/signup')
 api.add_resource(Login, '/api/login')
@@ -889,6 +1042,8 @@ api.add_resource(OrderById, '/api/orders/<int:order_id>')
 api.add_resource(AdminInventoryItems, '/api/admin/inventory/items')
 api.add_resource(AdminInventoryBatches, '/api/admin/inventory/batches')
 api.add_resource(AdminFoodCost, '/api/admin/food_cost/<int:menu_item_id>')
+api.add_resource(AdminOrders, '/api/admin/orders')
+api.add_resource(AdminOrderStatus, '/api/admin/orders/<int:order_id>/status')
 
 # Ensure sessions are properly removed after each request
 @app.teardown_appcontext
