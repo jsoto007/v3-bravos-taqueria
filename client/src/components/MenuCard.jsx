@@ -1,6 +1,7 @@
 import React, { useEffect, useRef, useState } from 'react'
 import CheckmarkOverlay from './ui/CheckmarkOverlay'
 import { fmtCurrency } from '../lib/api'
+import { getMenuItemEmoji } from '../utils/menuPlaceholders'
 
 export default function MenuCard({ item, onAdd }){
   const [showAnim, setShowAnim] = useState(false);
@@ -30,7 +31,9 @@ export default function MenuCard({ item, onAdd }){
           className="h-56 w-full object-cover"
         />
       ) : (
-        <div className="grid h-56 w-full place-items-center bg-gradient-to-br from-amber-400/20 to-rose-800/20 text-6xl">🌮</div>
+        <div className="grid h-56 w-full place-items-center bg-gradient-to-br from-amber-400/20 to-rose-800/20 text-6xl">
+          {getMenuItemEmoji(item)}
+        </div>
       )}
 
       <div className="p-6 flex-1 flex flex-col">

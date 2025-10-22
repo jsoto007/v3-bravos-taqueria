@@ -4,6 +4,7 @@ import Modal from '../components/Modal'
 import { useCart } from '../context/CartContext'
 import FadeIn from '../utils/FadeIn'
 import CheckmarkOverlay from '../components/ui/CheckmarkOverlay'
+import { getMenuItemEmoji } from '../utils/menuPlaceholders'
 
 export default function Menu(){
   const [cats, setCats] = useState([])
@@ -226,7 +227,7 @@ export default function Menu(){
                               />
                             ) : (
                               <div className="flex h-full w-full items-center justify-center text-5xl">
-                                {/burrito/i.test(it.name) ? '🌯' : '🌮'}
+                                {getMenuItemEmoji(it)}
                               </div>
                             )}
                             <button
