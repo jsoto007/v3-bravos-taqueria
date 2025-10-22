@@ -65,7 +65,7 @@ export default function MenuCard({ item, onAdd }){
       <CheckmarkOverlay
         open={showAnim}
         onClosed={() => setShowAnim(false)}
-        durationMs={900}
+        durationMs={700}
         message="Added to cart!"
         backdropClass="bg-black/30"
         bubbleClass="bg-amber-400"
