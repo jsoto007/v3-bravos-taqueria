@@ -41,7 +41,7 @@ export default function Checkout(){
   }
 
   return (
-    <section className="min-h-[calc(100dvh-4rem)] bg-white py-8 px-4">
+    <section className="mt-20 min-h-[calc(100dvh-4rem)] bg-white py-8 px-4">
       <div className="max-w-2xl mx-auto bg-amber-50 text-slate-900 rounded-2xl shadow-lg p-6 md:p-8">
         <header className="flex items-start justify-between gap-3">
           <div>
