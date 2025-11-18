@@ -1,5 +1,7 @@
 
 
+import { Link } from 'react-router-dom'
+
 export default function Hero() {
 
   return (
@@ -25,12 +27,12 @@ export default function Hero() {
         </p>
 
         <div className="mb-30 mt-8 flex flex-wrap items-center justify-center gap-4">
-          <a
-            href="#order"
-            className="inline-block rounded-full bg-amber-400 px-8 py-3 font-semibold text-black shadow-[0_10px_35px_rgba(251,191,36,0.4)] transition hover:-translate-y-0.5"
+          <Link
+            to="/menu"
+            className="inline-flex rounded-full bg-amber-400 px-8 py-3 font-semibold text-black shadow-[0_10px_35px_rgba(251,191,36,0.4)] transition hover:-translate-y-0.5"
           >
             Start Your Order
-          </a>
+          </Link>
           <a
             href="/menu"
             className="inline-block rounded-full border border-white/20 px-8 py-3 font-semibold text-white/90 transition hover:border-amber-400 hover:bg-amber-400/10 hover:-translate-y-0.5"
