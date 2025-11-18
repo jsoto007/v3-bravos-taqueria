@@ -16,6 +16,14 @@ import { motion, useReducedMotion } from "framer-motion";
 
 const FadeIn = ({ children, delayStep = 0.3, immediate = true, className = "" }) => {
   const shouldReduceMotion = useReducedMotion();
+  const childCount = React.Children.toArray(children).filter(Boolean).length;
+  const [shouldAnimate, setShouldAnimate] = React.useState(immediate && childCount > 0);
+
+  React.useEffect(() => {
+    if (!immediate && childCount > 0) {
+      setShouldAnimate(true);
+    }
+  }, [childCount, immediate]);
 
   const container = {
     hidden: {},
@@ -40,7 +48,11 @@ const FadeIn = ({ children, delayStep = 0.3, immediate = true, className = "" })
       variants={container}
       {...(immediate
         ? { initial: "hidden", animate: "visible" }
-        : { initial: "hidden", whileInView: "visible", viewport: { once: true, amount: 0.2 } })}
+        : {
+            initial: "hidden",
+            animate: shouldAnimate ? "visible" : "hidden",
+            viewport: { once: true, amount: 0.2 },
+          })}
       className={`w-full ${className}`}
     >
       {React.Children.map(children, (child, index) =>

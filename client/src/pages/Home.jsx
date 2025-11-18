@@ -3,6 +3,7 @@ import { api } from '../lib/api'
 import MenuCard from '../components/MenuCard'
 import { useCart } from '../context/CartContext'
 import Hero from '../components/Hero'
+import LandingHighlight from '../components/LandingHighlight'
 import FadeIn from '../utils/FadeIn'
 import { Link } from 'react-router-dom'
 
@@ -25,7 +26,20 @@ export default function Home(){
     <div>
       <FadeIn>
           <Hero />
-          <h2 className="mt-8 mb-4 text-xl font-semibold">Featured</h2>
+          <LandingHighlight />
+          <section className="mt-12 mb-4 w-full">
+            <div className="flex flex-col items-start gap-3 border-b border-slate-200 pb-4 sm:flex-row sm:items-center sm:justify-between">
+              <div>
+                <p className="text-xs uppercase tracking-[0.6em] text-amber-500">Our menu</p>
+                <h2 className="text-2xl font-semibold text-slate-900 md:text-3xl">
+                  Best Sellers
+                </h2>
+              </div>
+              <p className="text-sm text-slate-500 sm:text-right">
+                Handcrafted favorites that keep people coming back.
+              </p>
+            </div>
+          </section>
           {loading ? <div>Loading...</div> : (
               <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
                 {featured.map(it => (
