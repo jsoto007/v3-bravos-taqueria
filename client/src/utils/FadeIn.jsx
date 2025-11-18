@@ -21,18 +21,26 @@ export default function FadeIn({
   const inView = useInView(containerRef, { once: !immediate, margin: '0px' })
   const items = useMemo(() => React.Children.toArray(children), [children])
   const MotionContainer = useMemo(() => motion(Component), [Component])
-
+  const itemsLength = items.length
+  const prevItemsLength = useRef(itemsLength)
   useEffect(() => {
     if (immediate || prefersReduced) {
       return
     }
 
     if (inView) {
-      controls.start('visible')
+      if (itemsLength !== prevItemsLength.current) {
+        controls.set('hidden')
+        controls.start('visible')
+      } else {
+        controls.start('visible')
+      }
     } else {
       controls.start('hidden')
     }
-  }, [controls, immediate, inView, prefersReduced])
+
+    prevItemsLength.current = itemsLength
+  }, [controls, immediate, inView, prefersReduced, itemsLength])
 
   if (prefersReduced) {
     return (
