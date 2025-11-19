@@ -26,6 +26,7 @@ from models import (
     StockMovement,
     Recipe,
     RecipeComponent,
+    AdminSetting,
 )
 
 from datetime import datetime, timedelta, timezone, date
@@ -369,5 +370,26 @@ with app.app_context():
     ]})
     db.session.add(rec)
 
+    db.session.commit()
+    defaults = {
+        "theme_preference": "system",
+        "notifications": {
+            "low_inventory": True,
+            "new_orders": True,
+            "status_changes": True,
+        },
+        "role_access": {
+            "orders": "admin",
+            "inventory": "admin",
+            "food_cost": "admin",
+            "settings": "admin",
+        },
+    }
+    for key, value in defaults.items():
+        existing = AdminSetting.query.filter_by(key=key).first()
+        if existing:
+            existing.value = value
+        else:
+            db.session.add(AdminSetting(key=key, value=value))
     db.session.commit()
     print("✅ Seeding complete.")

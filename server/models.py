@@ -365,6 +365,12 @@ class Order(db.Model, SerializerMixin):
     grand_total = db.Column(db.Numeric(10,2), nullable=False, default=0)
     stripe_payment_intent_id = db.Column(db.String(120), index=True, unique=True)
     currency = db.Column(db.String(3), default='USD', nullable=False)
+    customer_name = db.Column(db.String(160))
+    customer_email = db.Column(db.String(254))
+    customer_phone = db.Column(db.String(40))
+    assigned_staff = db.Column(db.String(160))
+    created_at = db.Column(db.DateTime(timezone=True), server_default=db.func.now())
+    updated_at = db.Column(db.DateTime(timezone=True), server_default=db.func.now(), onupdate=db.func.now())
     placed_at = db.Column(db.DateTime(timezone=True), server_default=db.func.now())
     user = relationship('User', backref=backref('orders', cascade='all, delete-orphan'))
 
@@ -528,3 +534,12 @@ class RecipeComponent(db.Model, SerializerMixin):
         CheckConstraint('qty >= 0', name='ck_recipe_qty_nonneg'),
         CheckConstraint('waste_pct >= 0 AND waste_pct <= 100', name='ck_recipe_waste_pct'),
     )
+
+
+class AdminSetting(db.Model, SerializerMixin):
+    __tablename__ = 'admin_settings'
+    id = db.Column(db.Integer, primary_key=True)
+    key = db.Column(db.String(60), unique=True, nullable=False, index=True)
+    value = db.Column(JSONB, nullable=False)
+    created_at = db.Column(db.DateTime(timezone=True), server_default=db.func.now())
+    updated_at = db.Column(db.DateTime(timezone=True), server_default=db.func.now(), onupdate=db.func.now())

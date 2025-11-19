@@ -2,6 +2,7 @@
 import os
 import uuid
 import functools
+from collections import deque
 from io import BytesIO
 from datetime import timezone, datetime, timedelta, date
 from decimal import Decimal
@@ -11,7 +12,8 @@ from flask_cors import CORS
 from flask_migrate import Migrate
 from flask_restful import Api, Resource
 from sqlalchemy.exc import IntegrityError, SQLAlchemyError
-from sqlalchemy import func
+from sqlalchemy import func, or_
+from sqlalchemy.orm import joinedload
 
 
 from config import db, app
@@ -72,6 +74,7 @@ from models import (
     StockMovement,
     Recipe,
     RecipeComponent,
+    AdminSetting,
 )
 
 # ---------- App config ---------- #
@@ -753,118 +756,887 @@ class OrderById(Resource):
             ],
         }, 200
 
-# ------------- Admin: Inventory receiving + food cost ------------- #
-class AdminInventoryItems(Resource):
+# ---------- Admin helpers & admin orders ---------- #
+ORDER_ADMIN_STATUSES = {"pending", "in_progress", "ready_for_pickup", "picked_up", "delivered", "paid", "failed", "cancelled"}
+ORDER_ADMIN_DEFAULT_STATUS = "in_progress"
+ORDER_ADMIN_MAX_LIMIT = 200
+
+def _payment_status_for_order(order):
+    statuses = [(p.status or "").lower() for p in getattr(order, "payments", []) if getattr(p, "status", None)]
+    if any(s in {"captured", "paid", "completed"} for s in statuses):
+        return "paid"
+    if any(s in {"pending", "authorized"} for s in statuses):
+        return "pending"
+    if any(s in {"failed", "canceled", "cancelled"} for s in statuses):
+        return "failed"
+    if statuses:
+        return statuses[-1]
+    return "unpaid"
+
+def _order_items_summary(order, limit=3):
+    items = getattr(order, "items", []) or []
+    lines = [f"{itm.qty}× {itm.menu_item_name}" for itm in items[:limit]]
+    if len(items) > limit:
+        lines.append("…")
+    return ", ".join(lines) if lines else "—"
+
+def _serialize_order_summary(order):
+    delivery = getattr(order, "delivery", None)
+    customer_name = order.customer_name or (delivery.recipient_name if delivery else None) or "Guest"
+    customer_phone = order.customer_phone or (delivery.phone if delivery else None)
+    return {
+        "id": order.id,
+        "status": order.status,
+        "assigned_staff": order.assigned_staff,
+        "customer_name": customer_name,
+        "customer_phone": customer_phone,
+        "payment_status": _payment_status_for_order(order),
+        "fulfillment": order.fulfillment,
+        "channel": order.channel,
+        "currency": order.currency,
+        "created_at": order.created_at.isoformat() if order.created_at else None,
+        "updated_at": order.updated_at.isoformat() if order.updated_at else None,
+        "placed_at": order.placed_at.isoformat() if order.placed_at else None,
+        "grand_total": str(order.grand_total),
+        "items_summary": _order_items_summary(order),
+        "items_count": len(getattr(order, "items", []) or []),
+    }
+
+def _serialize_order_detail(order):
+    payload = _serialize_order_summary(order)
+    delivery = getattr(order, "delivery", None)
+    payload.update({
+        "customer_email": order.customer_email,
+        "subtotal": str(order.subtotal),
+        "tax_total": str(order.tax_total),
+        "delivery_fee": str(order.delivery_fee),
+        "discount_total": str(order.discount_total),
+        "tip": str(order.tip),
+        "items": [
+            {
+                "id": itm.id,
+                "name": itm.menu_item_name,
+                "qty": itm.qty,
+                "unit_price": str(itm.unit_price),
+                "line_total": str(itm.line_total),
+                "notes": itm.notes,
+                "modifiers": [
+                    {"name": mod.name, "price_delta": str(mod.price_delta)}
+                    for mod in getattr(itm, "modifiers", [])
+                ],
+            }
+            for itm in getattr(order, "items", []) or []
+        ],
+        "payments": [
+            {
+                "provider": p.provider,
+                "reference": p.reference,
+                "amount": str(p.amount),
+                "currency": p.currency,
+                "status": p.status,
+                "processed_at": p.processed_at.isoformat() if p.processed_at else None,
+            }
+            for p in getattr(order, "payments", []) or []
+        ],
+        "delivery": {
+            "recipient_name": delivery.recipient_name,
+            "phone": delivery.phone,
+            "eta": delivery.eta.isoformat() if delivery and delivery.eta else None,
+            "address": delivery.address_snapshot,
+        } if delivery else None,
+    })
+    return payload
+
+def _coerce_money(value, field_name, default=Decimal('0.00'), minimum=None):
+    if value in (None, '', 'null', 'None'):
+        if default is not None:
+            return default
+        raise ValueError(f"{field_name} is required")
+    try:
+        parsed = Decimal(str(value))
+    except Exception:
+        raise ValueError(f"{field_name} must be a number")
+    if minimum is not None and parsed < minimum:
+        raise ValueError(f"{field_name} must be >= {minimum}")
+    return parsed
+
+class AdminOrders(Resource):
     @require_admin
-    def post(self):
-        data = request.get_json() or {}
-        name = (data.get('name') or '').strip()
-        sku = (data.get('sku') or None)
-        base_unit_code = (data.get('base_unit') or 'lb').strip().lower()
-        if not name:
-            return {"error": "name is required"}, 400
-        unit = Unit.query.filter(func.lower(Unit.code) == base_unit_code).first()
-        if not unit:
-            return {"error": "base unit not found"}, 400
-        # Idempotent create-by-name
-        existing = InventoryItem.query.filter(func.lower(InventoryItem.name) == name.lower()).first()
-        if existing:
-            return {"id": existing.id, "name": existing.name, "base_unit": existing.base_unit.code, "existing": True}, 200
-        try:
-            item = InventoryItem(name=name, sku=sku, base_unit=unit)
-            db.session.add(item)
-            db.session.commit()
-            return {"id": item.id, "name": item.name, "base_unit": unit.code, "existing": False}, 201
-        except IntegrityError:
-            db.session.rollback()
-            return {"error": "inventory item with this name or sku already exists"}, 409
-
-class AdminInventoryBatches(Resource):
-    @require_admin
-    def post(self):
-        data = request.get_json() or {}
-        raw_item_id = data.get('inventory_item_id')
-        # Coerce to int safely and reject 'null'/'None' strings
-        try:
-            if raw_item_id in (None, '', 'null', 'None'):
-                return {"error": "inventory_item_id is required"}, 400
-            item_id = int(raw_item_id)
-        except (TypeError, ValueError):
-            return {"error": "inventory_item_id must be an integer"}, 400
-
-        supplier_name = (data.get('supplier') or 'Default Supplier').strip()
-        try:
-            qty = Decimal(str(data.get('qty', '0')))
-            unit_cost = Decimal(str(data.get('unit_cost', '0')))
-        except Exception:
-            return {"error": "qty and unit_cost must be numeric"}, 400
-        expiration = data.get('expiration_date')
-
-        if qty <= 0 or unit_cost < 0:
-            return {"error": "invalid batch parameters"}, 400
-
-        item = db.session.get(InventoryItem, item_id)
-        if not item:
-            return {"error": "inventory item not found"}, 404
-
-        supplier = Supplier.query.filter_by(name=supplier_name).first()
-        if not supplier:
-            supplier = Supplier(name=supplier_name)
-            db.session.add(supplier)
-            db.session.flush()
-
-        exp = None
-        if expiration:
+    def get(self):
+        params = request.args
+        status_filter = (params.get('status') or '').strip().lower()
+        search = (params.get('search') or '').strip()
+        limit = 100
+        if params.get('limit'):
             try:
-                exp = datetime.fromisoformat(expiration).date()
-            except Exception:
-                return {"error": "expiration_date must be YYYY-MM-DD"}, 400
-
-        try:
-            batch = InventoryBatch(
-                inventory_item_id=item.id,
-                supplier_id=supplier.id,
-                qty=float(qty),
-                unit_cost=unit_cost,
-                expiration_date=exp
+                limit = min(ORDER_ADMIN_MAX_LIMIT, max(1, int(params.get('limit'))))
+            except ValueError:
+                limit = 100
+        query = (
+            Order.query
+            .options(
+                joinedload(Order.items).joinedload(OrderItem.modifiers),
+                joinedload(Order.payments),
+                joinedload(Order.delivery),
             )
-            db.session.add(batch)
+            .order_by(Order.placed_at.desc())
+        )
+        if status_filter:
+            query = query.filter(func.lower(Order.status) == status_filter)
+        if search:
+            like = f"%{search.lower()}%"
+            conditions = [
+                func.lower(func.coalesce(Order.customer_name, "")).like(like),
+                func.lower(func.coalesce(Order.customer_phone, "")).like(like),
+                Order.delivery.has(func.lower(func.coalesce(OrderDelivery.recipient_name, "")).like(like)),
+            ]
+            if search.isdigit():
+                try:
+                    order_id = int(search)
+                    conditions.append(Order.id == order_id)
+                except ValueError:
+                    pass
+            query = query.filter(or_(*conditions))
+        orders = query.limit(limit).all()
+        return {
+            "orders": [_serialize_order_summary(o) for o in orders],
+            "meta": {
+                "count": len(orders),
+                "limit": limit,
+                "status": status_filter or "all",
+            },
+        }, 200
+
+    @require_admin
+    def post(self):
+        payload = request.get_json() or {}
+        items_payload = payload.get('items') or []
+        if not isinstance(items_payload, list) or not items_payload:
+            return {"error": "items are required"}, 400
+        try:
+            status = (payload.get('status') or ORDER_ADMIN_DEFAULT_STATUS).strip().lower() or ORDER_ADMIN_DEFAULT_STATUS
+            fulfillment = (payload.get('fulfillment') or 'pickup').strip().lower() or 'pickup'
+            channel = (payload.get('channel') or 'admin').strip().lower() or 'admin'
+            customer_name = (payload.get('customer_name') or '').strip() or None
+            customer_email = (payload.get('customer_email') or '').strip() or None
+            customer_phone = (payload.get('customer_phone') or '').strip() or None
+            assigned_staff = (payload.get('assigned_staff') or '').strip() or None
+            currency = (payload.get('currency') or STRIPE_CURRENCY.upper()).upper()
+            delivery_fee = _coerce_money(payload.get('delivery_fee', '0'), 'delivery_fee', default=Decimal('0.00'), minimum=Decimal('0.00'))
+            tip = _coerce_money(payload.get('tip', '0'), 'tip', default=Decimal('0.00'), minimum=Decimal('0.00'))
+            discount_total = _coerce_money(payload.get('discount_total', '0'), 'discount_total', default=Decimal('0.00'), minimum=Decimal('0.00'))
+        except ValueError as err:
+            return {"error": str(err)}, 400
+        subtotal = Decimal('0.00')
+        normalized_items = []
+        for item in items_payload:
+            name = (item.get('name') or item.get('menu_item_name') or '').strip()
+            if not name:
+                name = "Item"
+            try:
+                qty = _require_int(item.get('qty'), 'qty', minimum=1)
+            except ValueError as err:
+                return {"error": str(err)}, 400
+            try:
+                unit_price = _coerce_money(item.get('unit_price'), 'unit_price', minimum=Decimal('0.00'))
+            except ValueError as err:
+                return {"error": str(err)}, 400
+            line_total = (unit_price * qty).quantize(Decimal('0.01'))
+            subtotal += line_total
+            normalized_items.append({
+                "name": name,
+                "qty": qty,
+                "unit_price": unit_price,
+                "line_total": line_total,
+                "notes": (item.get('notes') or '').strip() or None,
+                "modifiers": item.get('modifiers') or [],
+            })
+        if not normalized_items:
+            return {"error": "items are required"}, 400
+        tax_total = (subtotal * TAX_RATE).quantize(Decimal('0.01'))
+        grand_total = (subtotal + tax_total + delivery_fee + tip - discount_total).quantize(Decimal('0.01'))
+        if grand_total < 0:
+            return {"error": "grand total cannot be negative"}, 400
+        order = Order(
+            user_id=request.user.id,
+            status=status,
+            fulfillment=fulfillment,
+            channel=channel,
+            subtotal=subtotal,
+            tax_total=tax_total,
+            discount_total=discount_total,
+            delivery_fee=delivery_fee,
+            tip=tip,
+            grand_total=grand_total,
+            currency=currency,
+            customer_name=customer_name,
+            customer_email=customer_email,
+            customer_phone=customer_phone,
+            assigned_staff=assigned_staff,
+            placed_at=datetime.now(timezone.utc),
+        )
+        db.session.add(order)
+        db.session.flush()
+        try:
+            for item in normalized_items:
+                oi = OrderItem(
+                    order_id=order.id,
+                    menu_item_name=item["name"],
+                    qty=item["qty"],
+                    unit_price=item["unit_price"],
+                    line_total=item["line_total"],
+                    notes=item["notes"],
+                )
+                db.session.add(oi)
+                db.session.flush()
+                for mod in item["modifiers"] or []:
+                    mod_name = (mod.get('name') or '').strip() or 'Modifier'
+                    try:
+                        price_delta = Decimal(str(mod.get('price_delta', '0')))
+                    except Exception:
+                        price_delta = Decimal('0.00')
+                    db.session.add(OrderItemModifier(order_item_id=oi.id, name=mod_name, price_delta=price_delta))
+            payment_status = (payload.get('payment_status') or 'pending').strip().lower() or 'pending'
+            payment_provider = (payload.get('payment_provider') or 'manual').strip() or 'manual'
+            payment_reference = payload.get('payment_reference') or f"admin-{order.id}-{uuid.uuid4().hex[:6]}"
+            payment = Payment(
+                order_id=order.id,
+                provider=payment_provider,
+                reference=payment_reference,
+                amount=order.grand_total,
+                currency=currency,
+                status=payment_status,
+            )
+            db.session.add(payment)
             db.session.commit()
-            return {"id": batch.id}, 201
+            return _serialize_order_detail(order), 201
         except IntegrityError:
             db.session.rollback()
-            return {"error": "constraint violation while creating batch"}, 409
+            return {"error": "database constraint violation"}, 409
         except SQLAlchemyError:
             db.session.rollback()
-            return {"error": "database error while creating batch"}, 400
+            return {"error": "database error"}, 400
+
+
+class AdminOrderDetail(Resource):
+    @require_admin
+    def get(self, order_id):
+        order = (
+            Order.query
+            .options(
+                joinedload(Order.items).joinedload(OrderItem.modifiers),
+                joinedload(Order.payments),
+                joinedload(Order.delivery),
+            )
+            .filter_by(id=order_id)
+            .first()
+        )
+        if not order:
+            return {"error": "Order not found"}, 404
+        return _serialize_order_detail(order), 200
+
+    @require_admin
+    def patch(self, order_id):
+        order = db.session.get(Order, order_id)
+        if not order:
+            return {"error": "Order not found"}, 404
+        data = request.get_json() or {}
+        if 'status' in data:
+            status = (data.get('status') or '').strip().lower()
+            if status:
+                order.status = status
+        if 'fulfillment' in data:
+            fulfillment = (data.get('fulfillment') or '').strip().lower()
+            if fulfillment:
+                order.fulfillment = fulfillment
+        if 'assigned_staff' in data:
+            order.assigned_staff = (data.get('assigned_staff') or '').strip() or None
+        if 'customer_name' in data:
+            order.customer_name = (data.get('customer_name') or '').strip() or None
+        if 'customer_email' in data:
+            order.customer_email = (data.get('customer_email') or '').strip() or None
+        if 'customer_phone' in data:
+            order.customer_phone = (data.get('customer_phone') or '').strip() or None
+        money_changed = False
+        for field in ('delivery_fee', 'tip', 'discount_total'):
+            if field in data:
+                try:
+                    money = _coerce_money(data[field], field, default=getattr(order, field), minimum=Decimal('0.00'))
+                except ValueError as err:
+                    return {"error": str(err)}, 400
+                setattr(order, field, money.quantize(Decimal('0.01')))
+                money_changed = True
+        if money_changed:
+            order.grand_total = (order.subtotal + order.tax_total + order.delivery_fee + order.tip - order.discount_total).quantize(Decimal('0.01'))
+            if order.payments:
+                order.payments[0].amount = order.grand_total
+        payment_status = (data.get('payment_status') or '').strip()
+        if payment_status and order.payments:
+            order.payments[0].status = payment_status
+        db.session.commit()
+        return _serialize_order_detail(order), 200
+
+    @require_admin
+    def delete(self, order_id):
+        order = db.session.get(Order, order_id)
+        if not order:
+            return {"error": "Order not found"}, 404
+        db.session.delete(order)
+        db.session.commit()
+        return '', 204
+# ------------- Admin: Inventory, Food Cost & Settings ------------- #
+INVENTORY_EXPIRATION_ALERT_DAYS = 7
+INVENTORY_ALERT_DISPLAY = 5
+PERIOD_PRESETS = {
+    "day": 1,
+    "week": 7,
+    "month": 30,
+}
+STATUS_PAYMENT_OK = {"captured", "paid", "authorized", "completed"}
+
+
+def _parse_decimal_value(value, field_name, minimum=None):
+    if value in (None, "", "null", "None"):
+        raise ValueError(f"{field_name} is required")
+    try:
+        parsed = Decimal(str(value))
+    except Exception:
+        raise ValueError(f"{field_name} must be a number")
+    if minimum is not None and parsed < minimum:
+        raise ValueError(f"{field_name} must be >= {minimum}")
+    return parsed
+
+
+def _parse_date(value):
+    if not value:
+        return None
+    try:
+        return datetime.fromisoformat(value).date()
+    except Exception:
+        raise ValueError("expiration_date must be YYYY-MM-DD")
+
+
+def _get_unit_by_code(code):
+    if not code:
+        return None
+    return Unit.query.filter(func.lower(Unit.code) == code.strip().lower()).first()
+
+
+def _build_conversion_graph():
+    graph = {}
+    for conv in UnitConversion.query.all():
+        factor = Decimal(str(conv.factor))
+        if factor == 0:
+            continue
+        graph.setdefault(conv.from_unit_id, []).append((conv.to_unit_id, factor))
+        graph.setdefault(conv.to_unit_id, []).append((conv.from_unit_id, Decimal("1") / factor))
+    return graph
+
+
+def _find_conversion_factor(from_unit, to_unit):
+    if not from_unit or not to_unit:
+        raise ValueError("unit conversion requires valid units")
+    if from_unit.id == to_unit.id:
+        return Decimal("1")
+    graph = _build_conversion_graph()
+    queue = deque([(from_unit.id, Decimal("1"))])
+    seen = {from_unit.id}
+    while queue:
+        unit_id, acc = queue.popleft()
+        if unit_id == to_unit.id:
+            return acc
+        for neighbor_id, factor in graph.get(unit_id, []):
+            if neighbor_id in seen:
+                continue
+            seen.add(neighbor_id)
+            queue.append((neighbor_id, acc * factor))
+    raise ValueError(f"Unable to convert from {from_unit.code} to {to_unit.code}")
+
+
+def _convert_to_base_qty(value, unit_code, base_unit):
+    if base_unit is None:
+        raise ValueError("inventory item missing base unit")
+    qty = _parse_decimal_value(value, "qty", minimum=Decimal("0"))
+    from_unit = _get_unit_by_code(unit_code or base_unit.code)
+    if not from_unit:
+        raise ValueError("unit not found")
+    factor = _find_conversion_factor(from_unit, base_unit)
+    return (qty * factor).quantize(Decimal("0.0001"))
+
+
+def _ensure_supplier(name=None, supplier_id=None):
+    if supplier_id:
+        supplier = db.session.get(Supplier, supplier_id)
+        if supplier:
+            return supplier
+    supplier_name = (name or "Default Supplier").strip()
+    if not supplier_name:
+        supplier_name = "Default Supplier"
+    existing = Supplier.query.filter(func.lower(Supplier.name) == supplier_name.lower()).first()
+    if existing:
+        return existing
+    supplier = Supplier(name=supplier_name)
+    db.session.add(supplier)
+    db.session.flush()
+    return supplier
+
+
+def _batch_response(batch):
+    supplier = batch.supplier
+    return {
+        "id": batch.id,
+        "qty": batch.qty,
+        "unit_cost": str(batch.unit_cost),
+        "expiration_date": batch.expiration_date.isoformat() if batch.expiration_date else None,
+        "received_at": batch.received_at.isoformat() if batch.received_at else None,
+        "supplier": {
+            "id": supplier.id,
+            "name": supplier.name,
+            "phone": supplier.phone,
+            "email": supplier.email,
+        } if supplier else None,
+    }
+
+
+def _inventory_item_snapshot(item):
+    batches = sorted(getattr(item, "batches", []) or [], key=lambda b: (b.expiration_date or date.max))
+    total_qty = sum(Decimal(str(b.qty or 0)) for b in batches)
+    soonest_exp = None
+    for batch in batches:
+        if batch.expiration_date:
+            soonest_exp = batch.expiration_date
+            break
+    par_level = Decimal(str(item.par_level)) if item.par_level is not None else Decimal("0")
+    low_stock = par_level > 0 and total_qty <= par_level
+    expiring_soon = False
+    if soonest_exp:
+        days = (soonest_exp - date.today()).days
+        expiring_soon = 0 <= days <= INVENTORY_EXPIRATION_ALERT_DAYS
+    latest_batch = None
+    for batch in sorted(getattr(item, "batches", []) or [], key=lambda b: b.received_at or datetime.min, reverse=True):
+        if batch.supplier:
+            latest_batch = batch
+            break
+    supplier_info = None
+    if latest_batch and latest_batch.supplier:
+        supplier_info = {
+            "id": latest_batch.supplier.id,
+            "name": latest_batch.supplier.name,
+            "phone": latest_batch.supplier.phone,
+            "email": latest_batch.supplier.email,
+        }
+    earliest_received = min((b.received_at for b in batches if b.received_at), default=None)
+    return {
+        "id": item.id,
+        "name": item.name,
+        "sku": item.sku,
+        "base_unit": item.base_unit.code if item.base_unit else None,
+        "par_level": item.par_level,
+        "quantity": float(total_qty),
+        "low_stock": bool(low_stock),
+        "expiring_soon": expiring_soon,
+        "expiration_date": soonest_exp.isoformat() if soonest_exp else None,
+        "supplier": supplier_info,
+        "date_added": earliest_received.isoformat() if earliest_received else None,
+        "is_active": item.is_active,
+        "batch_count": len(batches),
+    }
+
+
+def _inventory_alerts(snapshots):
+    low_stock = [s for s in snapshots if s["low_stock"]][:INVENTORY_ALERT_DISPLAY]
+    expiring = []
+    today = date.today()
+    for s in snapshots:
+        if s["expiring_soon"] and s.get("expiration_date"):
+            try:
+                exp_date = datetime.fromisoformat(s["expiration_date"]).date()
+            except Exception:
+                continue
+            expiring.append({
+                **s,
+                "days_to_expiration": max(0, (exp_date - today).days),
+            })
+            if len(expiring) >= INVENTORY_ALERT_DISPLAY:
+                break
+    return {"low_stock": low_stock, "expiring": expiring}
+
+
+def _inventory_meta():
+    units = Unit.query.order_by(Unit.code).all()
+    suppliers = Supplier.query.order_by(Supplier.name).all()
+    return {
+        "units": [{"code": u.code, "name": u.name} for u in units],
+        "suppliers": [{"id": s.id, "name": s.name, "phone": s.phone, "email": s.email} for s in suppliers],
+    }
+
+
+def _create_batch_from_payload(item, payload):
+    if not payload:
+        raise ValueError("batch data is required")
+    if not getattr(item, "base_unit", None):
+        raise ValueError("inventory item missing base unit")
+    qty_value = payload.get("qty")
+    if qty_value in (None, "", "null", "None"):
+        raise ValueError("qty is required for batch")
+    unit_code = (payload.get("unit") or item.base_unit.code)
+    converted_qty = _convert_to_base_qty(qty_value, unit_code, item.base_unit)
+    unit_cost = _coerce_money(payload.get("unit_cost"), "unit_cost", minimum=Decimal("0.00")).quantize(Decimal("0.0001"))
+    expiration_date = _parse_date(payload.get("expiration_date"))
+    supplier = _ensure_supplier(payload.get("supplier"), payload.get("supplier_id"))
+    batch = InventoryBatch(
+        inventory_item_id=item.id,
+        supplier_id=supplier.id,
+        qty=float(converted_qty),
+        unit_cost=unit_cost,
+        expiration_date=expiration_date,
+    )
+    db.session.add(batch)
+    db.session.flush()
+    return batch
+
+
+class AdminInventory(Resource):
+    @require_admin
+    def get(self):
+        search = (request.args.get("search") or "").strip().lower()
+        filter_flag = (request.args.get("filter") or "").strip().lower()
+        unit_filter = (request.args.get("unit") or "").strip().lower()
+        items = (
+            InventoryItem.query
+            .options(joinedload(InventoryItem.batches).joinedload(InventoryBatch.supplier))
+            .order_by(InventoryItem.name)
+            .all()
+        )
+        snapshots = []
+        for item in items:
+            snapshot = _inventory_item_snapshot(item)
+            if search:
+                supplier_name = (snapshot.get("supplier", {}).get("name") or "").lower()
+                if search not in snapshot["name"].lower() and search not in supplier_name:
+                    continue
+            if unit_filter and (snapshot.get("base_unit") or "").lower() != unit_filter:
+                continue
+            if filter_flag == "low_stock" and not snapshot["low_stock"]:
+                continue
+            if filter_flag == "expiring" and not snapshot["expiring_soon"]:
+                continue
+            if filter_flag == "active" and not snapshot["is_active"]:
+                continue
+            if filter_flag == "inactive" and snapshot["is_active"]:
+                continue
+            snapshots.append(snapshot)
+        alerts = _inventory_alerts(snapshots)
+        meta = _inventory_meta()
+        meta["filters"] = {
+            "selected": filter_flag,
+            "search": search,
+            "unit": unit_filter,
+        }
+        meta["alert_threshold_days"] = INVENTORY_EXPIRATION_ALERT_DAYS
+        return {
+            "items": snapshots,
+            "alerts": alerts,
+            "meta": meta,
+            "count": len(snapshots),
+        }, 200
+
+    @require_admin
+    def post(self):
+        data = request.get_json() or {}
+        name = (data.get("name") or "").strip()
+        if not name:
+            return {"error": "name is required"}, 400
+        sku = (data.get("sku") or "").strip() or None
+        base_unit_code = (data.get("base_unit") or "lb").strip()
+        base_unit = _get_unit_by_code(base_unit_code)
+        if not base_unit:
+            return {"error": "base unit not found"}, 400
+        try:
+            par_level = float(Decimal(str(data.get("par_level") or 0)))
+        except Exception:
+            return {"error": "par_level must be numeric"}, 400
+        existing = InventoryItem.query.filter(func.lower(InventoryItem.name) == name.lower()).first()
+        if existing:
+            return {"id": existing.id, "name": existing.name, "existing": True}, 200
+        item = InventoryItem(
+            name=name,
+            sku=sku,
+            base_unit=base_unit,
+            par_level=par_level,
+            is_active=bool(data.get("is_active", True)),
+        )
+        db.session.add(item)
+        db.session.flush()
+        try:
+            for batch_payload in data.get("batches") or []:
+                _create_batch_from_payload(item, batch_payload)
+            db.session.commit()
+            return {
+                "id": item.id,
+                "name": item.name,
+                "base_unit": base_unit.code,
+                "par_level": item.par_level,
+            }, 201
+        except ValueError as err:
+            db.session.rollback()
+            return {"error": str(err)}, 400
+        except IntegrityError:
+            db.session.rollback()
+            return {"error": "constraint violation"}, 409
+        except SQLAlchemyError:
+            db.session.rollback()
+            return {"error": "database error"}, 400
+
+
+class AdminInventoryDetail(Resource):
+    @require_admin
+    def get(self, item_id):
+        item = (
+            InventoryItem.query
+            .options(joinedload(InventoryItem.batches).joinedload(InventoryBatch.supplier))
+            .get(item_id)
+        )
+        if not item:
+            return {"error": "Inventory item not found"}, 404
+        snapshot = _inventory_item_snapshot(item)
+        batches = sorted(getattr(item, "batches", []) or [], key=lambda b: b.received_at or datetime.min, reverse=True)
+        snapshot["batches"] = [_batch_response(b) for b in batches]
+        return snapshot, 200
+
+    @require_admin
+    def patch(self, item_id):
+        item = db.session.get(InventoryItem, item_id)
+        if not item:
+            return {"error": "Inventory item not found"}, 404
+        data = request.get_json() or {}
+        if "name" in data:
+            item.name = (data.get("name") or item.name or "").strip()
+        if "sku" in data:
+            item.sku = (data.get("sku") or "").strip() or None
+        if "par_level" in data:
+            try:
+                item.par_level = float(Decimal(str(data.get("par_level") or 0)))
+            except Exception:
+                return {"error": "par_level must be numeric"}, 400
+        if "is_active" in data:
+            item.is_active = bool(data.get("is_active"))
+        if "base_unit" in data:
+            target_code = (data.get("base_unit") or "").strip()
+            if target_code:
+                new_unit = _get_unit_by_code(target_code)
+                if not new_unit:
+                    return {"error": "base unit not found"}, 400
+                if not item.base_unit:
+                    item.base_unit = new_unit
+                elif item.base_unit.id != new_unit.id:
+                    try:
+                        factor = _find_conversion_factor(item.base_unit, new_unit)
+                        for batch in getattr(item, "batches", []) or []:
+                            batch.qty = float((Decimal(str(batch.qty)) * factor).quantize(Decimal("0.0001")))
+                        if item.par_level:
+                            item.par_level = float((Decimal(str(item.par_level)) * factor).quantize(Decimal("0.0001")))
+                    except ValueError as err:
+                        return {"error": str(err)}, 400
+                    item.base_unit = new_unit
+        db.session.commit()
+        return self.get(item_id)
+
+    @require_admin
+    def delete(self, item_id):
+        item = db.session.get(InventoryItem, item_id)
+        if not item:
+            return {"error": "Inventory item not found"}, 404
+        db.session.delete(item)
+        db.session.commit()
+        return "", 204
+
+
+class AdminInventoryBatch(Resource):
+    @require_admin
+    def post(self, item_id):
+        item = db.session.get(InventoryItem, item_id)
+        if not item:
+            return {"error": "Inventory item not found"}, 404
+        try:
+            batch = _create_batch_from_payload(item, request.get_json() or {})
+            db.session.commit()
+            return _batch_response(batch), 201
+        except ValueError as err:
+            db.session.rollback()
+            return {"error": str(err)}, 400
+        except IntegrityError:
+            db.session.rollback()
+            return {"error": "constraint violation"}, 409
+        except SQLAlchemyError:
+            db.session.rollback()
+            return {"error": "database error"}, 400
+
+
+class AdminInventoryBatchDetail(Resource):
+    @require_admin
+    def patch(self, batch_id):
+        batch = db.session.get(InventoryBatch, batch_id)
+        if not batch:
+            return {"error": "Batch not found"}, 404
+        data = request.get_json() or {}
+        if "qty" in data:
+            unit_code = (data.get("unit") or batch.inventory_item.base_unit.code)
+            batch.qty = float(_convert_to_base_qty(data.get("qty"), unit_code, batch.inventory_item.base_unit))
+        if "unit_cost" in data:
+            try:
+                batch.unit_cost = _coerce_money(data.get("unit_cost"), "unit_cost", minimum=Decimal("0.00")).quantize(Decimal("0.0001"))
+            except ValueError as err:
+                return {"error": str(err)}, 400
+        if "expiration_date" in data:
+            batch.expiration_date = _parse_date(data.get("expiration_date"))
+        if "supplier" in data or "supplier_id" in data:
+            batch.supplier = _ensure_supplier(data.get("supplier"), data.get("supplier_id"))
+        db.session.commit()
+        return _batch_response(batch), 200
+
+    @require_admin
+    def delete(self, batch_id):
+        batch = db.session.get(InventoryBatch, batch_id)
+        if not batch:
+            return {"error": "Batch not found"}, 404
+        db.session.delete(batch)
+        db.session.commit()
+        return "", 204
+
+
+def _calculate_recipe_cost(menu_item_id):
+    recipe = Recipe.query.filter_by(menu_item_id=menu_item_id).first()
+    if not recipe:
+        return None, []
+    total = Decimal("0.00")
+    breakdown = []
+    for comp in recipe.components:
+        last_batch = (
+            InventoryBatch.query
+            .filter_by(inventory_item_id=comp.inventory_item_id)
+            .order_by(InventoryBatch.received_at.desc())
+            .first()
+        )
+        unit_cost = Decimal(str(last_batch.unit_cost)) if last_batch and last_batch.unit_cost is not None else Decimal("0.00")
+        extended = (Decimal(str(comp.qty)) * unit_cost).quantize(Decimal("0.0001"))
+        total += extended
+        breakdown.append({
+            "ingredient": comp.inventory_item.name,
+            "qty": comp.qty,
+            "unit_cost": str(unit_cost),
+            "extended": str(extended),
+        })
+    return total.quantize(Decimal("0.01")), breakdown
+
 
 class AdminFoodCost(Resource):
     @require_admin
     def get(self, menu_item_id):
-        # Compute food cost = sum(component.qty * latest_unit_cost)
-        recipe = Recipe.query.filter_by(menu_item_id=menu_item_id).first()
-        if not recipe:
+        cost, breakdown = _calculate_recipe_cost(menu_item_id)
+        if cost is None:
             return {"error": "Recipe not found"}, 404
-        total = Decimal('0.00')
-        breakdown = []
-        for comp in recipe.components:
-            # latest batch unit_cost for this inventory item (fallback 0)
-            last_batch = (
-                InventoryBatch.query
-                .filter_by(inventory_item_id=comp.inventory_item_id)
-                .order_by(InventoryBatch.received_at.desc())
-                .first()
+        return {"menu_item_id": menu_item_id, "food_cost": str(cost), "breakdown": breakdown}, 200
+
+
+class AdminFoodCostSummary(Resource):
+    @require_admin
+    def get(self):
+        period = (request.args.get("period") or "week").strip().lower()
+        days = PERIOD_PRESETS.get(period, PERIOD_PRESETS["week"])
+        now = datetime.now(timezone.utc)
+        start = now - timedelta(days=days)
+        orders = (
+            Order.query
+            .options(joinedload(Order.items))
+            .filter(Order.placed_at >= start, Order.placed_at <= now)
+            .all()
+        )
+        order_ids = [o.id for o in orders]
+        payments = []
+        if order_ids:
+            payments = (
+                Payment.query
+                .filter(Payment.order_id.in_(order_ids), Payment.status.in_(STATUS_PAYMENT_OK))
+                .all()
             )
-            unit_cost = Decimal(str(last_batch.unit_cost)) if last_batch and last_batch.unit_cost is not None else Decimal('0.00')
-            extended = (Decimal(str(comp.qty)) * unit_cost).quantize(Decimal('0.0001'))
-            total += extended
-            breakdown.append({
-                'ingredient': comp.inventory_item.name,
-                'qty': comp.qty,
-                'unit_cost': str(unit_cost),
-                'extended': str(extended)
+        total_revenue = sum((p.amount for p in payments), Decimal("0.00"))
+        sales_map = {}
+        for order in orders:
+            for item in order.items:
+                key = item.menu_item_name.lower()
+                sales_map[key] = sales_map.get(key, 0) + item.qty
+        menu_items = (
+            MenuItem.query
+            .options(joinedload(MenuItem.recipe).joinedload(Recipe.components))
+            .filter(MenuItem.is_active == True)
+            .order_by(MenuItem.name)
+            .all()
+        )
+        total_cogs = Decimal("0.00")
+        items_output = []
+        for menu_item in menu_items:
+            cost_value, _ = _calculate_recipe_cost(menu_item.id)
+            sale_price = Decimal(str(menu_item.price or 0))
+            qty_sold = sales_map.get(menu_item.name.lower(), 0)
+            if cost_value is not None and qty_sold:
+                total_cogs += cost_value * qty_sold
+            pct = None
+            if sale_price > 0 and cost_value is not None:
+                pct = ((cost_value / sale_price) * Decimal("100")).quantize(Decimal("0.01"))
+            items_output.append({
+                "name": menu_item.name,
+                "ingredient_cost": str(cost_value if cost_value is not None else Decimal("0.00")),
+                "sale_price": str(sale_price),
+                "food_cost_pct": str(pct) if pct is not None else None,
+                "qty_sold": qty_sold,
             })
-        return {"menu_item_id": menu_item_id, "food_cost": str(total.quantize(Decimal('0.01'))), "breakdown": breakdown}, 200
+        summary_pct = None
+        if total_revenue > 0:
+            summary_pct = ((total_cogs / total_revenue) * Decimal("100")).quantize(Decimal("0.01"))
+        return {
+            "period": {
+                "key": period,
+                "label": {"day": "Last 24h", "week": "Last 7 days", "month": "Last 30 days"}.get(period, "Last 7 days"),
+                "from": start.isoformat(),
+                "to": now.isoformat(),
+            },
+            "summary": {
+                "total_revenue": str(total_revenue.quantize(Decimal("0.01"))),
+                "total_cogs": str(total_cogs.quantize(Decimal("0.01"))),
+                "food_cost_pct": str(summary_pct) if summary_pct is not None else None,
+                "orders_count": len(orders),
+                "payments_count": len(payments),
+            },
+            "items": items_output,
+        }, 200
+
+
+class AdminSettings(Resource):
+    @require_admin
+    def get(self):
+        settings = AdminSetting.query.all()
+        return {setting.key: setting.value for setting in settings}, 200
+
+    @require_admin
+    def patch(self):
+        payload = request.get_json() or {}
+        if not isinstance(payload, dict):
+            return {"error": "payload must be an object"}, 400
+        updated = {}
+        for key, value in payload.items():
+            if not isinstance(key, str) or not key.strip():
+                continue
+            setting = AdminSetting.query.filter_by(key=key).first()
+            if setting:
+                setting.value = value
+            else:
+                setting = AdminSetting(key=key, value=value)
+                db.session.add(setting)
+            updated[key] = setting.value
+        db.session.commit()
+        return updated, 200
+
 
 # --------- Routes --------- #
 api.add_resource(Signup, '/api/signup')
@@ -886,9 +1658,17 @@ api.add_resource(StripeWebhook, '/api/webhook/stripe')
 api.add_resource(Orders, '/api/orders')
 api.add_resource(OrderById, '/api/orders/<int:order_id>')
 
-api.add_resource(AdminInventoryItems, '/api/admin/inventory/items')
-api.add_resource(AdminInventoryBatches, '/api/admin/inventory/batches')
+api.add_resource(AdminOrders, '/api/admin/orders')
+api.add_resource(AdminOrderDetail, '/api/admin/orders/<int:order_id>')
+
+api.add_resource(AdminInventory, '/api/inventory')
+api.add_resource(AdminInventoryDetail, '/api/inventory/<int:item_id>')
+api.add_resource(AdminInventoryBatch, '/api/inventory/<int:item_id>/batches')
+api.add_resource(AdminInventoryBatchDetail, '/api/inventory/batches/<int:batch_id>')
+
+api.add_resource(AdminFoodCostSummary, '/api/admin/food_cost')
 api.add_resource(AdminFoodCost, '/api/admin/food_cost/<int:menu_item_id>')
+api.add_resource(AdminSettings, '/api/admin/settings')
 
 # Ensure sessions are properly removed after each request
 @app.teardown_appcontext

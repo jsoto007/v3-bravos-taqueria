@@ -12,9 +12,11 @@ import AuthSignup from './pages/AuthSignup'
 import OrdersDashboard from './admin/OrdersDashboard'
 import InventoryDashboard from './admin/InventoryDashboard'
 import FoodCost from './admin/FoodCost'
+import AdminSettings from './admin/Settings'
 import Reports from './owner/Reports'
 import MenuManager from './owner/MenuManager'
 import Settings from './owner/Settings'
+import { AdminSettingsProvider } from './context/AdminSettingsContext'
 import { useAuth } from './context/AuthContext'
 
 function Protected({ children, role }) {
@@ -39,10 +41,11 @@ export default function App() {
         <Route path="auth/signup" element={<AuthSignup />} />
       </Route>
 
-      <Route path="/admin" element={<Protected role="admin"><AdminLayout /></Protected>}>
+      <Route path="/admin" element={<Protected role="admin"><AdminSettingsProvider><AdminLayout /></AdminSettingsProvider></Protected>}>
         <Route index element={<OrdersDashboard />} />
         <Route path="inventory" element={<InventoryDashboard />} />
         <Route path="food-cost" element={<FoodCost />} />
+        <Route path="settings" element={<AdminSettings />} />
       </Route>
 
       <Route path="/owner" element={<Protected role="owner"><OwnerLayout /></Protected>}>
@@ -55,4 +58,3 @@ export default function App() {
     </Routes>
   )
 }
-

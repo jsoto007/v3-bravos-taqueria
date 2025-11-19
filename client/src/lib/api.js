@@ -22,6 +22,17 @@ const withSessionQuery = (url, session_id) => {
   return u.toString().replace(window.location.origin, '')
 }
 
+const buildQuery = (params = {}) => {
+  const qp = new URLSearchParams()
+  Object.entries(params).forEach(([key, value]) => {
+    if (value !== undefined && value !== null && value !== '') {
+      qp.set(key, value)
+    }
+  })
+  const queryString = qp.toString()
+  return queryString ? `?${queryString}` : ''
+}
+
 export const api = {
   // Auth
   signup: (payload) => fetch(`${API_BASE}/api/signup`, { method: 'POST', headers: JSON_HEADERS, body: JSON.stringify(payload), credentials:'include' }).then(handle),
@@ -45,9 +56,26 @@ export const api = {
   myOrders:   () => fetch(`${API_BASE}/api/orders`, { credentials:'include' }).then(handle),
   orderById:  (id) => fetch(`${API_BASE}/api/orders/${id}`, { credentials:'include' }).then(handle),
 
-  // Admin
-  adminCreateInventoryItem: (payload) => fetch(`${API_BASE}/api/admin/inventory/items`, { method:'POST', headers:{ 'Content-Type':'application/json' }, body: JSON.stringify(payload), credentials:'include' }).then(handle),
-  adminCreateBatch: (payload) => fetch(`${API_BASE}/api/admin/inventory/batches`, { method:'POST', headers:{ 'Content-Type':'application/json' }, body: JSON.stringify(payload), credentials:'include' }).then(handle),
+  adminOrders: (params = {}) => fetch(`${API_BASE}/api/admin/orders${buildQuery(params)}`, { credentials:'include' }).then(handle),
+  adminOrderDetail: (id) => fetch(`${API_BASE}/api/admin/orders/${id}`, { credentials:'include' }).then(handle),
+  adminCreateOrder: (payload) => fetch(`${API_BASE}/api/admin/orders`, { method:'POST', headers:JSON_HEADERS, body: JSON.stringify(payload), credentials:'include' }).then(handle),
+  adminUpdateOrder: (id, payload) => fetch(`${API_BASE}/api/admin/orders/${id}`, { method:'PATCH', headers:JSON_HEADERS, body: JSON.stringify(payload), credentials:'include' }).then(handle),
+  adminDeleteOrder: (id) => fetch(`${API_BASE}/api/admin/orders/${id}`, { method:'DELETE', credentials:'include' }).then(handle),
+
+  adminInventoryList: (params = {}) => fetch(`${API_BASE}/api/inventory${buildQuery(params)}`, { credentials:'include' }).then(handle),
+  adminInventoryCreate: (payload) => fetch(`${API_BASE}/api/inventory`, { method:'POST', headers:JSON_HEADERS, body: JSON.stringify(payload), credentials:'include' }).then(handle),
+  adminInventoryDetail: (id) => fetch(`${API_BASE}/api/inventory/${id}`, { credentials:'include' }).then(handle),
+  adminInventoryUpdate: (id, payload) => fetch(`${API_BASE}/api/inventory/${id}`, { method:'PATCH', headers:JSON_HEADERS, body: JSON.stringify(payload), credentials:'include' }).then(handle),
+  adminInventoryDelete: (id) => fetch(`${API_BASE}/api/inventory/${id}`, { method:'DELETE', credentials:'include' }).then(handle),
+  adminInventoryAddBatch: (itemId, payload) => fetch(`${API_BASE}/api/inventory/${itemId}/batches`, { method:'POST', headers:JSON_HEADERS, body: JSON.stringify(payload), credentials:'include' }).then(handle),
+  adminInventoryUpdateBatch: (batchId, payload) => fetch(`${API_BASE}/api/inventory/batches/${batchId}`, { method:'PATCH', headers:JSON_HEADERS, body: JSON.stringify(payload), credentials:'include' }).then(handle),
+  adminInventoryDeleteBatch: (batchId) => fetch(`${API_BASE}/api/inventory/batches/${batchId}`, { method:'DELETE', credentials:'include' }).then(handle),
+
+  adminFoodCostSummary: (params = {}) => fetch(`${API_BASE}/api/admin/food_cost${buildQuery(params)}`, { credentials:'include' }).then(handle),
+  adminSettings: () => fetch(`${API_BASE}/api/admin/settings`, { credentials:'include' }).then(handle),
+  adminUpdateSettings: (payload) => fetch(`${API_BASE}/api/admin/settings`, { method:'PATCH', headers:JSON_HEADERS, body: JSON.stringify(payload), credentials:'include' }).then(handle),
+
+  // Admin helpers
   adminFoodCost: (menu_item_id) => fetch(`${API_BASE}/api/admin/food_cost/${menu_item_id}`, { credentials:'include' }).then(handle),
 }
 
