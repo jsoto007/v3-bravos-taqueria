@@ -9,9 +9,12 @@ const NAV_ITEMS = [
   { label: 'Settings', to: '/admin/settings', description: 'Panel preferences' },
 ]
 
-const navClass = ({ isActive }) => (
-  `px-3 py-2 rounded-full text-sm font-semibold transition ${isActive ? 'bg-slate-900 text-white dark:bg-slate-200 dark:text-slate-900' : 'text-slate-600 hover:text-slate-900 dark:text-slate-300 dark:hover:text-white'}`
-)
+const navClass = ({ isActive }) =>
+  `px-3 py-2 rounded-full text-sm font-semibold transition shadow-sm ${
+    isActive
+      ? 'bg-slate-900 text-white shadow-md dark:bg-slate-100 dark:text-slate-900'
+      : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100/70 dark:text-slate-300 dark:hover:text-white dark:hover:bg-slate-800/80'
+  }`
 
 export default function AdminLayout() {
   const { settings } = useAdminSettings()
@@ -34,12 +37,12 @@ export default function AdminLayout() {
   const isDark = themePreference === 'dark' || (themePreference === 'system' && prefersDark)
 
   return (
-    <div className={`${isDark ? 'dark' : ''} min-h-screen bg-slate-50 dark:bg-slate-950 text-slate-900 dark:text-white`}> 
-      <header className="border-b border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900">
+    <div className={`${isDark ? 'dark' : ''} min-h-screen bg-gradient-to-b from-slate-50 via-white to-slate-100 text-slate-900 transition-colors duration-200 dark:from-slate-950 dark:via-slate-900 dark:to-slate-950 dark:text-slate-50`}>
+      <header className="border-b border-slate-200/80 bg-white/80 backdrop-blur-lg dark:border-slate-800/80 dark:bg-slate-900/80">
         <div className="container mx-auto flex items-center justify-between px-4 py-4">
           <div>
-            <p className="text-xs uppercase tracking-[0.2em] text-slate-500 dark:text-slate-400">Admin</p>
-            <h1 className="text-xl font-semibold">Bravo&apos;s Taqueria</h1>
+            <p className="text-xs uppercase tracking-[0.25em] text-slate-500 dark:text-slate-400">Admin</p>
+            <h1 className="text-xl font-semibold text-slate-900 dark:text-white">Bravo&apos;s Taqueria</h1>
           </div>
           <nav className="hidden lg:flex items-center gap-3">
             {NAV_ITEMS.map((item) => (
@@ -49,7 +52,7 @@ export default function AdminLayout() {
             ))}
           </nav>
           <button
-            className="inline-flex items-center gap-2 rounded-full border border-slate-200 px-3 py-1 text-sm font-semibold text-slate-700 hover:bg-slate-100 dark:border-slate-700 dark:text-slate-200 dark:hover:bg-slate-800 lg:hidden"
+            className="inline-flex items-center gap-2 rounded-full border border-slate-200/80 px-3 py-1 text-sm font-semibold text-slate-700 shadow-sm hover:bg-slate-100 dark:border-slate-700 dark:text-slate-200 dark:hover:bg-slate-800 lg:hidden"
             onClick={() => setMobileOpen(true)}
             aria-label="Open admin navigation"
           >
@@ -69,10 +72,10 @@ export default function AdminLayout() {
           }}
         >
           <div className="flex-1 bg-black/30 backdrop-blur" />
-          <div className="w-64 bg-white dark:bg-slate-900 p-4">
+          <div className="w-64 bg-white shadow-xl ring-1 ring-slate-200 dark:bg-slate-900 dark:ring-slate-800 p-4">
             <div className="mb-4 flex items-center justify-between">
-              <span className="text-lg font-semibold">Navigation</span>
-              <button onClick={() => setMobileOpen(false)} className="text-slate-500 hover:text-slate-900 dark:text-slate-400">
+              <span className="text-lg font-semibold text-slate-900 dark:text-white">Navigation</span>
+              <button onClick={() => setMobileOpen(false)} className="text-slate-500 hover:text-slate-900 dark:text-slate-400 hover:dark:text-white">
                 Close
               </button>
             </div>
@@ -83,7 +86,11 @@ export default function AdminLayout() {
                   to={item.to}
                   end={item.to === '/admin'}
                   className={({ isActive }) => (
-                    `block rounded-xl px-3 py-2 text-sm font-semibold ${isActive ? 'bg-slate-900 text-white dark:bg-slate-200 dark:text-slate-900' : 'text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800'}`
+                    `block rounded-xl px-3 py-2 text-sm font-semibold shadow-sm transition ${
+                      isActive
+                        ? 'bg-slate-900 text-white dark:bg-slate-100 dark:text-slate-900'
+                        : 'text-slate-700 hover:bg-slate-50 dark:text-slate-300 dark:hover:bg-slate-800/80'
+                    }`
                   )}
                   onClick={() => setMobileOpen(false)}
                 >
@@ -95,7 +102,7 @@ export default function AdminLayout() {
         </div>
       )}
 
-      <main className="container mx-auto px-4 py-6">
+      <main className="container mx-auto px-4 py-8 lg:py-10">
         <Outlet />
       </main>
     </div>

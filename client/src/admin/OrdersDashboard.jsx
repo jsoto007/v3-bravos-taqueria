@@ -117,17 +117,17 @@ const statusColumns = [
 ]
 
 const badgeClass = {
-  amber: 'bg-amber-100 text-amber-800 border-amber-200',
-  blue: 'bg-blue-100 text-blue-800 border-blue-200',
-  emerald: 'bg-emerald-100 text-emerald-800 border-emerald-200',
-  slate: 'bg-slate-100 text-slate-800 border-slate-200',
+  amber: 'bg-amber-100 text-amber-800 border-amber-200 dark:bg-amber-900/30 dark:text-amber-100 dark:border-amber-700',
+  blue: 'bg-blue-100 text-blue-800 border-blue-200 dark:bg-blue-900/30 dark:text-blue-100 dark:border-blue-700',
+  emerald: 'bg-emerald-100 text-emerald-800 border-emerald-200 dark:bg-emerald-900/30 dark:text-emerald-100 dark:border-emerald-700',
+  slate: 'bg-slate-100 text-slate-800 border-slate-200 dark:bg-slate-900/40 dark:text-slate-100 dark:border-slate-700',
 }
 
 const ringClass = {
-  amber: 'ring-1 ring-amber-200',
-  blue: 'ring-1 ring-blue-200',
-  emerald: 'ring-1 ring-emerald-200',
-  slate: 'ring-1 ring-slate-200',
+  amber: 'ring-1 ring-amber-200 dark:ring-amber-800/70',
+  blue: 'ring-1 ring-blue-200 dark:ring-blue-800/70',
+  emerald: 'ring-1 ring-emerald-200 dark:ring-emerald-800/70',
+  slate: 'ring-1 ring-slate-200 dark:ring-slate-700/80',
 }
 
 const orderTypeLabel = {
@@ -137,10 +137,30 @@ const orderTypeLabel = {
 }
 
 const nextStep = {
-  new: { next: 'in_progress', label: 'Start order', className: 'bg-blue-600 text-white hover:bg-blue-500' },
-  in_progress: { next: 'completed', label: 'Mark ready', className: 'bg-emerald-600 text-white hover:bg-emerald-500' },
-  completed: { next: 'fulfilled', label: 'Hand off', className: 'bg-slate-900 text-white hover:bg-slate-800' },
-  fulfilled: { next: 'completed', label: 'Reopen', className: 'bg-white text-slate-700 border border-slate-200 hover:bg-slate-50' },
+  new: {
+    next: 'in_progress',
+    label: 'Start order',
+    className:
+      'bg-blue-600 text-white shadow-sm hover:bg-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-200 dark:bg-blue-500 dark:hover:bg-blue-400 dark:focus:ring-blue-800',
+  },
+  in_progress: {
+    next: 'completed',
+    label: 'Mark ready',
+    className:
+      'bg-emerald-600 text-white shadow-sm hover:bg-emerald-500 focus:outline-none focus:ring-2 focus:ring-emerald-200 dark:bg-emerald-500 dark:hover:bg-emerald-400 dark:focus:ring-emerald-800',
+  },
+  completed: {
+    next: 'fulfilled',
+    label: 'Hand off',
+    className:
+      'bg-slate-900 text-white shadow-sm hover:bg-slate-800 focus:outline-none focus:ring-2 focus:ring-slate-200 dark:bg-slate-100 dark:text-slate-900 dark:hover:bg-slate-200 dark:focus:ring-slate-700',
+  },
+  fulfilled: {
+    next: 'completed',
+    label: 'Reopen',
+    className:
+      'bg-white text-slate-700 border border-slate-200 shadow-sm hover:bg-slate-50 focus:outline-none focus:ring-2 focus:ring-slate-200 dark:bg-slate-900 dark:text-slate-100 dark:border-slate-700 dark:hover:bg-slate-800 dark:focus:ring-slate-700',
+  },
 }
 
 export default function OrdersDashboard() {
@@ -181,7 +201,7 @@ export default function OrdersDashboard() {
   }
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 text-slate-900 dark:text-slate-100">
       <header className="grid gap-3 md:grid-cols-4">
         <SummaryCard label="Active" value={metrics.open} hint="New + in progress" accent="blue" />
         <SummaryCard label="In kitchen" value={metrics.inProgress} hint="Currently being prepared" accent="amber" />
@@ -189,11 +209,11 @@ export default function OrdersDashboard() {
         <SummaryCard label="Delivered / picked up" value={metrics.fulfilled} hint="Completed today" accent="slate" />
       </header>
 
-      <section className="bg-white shadow rounded-2xl p-4 lg:p-6 border border-slate-100">
+      <section className="bg-white/90 backdrop-blur rounded-2xl p-4 lg:p-6 border border-slate-200 shadow-sm dark:border-slate-800 dark:bg-slate-900/80">
         <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
           <div>
-            <p className="text-sm text-slate-500">Orders</p>
-            <h2 className="text-xl font-semibold text-slate-900">Live queue</h2>
+            <p className="text-sm text-slate-500 dark:text-slate-400">Orders</p>
+            <h2 className="text-xl font-semibold text-slate-900 dark:text-white">Live queue</h2>
           </div>
           <div className="flex flex-col gap-3 sm:flex-row">
             <div className="relative sm:w-72">
@@ -202,17 +222,19 @@ export default function OrdersDashboard() {
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
                 placeholder="Search by ID or customer"
-                className="w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-2.5 text-sm outline-none focus:ring-2 focus:ring-blue-200"
+                className="w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-2.5 text-sm text-slate-900 outline-none placeholder:text-slate-400 focus:ring-2 focus:ring-blue-200 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100 dark:placeholder:text-slate-500 dark:focus:ring-blue-700"
               />
               <span className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-xs text-slate-400">⌘ K</span>
             </div>
-            <div className="flex rounded-xl border border-slate-200 bg-slate-50 p-1 text-sm font-medium text-slate-600">
+            <div className="flex rounded-xl border border-slate-200 bg-slate-50 p-1 text-sm font-medium text-slate-600 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-200">
               {['all', 'pickup', 'delivery', 'dine_in'].map((type) => (
                 <button
                   key={type}
                   onClick={() => setFilterType(type)}
                   className={`px-3 py-2 rounded-lg transition ${
-                    filterType === type ? 'bg-white shadow-sm text-slate-900' : 'hover:bg-white/70'
+                    filterType === type
+                      ? 'bg-white shadow-sm text-slate-900 dark:bg-slate-800 dark:text-white'
+                      : 'hover:bg-white/70 dark:hover:bg-slate-800/70'
                   }`}
                 >
                   {type === 'all' ? 'All' : orderTypeLabel[type]}
@@ -227,12 +249,12 @@ export default function OrdersDashboard() {
         {groupedOrders.map((column) => (
           <div
             key={column.id}
-            className={`bg-white rounded-2xl shadow border border-slate-100 p-4 lg:p-5 flex flex-col ${ringClass[column.accent]}`}
+            className={`bg-white/90 rounded-2xl shadow-sm border border-slate-200 p-4 lg:p-5 flex flex-col dark:border-slate-800 dark:bg-slate-900/80 ${ringClass[column.accent]}`}
           >
             <div className="flex items-start justify-between gap-2">
               <div>
-                <p className="text-xs uppercase tracking-wide text-slate-500">{column.label}</p>
-                <p className="text-sm text-slate-500">{column.description}</p>
+                <p className="text-xs uppercase tracking-wide text-slate-500 dark:text-slate-400">{column.label}</p>
+                <p className="text-sm text-slate-500 dark:text-slate-400">{column.description}</p>
               </div>
               <span
                 className={`inline-flex h-9 w-9 items-center justify-center rounded-full border text-sm font-semibold ${
@@ -246,35 +268,35 @@ export default function OrdersDashboard() {
             <div className="mt-4 space-y-3 overflow-y-auto pr-1" style={{ maxHeight: '640px' }}>
               {column.orders.length ? (
                 column.orders.map((order) => (
-                  <article key={order.id} className="rounded-2xl border border-slate-100 bg-slate-50/60 p-4 shadow-sm">
+                  <article key={order.id} className="rounded-2xl border border-slate-100 bg-slate-50/70 p-4 shadow-sm transition hover:-translate-y-0.5 hover:shadow-md dark:border-slate-800 dark:bg-slate-800/80">
                     <div className="flex items-start justify-between gap-2">
                       <div>
-                        <p className="text-xs text-slate-500">{order.placed}</p>
-                        <h3 className="text-base font-semibold text-slate-900">{order.id}</h3>
-                        <p className="text-sm text-slate-700">{order.customer}</p>
+                        <p className="text-xs text-slate-500 dark:text-slate-400">{order.placed}</p>
+                        <h3 className="text-base font-semibold text-slate-900 dark:text-white">{order.id}</h3>
+                        <p className="text-sm text-slate-700 dark:text-slate-300">{order.customer}</p>
                       </div>
                       <div className="text-right space-y-1">
-                        <span className="inline-flex items-center rounded-full bg-white px-3 py-1 text-xs font-medium text-slate-700 border border-slate-200">
+                        <span className="inline-flex items-center rounded-full bg-white px-3 py-1 text-xs font-medium text-slate-700 border border-slate-200 dark:bg-slate-900 dark:text-slate-200 dark:border-slate-700">
                           {orderTypeLabel[order.type]}
                         </span>
-                        <div className="text-lg font-semibold text-slate-900">${order.total.toFixed(2)}</div>
+                        <div className="text-lg font-semibold text-slate-900 dark:text-white">${order.total.toFixed(2)}</div>
                       </div>
                     </div>
 
-                    <div className="mt-3 flex flex-wrap items-center gap-2 text-xs text-slate-600">
-                      <span className="rounded-full bg-white px-3 py-1 border border-slate-200">Due {order.promiseTime}</span>
+                    <div className="mt-3 flex flex-wrap items-center gap-2 text-xs text-slate-600 dark:text-slate-300">
+                      <span className="rounded-full bg-white px-3 py-1 border border-slate-200 dark:bg-slate-900 dark:border-slate-700">Due {order.promiseTime}</span>
                       {order.courier && (
-                        <span className="rounded-full bg-white px-3 py-1 border border-slate-200">Driver: {order.courier}</span>
+                        <span className="rounded-full bg-white px-3 py-1 border border-slate-200 dark:bg-slate-900 dark:border-slate-700">Driver: {order.courier}</span>
                       )}
                       {order.note && (
-                        <span className="rounded-full bg-amber-50 px-3 py-1 border border-amber-200 text-amber-800">{order.note}</span>
+                        <span className="rounded-full bg-amber-50 px-3 py-1 border border-amber-200 text-amber-800 dark:bg-amber-900/40 dark:text-amber-100 dark:border-amber-800">{order.note}</span>
                       )}
                     </div>
 
-                    <ul className="mt-3 space-y-1 text-sm text-slate-700">
+                    <ul className="mt-3 space-y-1 text-sm text-slate-700 dark:text-slate-200">
                       {order.items.map((item) => (
                         <li key={item} className="flex items-center gap-2">
-                          <span className="h-1.5 w-1.5 rounded-full bg-slate-400" />
+                          <span className="h-1.5 w-1.5 rounded-full bg-slate-400 dark:bg-slate-500" />
                           <span>{item}</span>
                         </li>
                       ))}
@@ -289,16 +311,16 @@ export default function OrdersDashboard() {
                           {nextStep[order.status].label}
                         </button>
                       ) : (
-                        <span className="flex-1 text-xs text-slate-500">Completed</span>
+                        <span className="flex-1 text-xs text-slate-500 dark:text-slate-400">Completed</span>
                       )}
-                      <button className="rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50">
+                      <button className="rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50 focus:outline-none focus:ring-2 focus:ring-slate-200 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100 dark:hover:bg-slate-800 dark:focus:ring-slate-700">
                         Details
                       </button>
                     </div>
                   </article>
                 ))
               ) : (
-                <div className="rounded-xl border border-dashed border-slate-200 bg-slate-50 p-6 text-center text-sm text-slate-500">
+                <div className="rounded-xl border border-dashed border-slate-200 bg-slate-50 p-6 text-center text-sm text-slate-500 dark:border-slate-800 dark:bg-slate-900/60 dark:text-slate-400">
                   No orders in this stage
                 </div>
               )}
@@ -312,17 +334,17 @@ export default function OrdersDashboard() {
 
 function SummaryCard({ label, value, hint, accent }) {
   const border = {
-    blue: 'border-blue-200 bg-blue-50/60 text-blue-900',
-    amber: 'border-amber-200 bg-amber-50/60 text-amber-900',
-    emerald: 'border-emerald-200 bg-emerald-50/60 text-emerald-900',
-    slate: 'border-slate-200 bg-slate-50 text-slate-900',
+    blue: 'border-blue-200 bg-blue-50/80 text-blue-900 shadow-blue-100/60 dark:border-blue-800 dark:bg-blue-900/20 dark:text-blue-50',
+    amber: 'border-amber-200 bg-amber-50/80 text-amber-900 shadow-amber-100/60 dark:border-amber-800 dark:bg-amber-900/20 dark:text-amber-50',
+    emerald: 'border-emerald-200 bg-emerald-50/80 text-emerald-900 shadow-emerald-100/60 dark:border-emerald-800 dark:bg-emerald-900/20 dark:text-emerald-50',
+    slate: 'border-slate-200 bg-slate-50 text-slate-900 shadow-slate-100/60 dark:border-slate-700 dark:bg-slate-900/30 dark:text-slate-100',
   }[accent]
 
   return (
     <div className={`rounded-2xl border shadow-sm p-4 ${border}`}>
-      <p className="text-xs font-semibold uppercase tracking-wide text-slate-600">{label}</p>
+      <p className="text-xs font-semibold uppercase tracking-wide text-slate-600 dark:text-slate-400">{label}</p>
       <p className="text-3xl font-semibold leading-tight mt-1">{value}</p>
-      <p className="text-sm text-slate-600 mt-1">{hint}</p>
+      <p className="text-sm text-slate-600 dark:text-slate-400 mt-1">{hint}</p>
     </div>
   )
 }
