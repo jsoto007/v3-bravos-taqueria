@@ -1,10 +1,10 @@
-import React, { useMemo, useState } from 'react'
+import React, { useCallback, useMemo, useState } from 'react'
 
 const initialOrders = [
   {
     id: '#ORD-1847',
     customer: 'Sarah Johnson',
-    status: 'new',
+    status: 'in_progress',
     type: 'pickup',
     items: ['Chicken Taco x3', 'Chips & Guac'],
     total: 19.5,
@@ -80,7 +80,7 @@ const initialOrders = [
   {
     id: '#ORD-1840',
     customer: 'Marcus Bell',
-    status: 'new',
+    status: 'in_progress',
     type: 'pickup',
     items: ['Carne Asada Fries', 'Horchata'],
     total: 18,
@@ -90,12 +90,6 @@ const initialOrders = [
 ]
 
 const statusColumns = [
-  {
-    id: 'new',
-    label: 'New',
-    description: 'Awaiting confirmation',
-    accent: 'amber',
-  },
   {
     id: 'in_progress',
     label: 'In Progress',
@@ -137,12 +131,6 @@ const orderTypeLabel = {
 }
 
 const nextStep = {
-  new: {
-    next: 'in_progress',
-    label: 'Start order',
-    className:
-      'bg-blue-600 text-white shadow-sm hover:bg-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-200 dark:bg-blue-500 dark:hover:bg-blue-400 dark:focus:ring-blue-800',
-  },
   in_progress: {
     next: 'completed',
     label: 'Mark ready',
@@ -167,6 +155,8 @@ export default function OrdersDashboard() {
   const [orders, setOrders] = useState(initialOrders)
   const [search, setSearch] = useState('')
   const [filterType, setFilterType] = useState('all')
+  const [activeOrder, setActiveOrder] = useState(null)
+  const closeModal = useCallback(() => setActiveOrder(null), [])
 
   const filteredOrders = useMemo(() => {
     const term = search.trim().toLowerCase()
@@ -188,12 +178,12 @@ export default function OrdersDashboard() {
   )
 
   const metrics = useMemo(() => {
-    const open = orders.filter((order) => ['new', 'in_progress'].includes(order.status)).length
     const inProgress = orders.filter((order) => order.status === 'in_progress').length
     const ready = orders.filter((order) => order.status === 'completed').length
     const fulfilled = orders.filter((order) => order.status === 'fulfilled').length
+    const active = inProgress + ready
 
-    return { open, inProgress, ready, fulfilled }
+    return { active, inProgress, ready, fulfilled }
   }, [orders])
 
   const advanceOrder = (id, status) => {
@@ -203,7 +193,7 @@ export default function OrdersDashboard() {
   return (
     <div className="space-y-6 text-slate-900 dark:text-slate-100">
       <header className="grid gap-3 md:grid-cols-4">
-        <SummaryCard label="Active" value={metrics.open} hint="New + in progress" accent="blue" />
+        <SummaryCard label="Active" value={metrics.active} hint="In progress + ready" accent="blue" />
         <SummaryCard label="In kitchen" value={metrics.inProgress} hint="Currently being prepared" accent="amber" />
         <SummaryCard label="Ready" value={metrics.ready} hint="Waiting for pickup / delivery" accent="emerald" />
         <SummaryCard label="Delivered / picked up" value={metrics.fulfilled} hint="Completed today" accent="slate" />
@@ -245,7 +235,7 @@ export default function OrdersDashboard() {
         </div>
       </section>
 
-      <div className="grid gap-4 lg:grid-cols-4">
+      <div className="grid gap-4 lg:grid-cols-3">
         {groupedOrders.map((column) => (
           <div
             key={column.id}
@@ -313,7 +303,10 @@ export default function OrdersDashboard() {
                       ) : (
                         <span className="flex-1 text-xs text-slate-500 dark:text-slate-400">Completed</span>
                       )}
-                      <button className="rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50 focus:outline-none focus:ring-2 focus:ring-slate-200 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100 dark:hover:bg-slate-800 dark:focus:ring-slate-700">
+                      <button
+                        onClick={() => setActiveOrder(order)}
+                        className="rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50 focus:outline-none focus:ring-2 focus:ring-slate-200 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100 dark:hover:bg-slate-800 dark:focus:ring-slate-700"
+                      >
                         Details
                       </button>
                     </div>
@@ -328,6 +321,8 @@ export default function OrdersDashboard() {
           </div>
         ))}
       </div>
+
+      <OrderDetailsModal order={activeOrder} onClose={closeModal} />
     </div>
   )
 }
@@ -345,6 +340,111 @@ function SummaryCard({ label, value, hint, accent }) {
       <p className="text-xs font-semibold uppercase tracking-wide text-slate-600 dark:text-slate-400">{label}</p>
       <p className="text-3xl font-semibold leading-tight mt-1">{value}</p>
       <p className="text-sm text-slate-600 dark:text-slate-400 mt-1">{hint}</p>
+    </div>
+  )
+}
+
+function OrderDetailsModal({ order, onClose }) {
+  const statusLabel = {
+    in_progress: 'In Progress',
+    completed: 'Completed',
+    fulfilled: 'Delivered / Picked Up',
+  }
+
+  React.useEffect(() => {
+    if (!order) return
+    const handleKeyDown = (event) => {
+      if (event.key === 'Escape') onClose()
+    }
+    window.addEventListener('keydown', handleKeyDown)
+    return () => window.removeEventListener('keydown', handleKeyDown)
+  }, [order, onClose])
+
+  if (!order) return null
+
+  return (
+    <div
+      className="fixed inset-0 z-50 flex items-start justify-center bg-slate-900/60 p-4 pt-10 backdrop-blur-sm"
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="order-details-title"
+      onClick={onClose}
+    >
+      <div
+        className="w-full max-w-2xl overflow-hidden rounded-2xl bg-white shadow-2xl ring-1 ring-slate-200 transition-all dark:bg-slate-900 dark:ring-slate-800"
+        onClick={(e) => e.stopPropagation()}
+      >
+        <div className="flex items-start justify-between border-b border-slate-200 px-5 py-4 dark:border-slate-800">
+          <div>
+            <p className="text-xs uppercase tracking-wide text-slate-500 dark:text-slate-400">Order</p>
+            <h3 id="order-details-title" className="text-lg font-semibold text-slate-900 dark:text-white">
+              {order.id} · {order.customer}
+            </h3>
+            <p className="text-sm text-slate-500 dark:text-slate-400">{order.placed}</p>
+          </div>
+          <button
+            type="button"
+            onClick={onClose}
+            aria-label="Close order details"
+            className="rounded-full p-2 text-slate-500 transition hover:bg-slate-100 focus:outline-none focus:ring-2 focus:ring-slate-200 dark:text-slate-300 dark:hover:bg-slate-800 dark:focus:ring-slate-700"
+          >
+            <span aria-hidden>✕</span>
+          </button>
+        </div>
+
+        <div className="max-h-[80vh] overflow-y-auto px-5 py-4 sm:px-6 sm:py-5 space-y-4">
+          <div className="grid gap-3 sm:grid-cols-2">
+            <div className="rounded-xl border border-slate-200 bg-slate-50 p-4 text-sm text-slate-700 dark:border-slate-800 dark:bg-slate-800 dark:text-slate-200">
+              <p className="text-xs uppercase tracking-wide text-slate-500 dark:text-slate-400">Status</p>
+              <p className="mt-1 text-base font-semibold text-slate-900 dark:text-white">{statusLabel[order.status]}</p>
+              <p className="text-xs text-slate-500 dark:text-slate-400">Due {order.promiseTime}</p>
+            </div>
+            <div className="rounded-xl border border-slate-200 bg-slate-50 p-4 text-sm text-slate-700 dark:border-slate-800 dark:bg-slate-800 dark:text-slate-200">
+              <p className="text-xs uppercase tracking-wide text-slate-500 dark:text-slate-400">Type</p>
+              <p className="mt-1 text-base font-semibold text-slate-900 dark:text-white">{orderTypeLabel[order.type]}</p>
+              {order.courier && <p className="text-xs text-slate-500 dark:text-slate-400">Driver: {order.courier}</p>}
+            </div>
+          </div>
+
+          <div className="grid gap-3 sm:grid-cols-2">
+            <div className="rounded-xl border border-slate-200 bg-white p-4 text-sm text-slate-700 shadow-sm dark:border-slate-800 dark:bg-slate-900/70 dark:text-slate-200">
+              <p className="text-xs uppercase tracking-wide text-slate-500 dark:text-slate-400">Payment</p>
+              <p className="mt-1 text-base font-semibold text-slate-900 dark:text-white">${order.total.toFixed(2)}</p>
+              <p className="text-xs text-slate-500 dark:text-slate-400">Paid online</p>
+            </div>
+            <div className="rounded-xl border border-slate-200 bg-white p-4 text-sm text-slate-700 shadow-sm dark:border-slate-800 dark:bg-slate-900/70 dark:text-slate-200">
+              <p className="text-xs uppercase tracking-wide text-slate-500 dark:text-slate-400">Timestamps</p>
+              <p className="mt-1 text-sm text-slate-700 dark:text-slate-200">Promised: {order.promiseTime}</p>
+              {order.fulfilledAt && (
+                <p className="text-sm text-slate-700 dark:text-slate-200">Fulfilled: {order.fulfilledAt}</p>
+              )}
+            </div>
+          </div>
+
+          <div className="rounded-xl border border-slate-200 bg-white p-4 shadow-sm dark:border-slate-800 dark:bg-slate-900/70">
+            <div className="flex items-center justify-between">
+              <p className="text-sm font-semibold text-slate-900 dark:text-white">Items</p>
+              <span className="text-xs text-slate-500 dark:text-slate-400">{order.items.length} items</span>
+            </div>
+            <ul className="mt-3 space-y-2 text-sm text-slate-700 dark:text-slate-200">
+              {order.items.map((item) => (
+                <li key={item} className="flex items-start gap-2">
+                  <span className="mt-1 h-2 w-2 rounded-full bg-blue-400" aria-hidden />
+                  <span>{item}</span>
+                </li>
+              ))}
+            </ul>
+          </div>
+
+          {(order.note || order.customer) && (
+            <div className="rounded-xl border border-slate-200 bg-slate-50 p-4 text-sm text-slate-700 dark:border-slate-800 dark:bg-slate-800 dark:text-slate-200">
+              <p className="text-sm font-semibold text-slate-900 dark:text-white">Customer</p>
+              <p className="mt-1 text-sm text-slate-700 dark:text-slate-200">{order.customer}</p>
+              {order.note && <p className="mt-2 text-sm text-amber-700 dark:text-amber-200">Note: {order.note}</p>}
+            </div>
+          )}
+        </div>
+      </div>
     </div>
   )
 }
