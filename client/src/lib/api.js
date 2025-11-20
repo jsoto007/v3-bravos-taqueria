@@ -71,6 +71,12 @@ export const api = {
   adminInventoryUpdateBatch: (batchId, payload) => fetch(`${API_BASE}/api/inventory/batches/${batchId}`, { method:'PATCH', headers:JSON_HEADERS, body: JSON.stringify(payload), credentials:'include' }).then(handle),
   adminInventoryDeleteBatch: (batchId) => fetch(`${API_BASE}/api/inventory/batches/${batchId}`, { method:'DELETE', credentials:'include' }).then(handle),
 
+  adminInventoryAuditSessions: () => fetch(`${API_BASE}/api/inventory/audits`, { credentials:'include' }).then(handle),
+  adminInventoryAuditCreate: (payload) => fetch(`${API_BASE}/api/inventory/audits`, { method:'POST', headers:JSON_HEADERS, body: JSON.stringify(payload), credentials:'include' }).then(handle),
+  adminInventoryAuditDetail: (id) => fetch(`${API_BASE}/api/inventory/audits/${id}`, { credentials:'include' }).then(handle),
+  adminInventoryAuditUpdate: (id, payload) => fetch(`${API_BASE}/api/inventory/audits/${id}`, { method:'PATCH', headers:JSON_HEADERS, body: JSON.stringify(payload), credentials:'include' }).then(handle),
+  adminInventoryAuditAddItem: (sessionId, payload) => fetch(`${API_BASE}/api/inventory/audits/${sessionId}/items`, { method:'POST', headers:JSON_HEADERS, body: JSON.stringify(payload), credentials:'include' }).then(handle),
+
   adminFoodCostSummary: (params = {}) => fetch(`${API_BASE}/api/admin/food_cost${buildQuery(params)}`, { credentials:'include' }).then(handle),
   adminSettings: () => fetch(`${API_BASE}/api/admin/settings`, { credentials:'include' }).then(handle),
   adminUpdateSettings: (payload) => fetch(`${API_BASE}/api/admin/settings`, { method:'PATCH', headers:JSON_HEADERS, body: JSON.stringify(payload), credentials:'include' }).then(handle),

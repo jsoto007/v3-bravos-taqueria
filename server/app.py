@@ -72,6 +72,8 @@ from models import (
     InventoryItem,
     InventoryBatch,
     StockMovement,
+    InventoryAuditSession,
+    InventoryAuditItem,
     Recipe,
     RecipeComponent,
     AdminSetting,
@@ -1271,6 +1273,53 @@ def _inventory_meta():
     }
 
 
+def _current_inventory_qty(item):
+    return sum(Decimal(str(b.qty or 0)) for b in getattr(item, "batches", []) or [])
+
+
+def _apply_inventory_adjustment(item, target_qty, expiration_date=None, session_id=None):
+    if not getattr(item, "base_unit", None):
+        raise ValueError("inventory item missing base unit")
+    target = Decimal(str(target_qty))
+    if target < 0:
+        raise ValueError("new_qty must be zero or greater")
+    current = _current_inventory_qty(item)
+    delta = target - current
+    if delta == 0:
+        return float(current)
+    if delta > 0:
+        batch = InventoryBatch(
+            inventory_item_id=item.id,
+            qty=float(delta.quantize(Decimal("0.0001"))),
+            unit_cost=Decimal("0.0000"),
+            expiration_date=expiration_date,
+        )
+        db.session.add(batch)
+    else:
+        remaining = abs(delta)
+        batches = sorted(getattr(item, "batches", []) or [], key=lambda b: b.received_at or datetime.min, reverse=True)
+        for batch in batches:
+            if remaining <= 0:
+                break
+            available = Decimal(str(batch.qty or 0))
+            if available <= 0:
+                continue
+            take = min(available, remaining)
+            batch.qty = float((available - take).quantize(Decimal("0.0001")))
+            remaining -= take
+        if remaining > 0:
+            raise ValueError("insufficient inventory to reduce by requested amount")
+    movement = StockMovement(
+        inventory_item_id=item.id,
+        qty_change=float(delta),
+        reason="audit_adjustment",
+        reference_type="inventory_audit_session",
+        reference_id=session_id,
+    )
+    db.session.add(movement)
+    return float(target)
+
+
 def _create_batch_from_payload(item, payload):
     if not payload:
         raise ValueError("batch data is required")
@@ -1505,6 +1554,153 @@ class AdminInventoryBatchDetail(Resource):
         return "", 204
 
 
+def _audit_item_response(record):
+    return {
+        "id": record.id,
+        "inventory_item": {
+            "id": record.inventory_item.id if record.inventory_item else record.inventory_item_id,
+            "name": getattr(record.inventory_item, "name", None),
+            "sku": getattr(record.inventory_item, "sku", None),
+        },
+        "previous_qty": record.previous_qty,
+        "new_qty": record.new_qty,
+        "note": record.note,
+        "expiration_date": record.expiration_date.isoformat() if record.expiration_date else None,
+        "recorded_at": record.recorded_at.isoformat() if record.recorded_at else None,
+    }
+
+
+def _audit_session_response(session_obj, include_items=False):
+    payload = {
+        "id": session_obj.id,
+        "note": session_obj.note,
+        "started_at": session_obj.started_at.isoformat() if session_obj.started_at else None,
+        "completed_at": session_obj.completed_at.isoformat() if session_obj.completed_at else None,
+        "user": {
+            "id": session_obj.user.id if session_obj.user else None,
+            "email": getattr(session_obj.user, "email", None),
+            "name": " ".join(filter(None, [getattr(session_obj.user, "first_name", None), getattr(session_obj.user, "last_name", None)])) or getattr(session_obj.user, "email", None),
+        },
+    }
+    if include_items:
+        items = sorted(session_obj.items or [], key=lambda r: r.recorded_at or datetime.min, reverse=True)
+        payload["items"] = [_audit_item_response(item) for item in items]
+        payload["count"] = len(items)
+    return payload
+
+
+class AdminInventoryAudits(Resource):
+    @require_admin
+    def get(self):
+        sessions = (
+            InventoryAuditSession.query
+            .options(joinedload(InventoryAuditSession.items).joinedload(InventoryAuditItem.inventory_item))
+            .order_by(InventoryAuditSession.started_at.desc())
+            .limit(25)
+            .all()
+        )
+        return {"sessions": [_audit_session_response(s, include_items=True) for s in sessions]}, 200
+
+    @require_admin
+    def post(self):
+        data = request.get_json() or {}
+        note = (data.get("note") or "").strip() or None
+        if note and len(note) > NOTE_MAX_LEN:
+            return {"error": f"note too long (max {NOTE_MAX_LEN} chars)"}, 400
+        session_obj = InventoryAuditSession(user=request.user, note=note)
+        db.session.add(session_obj)
+        db.session.commit()
+        return _audit_session_response(session_obj, include_items=True), 201
+
+
+class AdminInventoryAuditDetail(Resource):
+    @require_admin
+    def get(self, session_id):
+        session_obj = (
+            InventoryAuditSession.query
+            .options(joinedload(InventoryAuditSession.items).joinedload(InventoryAuditItem.inventory_item))
+            .get(session_id)
+        )
+        if not session_obj:
+            return {"error": "Audit session not found"}, 404
+        return _audit_session_response(session_obj, include_items=True), 200
+
+    @require_admin
+    def patch(self, session_id):
+        session_obj = db.session.get(InventoryAuditSession, session_id)
+        if not session_obj:
+            return {"error": "Audit session not found"}, 404
+        data = request.get_json() or {}
+        if "note" in data:
+            note = (data.get("note") or "").strip() or None
+            if note and len(note) > NOTE_MAX_LEN:
+                return {"error": f"note too long (max {NOTE_MAX_LEN} chars)"}, 400
+            session_obj.note = note
+        if data.get("complete"):
+            session_obj.completed_at = datetime.now(timezone.utc)
+        db.session.commit()
+        db.session.refresh(session_obj)
+        return _audit_session_response(session_obj, include_items=True), 200
+
+
+class AdminInventoryAuditItems(Resource):
+    @require_admin
+    def post(self, session_id):
+        session_obj = (
+            InventoryAuditSession.query
+            .options(joinedload(InventoryAuditSession.items))
+            .get(session_id)
+        )
+        if not session_obj:
+            return {"error": "Audit session not found"}, 404
+        if session_obj.completed_at:
+            return {"error": "Session already completed"}, 400
+        data = request.get_json() or {}
+        item_id = data.get("inventory_item_id")
+        if not item_id:
+            return {"error": "inventory_item_id is required"}, 400
+        item = db.session.get(InventoryItem, item_id)
+        if not item:
+            return {"error": "Inventory item not found"}, 404
+        try:
+            new_qty = float(Decimal(str(data.get("new_qty"))))
+        except Exception:
+            return {"error": "new_qty must be numeric"}, 400
+        expiration_date = None
+        if "expiration_date" in data:
+            try:
+                expiration_date = _parse_date(data.get("expiration_date"))
+            except ValueError as err:
+                return {"error": str(err)}, 400
+        note = (data.get("note") or "").strip() or None
+        if note and len(note) > NOTE_MAX_LEN:
+            return {"error": f"note too long (max {NOTE_MAX_LEN} chars)"}, 400
+        previous_qty = float(_current_inventory_qty(item))
+        try:
+            _apply_inventory_adjustment(item, Decimal(str(new_qty)), expiration_date=expiration_date, session_id=session_obj.id)
+            record = InventoryAuditItem(
+                session=session_obj,
+                inventory_item=item,
+                previous_qty=previous_qty,
+                new_qty=new_qty,
+                expiration_date=expiration_date,
+                note=note,
+            )
+            db.session.add(record)
+            db.session.commit()
+            db.session.refresh(session_obj)
+            return {
+                "audit_item": _audit_item_response(record),
+                "session": _audit_session_response(session_obj, include_items=True),
+            }, 201
+        except ValueError as err:
+            db.session.rollback()
+            return {"error": str(err)}, 400
+        except SQLAlchemyError:
+            db.session.rollback()
+            return {"error": "database error"}, 400
+
+
 def _calculate_recipe_cost(menu_item_id):
     recipe = Recipe.query.filter_by(menu_item_id=menu_item_id).first()
     if not recipe:
@@ -1665,6 +1861,9 @@ api.add_resource(AdminInventory, '/api/inventory')
 api.add_resource(AdminInventoryDetail, '/api/inventory/<int:item_id>')
 api.add_resource(AdminInventoryBatch, '/api/inventory/<int:item_id>/batches')
 api.add_resource(AdminInventoryBatchDetail, '/api/inventory/batches/<int:batch_id>')
+api.add_resource(AdminInventoryAudits, '/api/inventory/audits')
+api.add_resource(AdminInventoryAuditDetail, '/api/inventory/audits/<int:session_id>')
+api.add_resource(AdminInventoryAuditItems, '/api/inventory/audits/<int:session_id>/items')
 
 api.add_resource(AdminFoodCostSummary, '/api/admin/food_cost')
 api.add_resource(AdminFoodCost, '/api/admin/food_cost/<int:menu_item_id>')

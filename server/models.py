@@ -510,6 +510,34 @@ class StockMovement(db.Model, SerializerMixin):
         Index('ix_stock_item_time', 'inventory_item_id', 'occurred_at'),
     )
 
+
+class InventoryAuditSession(db.Model, SerializerMixin):
+    __tablename__ = 'inventory_audit_sessions'
+
+    id = db.Column(db.Integer, primary_key=True)
+    user_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
+    note = db.Column(db.String(NOTE_MAX_LEN))
+    started_at = db.Column(db.DateTime(timezone=True), server_default=db.func.now())
+    completed_at = db.Column(db.DateTime(timezone=True), nullable=True)
+
+    user = relationship('User', backref=backref('inventory_audit_sessions', cascade='all, delete-orphan'))
+
+
+class InventoryAuditItem(db.Model, SerializerMixin):
+    __tablename__ = 'inventory_audit_items'
+
+    id = db.Column(db.Integer, primary_key=True)
+    session_id = db.Column(db.Integer, db.ForeignKey('inventory_audit_sessions.id'), nullable=False, index=True)
+    inventory_item_id = db.Column(db.Integer, db.ForeignKey('inventory_items.id'), nullable=False)
+    previous_qty = db.Column(db.Float, nullable=False)
+    new_qty = db.Column(db.Float, nullable=False)
+    expiration_date = db.Column(db.Date)
+    note = db.Column(db.String(NOTE_MAX_LEN))
+    recorded_at = db.Column(db.DateTime(timezone=True), server_default=db.func.now())
+
+    session = relationship('InventoryAuditSession', backref=backref('items', cascade='all, delete-orphan'))
+    inventory_item = relationship('InventoryItem')
+
 class Recipe(db.Model, SerializerMixin):
     __tablename__ = 'recipes'
     id = db.Column(db.Integer, primary_key=True)
