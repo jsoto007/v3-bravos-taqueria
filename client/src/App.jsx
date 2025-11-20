@@ -11,6 +11,7 @@ import AuthLogin from './pages/AuthLogin'
 import AuthSignup from './pages/AuthSignup'
 import OrdersDashboard from './admin/OrdersDashboard'
 import InventoryDashboard from './admin/InventoryDashboard'
+import InventorySession from './admin/InventorySession'
 import FoodCost from './admin/FoodCost'
 import AdminSettings from './admin/Settings'
 import Reports from './owner/Reports'
@@ -44,6 +45,7 @@ export default function App() {
       <Route path="/admin" element={<Protected role="admin"><AdminSettingsProvider><AdminLayout /></AdminSettingsProvider></Protected>}>
         <Route index element={<OrdersDashboard />} />
         <Route path="inventory" element={<InventoryDashboard />} />
+        <Route path="inventory/session/:sessionId" element={<InventorySession />} />
         <Route path="food-cost" element={<FoodCost />} />
         <Route path="settings" element={<AdminSettings />} />
       </Route>

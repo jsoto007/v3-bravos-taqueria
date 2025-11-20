@@ -12,7 +12,7 @@ from flask_cors import CORS
 from flask_migrate import Migrate
 from flask_restful import Api, Resource
 from sqlalchemy.exc import IntegrityError, SQLAlchemyError
-from sqlalchemy import func, or_
+from sqlalchemy import func, or_, inspect, text
 from sqlalchemy.orm import joinedload
 
 
@@ -79,6 +79,51 @@ from models import (
     AdminSetting,
 )
 
+# Lightweight safety check to keep feature tables/columns in sync when migrations haven't been applied yet
+_SCHEMA_BOOTSTRAPPED = False
+
+
+def _ensure_admin_schema():
+    """
+    Make sure newer admin tables/columns exist so requests don't fail with SQL errors
+    if a migration hasn't been run yet.
+    """
+    global _SCHEMA_BOOTSTRAPPED
+    if _SCHEMA_BOOTSTRAPPED:
+        return
+
+    with db.engine.begin() as conn:
+        # Create tables introduced in recent migrations when missing
+        AdminSetting.__table__.create(bind=conn, checkfirst=True)
+        InventoryAuditSession.__table__.create(bind=conn, checkfirst=True)
+        InventoryAuditItem.__table__.create(bind=conn, checkfirst=True)
+
+        inspector = inspect(conn)
+
+        # Bring the audit items table up to date if the extra column or index is missing
+        audit_cols = {col["name"] for col in inspector.get_columns("inventory_audit_items")}
+        if "count_unit_code" not in audit_cols:
+            conn.execute(text("ALTER TABLE inventory_audit_items ADD COLUMN IF NOT EXISTS count_unit_code VARCHAR(16)"))
+        audit_indexes = {idx["name"] for idx in inspector.get_indexes("inventory_audit_items")}
+        if "ix_inventory_audit_items_session_id" not in audit_indexes:
+            conn.execute(text("CREATE INDEX IF NOT EXISTS ix_inventory_audit_items_session_id ON inventory_audit_items (session_id)"))
+
+        # Ensure orders table includes newer optional fields used by the admin dashboard
+        order_cols = {col["name"] for col in inspector.get_columns("orders")}
+        order_additions = [
+            ("customer_name", "VARCHAR(160)"),
+            ("customer_email", "VARCHAR(254)"),
+            ("customer_phone", "VARCHAR(40)"),
+            ("assigned_staff", "VARCHAR(160)"),
+            ("created_at", "TIMESTAMPTZ DEFAULT NOW()"),
+            ("updated_at", "TIMESTAMPTZ DEFAULT NOW()"),
+        ]
+        for col_name, ddl in order_additions:
+            if col_name not in order_cols:
+                conn.execute(text(f"ALTER TABLE orders ADD COLUMN IF NOT EXISTS {col_name} {ddl}"))
+
+    _SCHEMA_BOOTSTRAPPED = True
+
 # ---------- App config ---------- #
 _cors_origins = [o.strip() for o in os.environ.get("CORS_ORIGINS", "*").split(",") if o.strip()]
 if not _cors_origins:
@@ -139,6 +184,8 @@ def require_admin(fn):
         if not user or not getattr(user, 'admin', False):
             return {"error": "Forbidden: Admins only"}, 403
         request.user = user
+        # Ensure admin-facing tables/columns exist before serving the request
+        _ensure_admin_schema()
         return fn(*args, **kwargs)
     return wrapper
 
@@ -1555,15 +1602,18 @@ class AdminInventoryBatchDetail(Resource):
 
 
 def _audit_item_response(record):
+    count_unit = record.count_unit_code or getattr(getattr(record.inventory_item, "base_unit", None), "code", None)
     return {
         "id": record.id,
         "inventory_item": {
             "id": record.inventory_item.id if record.inventory_item else record.inventory_item_id,
             "name": getattr(record.inventory_item, "name", None),
             "sku": getattr(record.inventory_item, "sku", None),
+            "base_unit": getattr(getattr(record.inventory_item, "base_unit", None), "code", None),
         },
         "previous_qty": record.previous_qty,
         "new_qty": record.new_qty,
+        "count_unit_code": count_unit,
         "note": record.note,
         "expiration_date": record.expiration_date.isoformat() if record.expiration_date else None,
         "recorded_at": record.recorded_at.isoformat() if record.recorded_at else None,
@@ -1663,9 +1713,14 @@ class AdminInventoryAuditItems(Resource):
         if not item:
             return {"error": "Inventory item not found"}, 404
         try:
-            new_qty = float(Decimal(str(data.get("new_qty"))))
+            new_qty_input = Decimal(str(data.get("new_qty")))
         except Exception:
             return {"error": "new_qty must be numeric"}, 400
+        unit_code = (data.get("unit") or getattr(getattr(item, "base_unit", None), "code", None))
+        try:
+            converted_qty = _convert_to_base_qty(new_qty_input, unit_code, item.base_unit)
+        except ValueError as err:
+            return {"error": str(err)}, 400
         expiration_date = None
         if "expiration_date" in data:
             try:
@@ -1677,12 +1732,13 @@ class AdminInventoryAuditItems(Resource):
             return {"error": f"note too long (max {NOTE_MAX_LEN} chars)"}, 400
         previous_qty = float(_current_inventory_qty(item))
         try:
-            _apply_inventory_adjustment(item, Decimal(str(new_qty)), expiration_date=expiration_date, session_id=session_obj.id)
+            _apply_inventory_adjustment(item, converted_qty, expiration_date=expiration_date, session_id=session_obj.id)
             record = InventoryAuditItem(
                 session=session_obj,
                 inventory_item=item,
                 previous_qty=previous_qty,
-                new_qty=new_qty,
+                new_qty=float(converted_qty),
+                count_unit_code=unit_code,
                 expiration_date=expiration_date,
                 note=note,
             )

@@ -23,6 +23,8 @@ from models import (
     Supplier,
     InventoryItem,
     InventoryBatch,
+    InventoryAuditSession,
+    InventoryAuditItem,
     StockMovement,
     Recipe,
     RecipeComponent,
@@ -52,6 +54,8 @@ def wipe_all():
 
     # Inventory & recipes (children first)
     db.session.query(StockMovement).delete()
+    db.session.query(InventoryAuditItem).delete()
+    db.session.query(InventoryAuditSession).delete()
     db.session.query(InventoryBatch).delete()
     db.session.query(RecipeComponent).delete()
     db.session.query(Recipe).delete()

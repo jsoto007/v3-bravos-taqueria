@@ -531,6 +531,7 @@ class InventoryAuditItem(db.Model, SerializerMixin):
     inventory_item_id = db.Column(db.Integer, db.ForeignKey('inventory_items.id'), nullable=False)
     previous_qty = db.Column(db.Float, nullable=False)
     new_qty = db.Column(db.Float, nullable=False)
+    count_unit_code = db.Column(db.String(16))
     expiration_date = db.Column(db.Date)
     note = db.Column(db.String(NOTE_MAX_LEN))
     recorded_at = db.Column(db.DateTime(timezone=True), server_default=db.func.now())

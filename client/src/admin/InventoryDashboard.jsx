@@ -28,7 +28,7 @@ export default function InventoryDashboard() {
   const [auditSessions, setAuditSessions] = useState([])
   const [auditNote, setAuditNote] = useState('')
   const [auditModalItem, setAuditModalItem] = useState(null)
-  const [auditForm, setAuditForm] = useState({ qty: '', expiration_date: '', note: '' })
+  const [auditForm, setAuditForm] = useState({ qty: '', expiration_date: '', note: '', unit: '' })
   const [auditLoading, setAuditLoading] = useState(false)
 
   const addToast = (type, message) => {
@@ -161,6 +161,12 @@ export default function InventoryDashboard() {
       addToast('error', 'Finish the active session before starting a new one')
       return
     }
+    let sessionTab
+    try {
+      sessionTab = window.open('', '_blank')
+    } catch (err) {
+      console.warn('Unable to pre-open session tab', err)
+    }
     setAuditLoading(true)
     try {
       const session = await api.adminInventoryAuditCreate({ note: auditNote })
@@ -168,7 +174,15 @@ export default function InventoryDashboard() {
       setAuditNote('')
       addToast('success', 'Inventory session started')
       fetchAuditSessions()
+      const sessionUrl = `/admin/inventory/session/${session.id}`
+      if (sessionTab && !sessionTab.closed) {
+        sessionTab.location.href = sessionUrl
+        sessionTab.focus()
+      } else {
+        window.open(sessionUrl, '_blank')
+      }
     } catch (err) {
+      if (sessionTab && !sessionTab.closed) sessionTab.close()
       addToast('error', err.message || 'Unable to start session')
     } finally {
       setAuditLoading(false)
@@ -215,6 +229,7 @@ export default function InventoryDashboard() {
       qty: item.quantity?.toString() || '0',
       expiration_date: item.expiration_date || '',
       note: '',
+      unit: item.base_unit || '',
     })
   }
 
@@ -228,6 +243,7 @@ export default function InventoryDashboard() {
       const response = await api.adminInventoryAuditAddItem(auditSession.id, {
         inventory_item_id: auditModalItem.id,
         new_qty: auditForm.qty,
+        unit: auditForm.unit || auditModalItem.base_unit,
         expiration_date: auditForm.expiration_date || undefined,
         note: auditForm.note,
       })
@@ -634,6 +650,20 @@ export default function InventoryDashboard() {
               placeholder="0"
               required
             />
+          </label>
+          <label className="space-y-1 text-slate-700 dark:text-slate-200">
+            <span className="text-xs font-semibold uppercase tracking-wide">Unit of measure</span>
+            <select
+              value={auditForm.unit}
+              onChange={(event) => setAuditForm((prev) => ({ ...prev, unit: event.target.value }))}
+              className="w-full rounded-2xl border border-slate-200 bg-slate-50 px-3 py-2 text-slate-900 outline-none focus:ring-2 focus:ring-emerald-200 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100 dark:focus:ring-emerald-800"
+            >
+              {meta.units.map((unit) => (
+                <option key={unit.code} value={unit.code}>
+                  {unit.code} — {unit.name}
+                </option>
+              ))}
+            </select>
           </label>
           <label className="space-y-1 text-slate-700 dark:text-slate-200">
             <span className="text-xs font-semibold uppercase tracking-wide">Expiration date</span>
