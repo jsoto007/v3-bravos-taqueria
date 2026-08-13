@@ -23,7 +23,18 @@ export default defineConfig([
       },
     },
     rules: {
-      'no-unused-vars': ['error', { varsIgnorePattern: '^[A-Z_]' }],
+      // varsIgnorePattern covers component imports referenced only from JSX.
+      // The same applies to component-valued props (e.g. `{ as: Tag = 'div' }`),
+      // which count as args rather than vars — hence argsIgnorePattern.
+      'no-unused-vars': [
+        'error',
+        { varsIgnorePattern: '^[A-Z_]', argsIgnorePattern: '^[A-Z_]|^_' },
+      ],
     },
+  },
+  {
+    // Build-time config runs in Node, not the browser.
+    files: ['vite.config.js'],
+    languageOptions: { globals: globals.node },
   },
 ])

@@ -1,2 +1,11 @@
 .env
-server/__pycache__
+.env.local
+.DS_Store
+node_modules
+dist
+
+# Never commit keys. A private SSH key was committed to this repo once already.
+id_rsa
+id_ed25519
+*.pem
+*.key

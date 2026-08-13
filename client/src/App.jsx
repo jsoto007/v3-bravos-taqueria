@@ -1,62 +1,19 @@
 import { Routes, Route, Navigate } from 'react-router-dom'
 import Layout from './components/Layout'
-import AdminLayout from './admin/AdminLayout'
-import OwnerLayout from './owner/OwnerLayout'
 import Home from './pages/Home'
 import Menu from './pages/Menu'
-import Cart from './pages/Cart'
-import Checkout from './pages/Checkout'
-import Orders from './pages/Orders'
-import AuthLogin from './pages/AuthLogin'
-import AuthSignup from './pages/AuthSignup'
-import OrdersDashboard from './admin/OrdersDashboard'
-import InventoryDashboard from './admin/InventoryDashboard'
-import InventorySession from './admin/InventorySession'
-import FoodCost from './admin/FoodCost'
-import AdminSettings from './admin/Settings'
-import Reports from './owner/Reports'
-import MenuManager from './owner/MenuManager'
-import Settings from './owner/Settings'
-import { AdminSettingsProvider } from './context/AdminSettingsContext'
-import { useAuth } from './context/AuthContext'
-
-function Protected({ children, role }) {
-  const { user, loading } = useAuth()
-  if (loading) return <div className="min-h-screen grid place-items-center">Loading...</div>
-  if (!user) return <Navigate to="/auth/login" replace />
-  if (role === 'admin' && !user.admin) return <Navigate to="/" replace />
-  if (role === 'owner' && !user.is_owner_admin) return <Navigate to="/" replace />
-  return children
-}
 
 export default function App() {
   return (
     <Routes>
-      <Route element={<Layout />}> 
+      <Route element={<Layout />}>
         <Route index element={<Home />} />
         <Route path="menu" element={<Menu />} />
-        <Route path="cart" element={<Cart />} />
-        <Route path="checkout" element={<Checkout />} />
-        <Route path="orders" element={<Orders />} />
-        <Route path="auth/login" element={<AuthLogin />} />
-        <Route path="auth/signup" element={<AuthSignup />} />
+        {/* No 404 page: this is a two-page brochure site, so anything else is
+            a stale link from the old ordering app (/cart, /orders, /admin…).
+            Sending those to the home page is friendlier than a dead end. */}
+        <Route path="*" element={<Navigate to="/" replace />} />
       </Route>
-
-      <Route path="/admin" element={<Protected role="admin"><AdminSettingsProvider><AdminLayout /></AdminSettingsProvider></Protected>}>
-        <Route index element={<OrdersDashboard />} />
-        <Route path="inventory" element={<InventoryDashboard />} />
-        <Route path="inventory/session/:sessionId" element={<InventorySession />} />
-        <Route path="food-cost" element={<FoodCost />} />
-        <Route path="settings" element={<AdminSettings />} />
-      </Route>
-
-      <Route path="/owner" element={<Protected role="owner"><OwnerLayout /></Protected>}>
-        <Route index element={<Reports />} />
-        <Route path="menu" element={<MenuManager />} />
-        <Route path="settings" element={<Settings />} />
-      </Route>
-
-      <Route path="*" element={<Navigate to="/" replace />} />
     </Routes>
   )
 }

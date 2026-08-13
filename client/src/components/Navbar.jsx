@@ -1,228 +1,152 @@
-import React, { useEffect, useRef, useState } from 'react'
-import { Link, NavLink, useNavigate } from 'react-router-dom'
-import { useAuth } from '../context/AuthContext'
-import { useCart } from '../context/CartContext'
-import viteLogo from '/vite.svg'
+import { useEffect, useState } from 'react'
+import { Link, NavLink, useLocation } from 'react-router-dom'
+import { SITE } from '../data/site'
+import logo from '/logo.svg'
 
-export default function Navbar(){
-  const { user, logout } = useAuth()
-  const { cart } = useCart()
-  const navigate = useNavigate()
-  const itemsCount = (cart?.items||[]).reduce((s,i)=> s+i.qty, 0)
+const NAV_LINKS = [
+  { to: '/', label: 'Home', end: true },
+  { to: '/menu', label: 'Menu' },
+  { to: '/#visit', label: 'Visit' },
+]
 
+export default function Navbar() {
   const [isOpen, setIsOpen] = useState(false)
-  const panelRef = useRef(null)
+  const { pathname } = useLocation()
 
-  // Close on Escape
+  useEffect(() => setIsOpen(false), [pathname])
+
   useEffect(() => {
-    const onKey = (e) => {
-      if (e.key === 'Escape') setIsOpen(false)
-    }
+    const onKey = (e) => e.key === 'Escape' && setIsOpen(false)
     window.addEventListener('keydown', onKey)
     return () => window.removeEventListener('keydown', onKey)
   }, [])
 
-  const baseLink = ({ isActive }) => (
-    `px-2 py-1 rounded transition-colors duration-150 ` +
-    `text-white/90 hover:text-amber-400 ` +
-    (isActive ? 'text-amber-400' : '')
-  )
+  // The slide-over sits above the page; letting the page scroll behind it on
+  // mobile is the classic "menu closes and you're somewhere else" bug.
+  useEffect(() => {
+    document.body.style.overflow = isOpen ? 'hidden' : ''
+    return () => {
+      document.body.style.overflow = ''
+    }
+  }, [isOpen])
 
-  const authButtons = (
-    <>
-      <NavLink
-        to="/auth/login"
-        className={({isActive}) => (
-          `px-3 py-1 rounded border border-amber-400 text-amber-400 hover:bg-amber-400 hover:text-black transition-colors ` +
-          (isActive ? 'bg-amber-400 text-black' : '')
-        )}
-        onClick={() => setIsOpen(false)}
-      >
-        Login
-      </NavLink>
-      <NavLink
-        to="/auth/signup"
-        className={({isActive}) => (
-          `px-3 py-1 rounded bg-amber-400 text-black font-medium hover:opacity-90 transition-colors ` +
-          (isActive ? 'ring-2 ring-amber-400/60' : '')
-        )}
-        onClick={() => setIsOpen(false)}
-      >
-        Sign up
-      </NavLink>
-    </>
-  )
-
-  const adminButtons = (
-    <>
-      {user?.admin && (
-        <NavLink to="/admin" className={({isActive}) => (
-          `text-xs px-2 py-1 rounded bg-amber-50 text-rose-800 ` +
-          (isActive ? 'ring-1 ring-amber-400' : '')
-        )} onClick={() => setIsOpen(false)}>
-          Admin
-        </NavLink>
-      )}
-      {user?.is_owner_admin && (
-        <NavLink to="/owner" className={({isActive}) => (
-          `text-xs px-2 py-1 rounded bg-amber-50 text-rose-800 ` +
-          (isActive ? 'ring-1 ring-amber-400' : '')
-        )} onClick={() => setIsOpen(false)}>
-          Owner
-        </NavLink>
-      )}
-      <button
-        onClick={async()=>{
-          await logout()
-          setIsOpen(false)
-          navigate('/')
-        }}
-        className="px-3 py-1 rounded bg-amber-400 text-black font-medium hover:opacity-90 focus:outline-none focus:ring-2 focus:ring-amber-400/60"
-      >
-        Logout
-      </button>
-    </>
-  )
+  const linkClass = ({ isActive }) =>
+    `relative px-1 py-1 text-sm font-medium transition-colors ${
+      isActive ? 'text-amber-brand' : 'text-masa-100/80 hover:text-amber-brand'
+    }`
 
   return (
-    <header className="bg-neutral-950 border-b border-neutral-800 fixed top-0 inset-x-0 z-40">
-      <div className="container mx-auto px-4 h-16 flex items-center justify-between">
-        {/* Brand — ensure visible on mobile */}
-        <Link to="/" className="font-bold text-lg text-amber-400 hover:text-white transition-colors">
-          <span className="inline-flex items-center gap-2">
-            <img src={viteLogo} alt="Bravo's Taqueria logo" className="h-10 w-10" loading="eager" decoding="async" />
-            <span>Bravo&apos;s Taqueria</span>
+    <header className="fixed inset-x-0 top-0 z-40 border-b border-white/10 bg-charcoal-950/95 backdrop-blur supports-[backdrop-filter]:bg-charcoal-950/80">
+      <div className="container-page flex h-16 items-center justify-between gap-4">
+        <Link to="/" className="flex items-center gap-2.5" aria-label={`${SITE.name} — home`}>
+          <img
+            src={logo}
+            alt=""
+            width="36"
+            height="36"
+            className="h-9 w-9 rounded-md bg-amber-brand p-1"
+            decoding="async"
+          />
+          <span className="font-display text-lg font-bold tracking-tight text-masa-50">
+            Bravo&rsquo;s <span className="text-amber-brand">Taqueria</span>
           </span>
         </Link>
 
-        {/* Desktop nav */}
-        <nav className="hidden md:flex items-center gap-4">
-          <NavLink to="/menu" className={baseLink}>Menu</NavLink>
-          <NavLink to="/orders" className={baseLink}>My Orders</NavLink>
-          <NavLink to="/cart" className={baseLink}>
-            <span className="inline-flex items-center">
-              Cart
-              <span className="ml-0.5 inline-flex items-center justify-center text-xs font-semibold bg-amber-400 text-black px-2 py-0.5 rounded-full min-w-5">
-                {itemsCount}
-              </span>
-            </span>
-          </NavLink>
-          {user ? (
-            <div className="flex items-center gap-2">
-              {adminButtons}
-            </div>
-          ) : (
-            <div className="flex items-center gap-2">
-              {authButtons}
-            </div>
+        <nav className="hidden items-center gap-7 md:flex" aria-label="Main">
+          {NAV_LINKS.map((link) =>
+            link.to.includes('#') ? (
+              <a
+                key={link.to}
+                href={link.to}
+                className="px-1 py-1 text-sm font-medium text-masa-100/80 transition-colors hover:text-amber-brand"
+              >
+                {link.label}
+              </a>
+            ) : (
+              <NavLink key={link.to} to={link.to} end={link.end} className={linkClass}>
+                {link.label}
+              </NavLink>
+            )
           )}
+          <a
+            href={`tel:${SITE.tel}`}
+            className="rounded-full bg-amber-brand px-4 py-2 text-sm font-semibold text-charcoal-900 transition hover:brightness-105"
+          >
+            Call to order
+          </a>
         </nav>
 
-        {/* Mobile actions */}
-        <div className="md:hidden flex items-center gap-3">
-          <Link to="/cart" className="relative px-2 py-1 text-white/90 hover:text-amber-400 transition-colors" aria-label="Open cart">
-            <span className="inline-flex items-center">
-              Cart
-              <span className="ml-0.5 inline-flex items-center justify-center text-xs font-semibold bg-amber-400 text-black px-2 py-0.5 rounded-full min-w-5">
-                {itemsCount}
-              </span>
-            </span>
-          </Link>
+        <div className="flex items-center gap-2 md:hidden">
+          <a
+            href={`tel:${SITE.tel}`}
+            className="rounded-full bg-amber-brand px-3.5 py-1.5 text-sm font-semibold text-charcoal-900"
+          >
+            Call
+          </a>
           <button
             type="button"
             aria-label={isOpen ? 'Close menu' : 'Open menu'}
             aria-expanded={isOpen}
             aria-controls="mobile-menu"
-            onClick={() => setIsOpen((v)=>!v)}
-            className="p-2 rounded border border-neutral-700 text-white/90 hover:text-amber-400 hover:border-amber-400 transition"
+            onClick={() => setIsOpen((v) => !v)}
+            className="rounded-lg border border-white/15 p-2 text-masa-100 transition hover:border-amber-brand hover:text-amber-brand"
           >
-            {isOpen ? (
-              // X icon
-              <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 24 24" fill="currentColor">
-                <path d="M6.225 4.811 4.811 6.225 10.586 12l-5.775 5.775 1.414 1.414L12 13.414l5.775 5.775 1.414-1.414L13.414 12l5.775-5.775-1.414-1.414L12 10.586z"/>
-              </svg>
-            ) : (
-              // Hamburger icon
-              <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 24 24" fill="currentColor">
-                <path d="M3 6h18v2H3V6zm0 5h18v2H3v-2zm0 5h18v2H3v-2z"/>
-              </svg>
-            )}
+            <svg className="h-5 w-5" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+              {isOpen ? (
+                <path d="M6.225 4.811 4.811 6.225 10.586 12l-5.775 5.775 1.414 1.414L12 13.414l5.775 5.775 1.414-1.414L13.414 12l5.775-5.775-1.414-1.414L12 10.586z" />
+              ) : (
+                <path d="M3 6h18v2H3V6zm0 5h18v2H3v-2zm0 5h18v2H3v-2z" />
+              )}
+            </svg>
           </button>
         </div>
       </div>
 
-      {/* Mobile slide-over menu */}
       {isOpen && (
-        <div
-          className="fixed inset-0 z-50 flex justify-end"
-          role="dialog"
-          aria-modal="true"
-          onClick={(e) => {
-            // close when clicking on the overlay
-            if (e.target === e.currentTarget) setIsOpen(false)
-          }}
-        >
-          {/* Overlay */}
-          <div className="absolute inset-0 bg-black/50 backdrop-blur-sm" />
-
-          {/* Panel */}
+        <div className="fixed inset-0 z-50 md:hidden" role="dialog" aria-modal="true">
+          <button
+            className="absolute inset-0 w-full bg-black/60 backdrop-blur-sm"
+            aria-label="Close menu"
+            onClick={() => setIsOpen(false)}
+          />
           <div
             id="mobile-menu"
-            ref={panelRef}
-            className="relative h-full w-72 max-w-full bg-neutral-950 border-l border-neutral-800 p-4 flex flex-col gap-4 animate-[slideIn_.2s_ease-out]"
+            className="absolute right-0 top-0 flex h-full w-72 max-w-[85%] flex-col gap-1 border-l border-white/10 bg-charcoal-950 p-5 pt-6"
           >
-            {/* Panel header */}
-            <div className="flex items-center justify-between">
-              <Link to="/" className="font-bold text-lg text-amber-400" onClick={() => setIsOpen(false)}>
-                <span className="inline-flex items-center gap-2">
-                  <img src={viteLogo} alt="Bravo's Taqueria logo" className="h-14 w-14" loading="eager" decoding="async" />
-                  <span>Bravo&apos;s Taqueria</span>
-                </span>
-              </Link>
-              <button
-                type="button"
-                aria-label="Close menu"
-                onClick={() => setIsOpen(false)}
-                className="p-2 rounded text-white/90 hover:text-amber-400 transition"
-              >
-                <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 24 24" fill="currentColor">
-                  <path d="M6.225 4.811 4.811 6.225 10.586 12l-5.775 5.775 1.414 1.414L12 13.414l5.775 5.775 1.414-1.414L13.414 12l5.775-5.775-1.414-1.414L12 10.586z"/>
-                </svg>
-              </button>
-            </div>
-
-            <div className="h-px bg-neutral-800" />
-
-            {/* Links */}
-            <nav className="flex flex-col gap-2">
-              <NavLink to="/menu" className={baseLink} onClick={() => setIsOpen(false)}>Menu</NavLink>
-              <NavLink to="/orders" className={baseLink} onClick={() => setIsOpen(false)}>My Orders</NavLink>
-              <NavLink to="/cart" className={baseLink} onClick={() => setIsOpen(false)}>
-                Cart
-                <span className="ml-0.5 inline-flex items-center justify-center text-xs font-semibold bg-amber-400 text-black px-2 py-0.5 rounded-full min-w-5">
-                  {itemsCount}
-                </span>
-              </NavLink>
-            </nav>
-
-            <div className="h-px bg-neutral-800" />
-
-            {/* Auth/Admin */}
-            <div className="flex flex-col gap-2">
-              {user ? (
-                <div className="flex flex-wrap gap-2">
-                  {adminButtons}
-                </div>
+            <span className="mb-4 font-display text-lg font-bold text-masa-50">
+              Bravo&rsquo;s <span className="text-amber-brand">Taqueria</span>
+            </span>
+            {NAV_LINKS.map((link) =>
+              link.to.includes('#') ? (
+                <a
+                  key={link.to}
+                  href={link.to}
+                  onClick={() => setIsOpen(false)}
+                  className="rounded-lg px-3 py-3 text-base font-medium text-masa-100/90 transition hover:bg-white/5 hover:text-amber-brand"
+                >
+                  {link.label}
+                </a>
               ) : (
-                <div className="flex flex-wrap gap-2">
-                  {authButtons}
-                </div>
-              )}
-            </div>
-
-            <div className="mt-auto text-[10px] text-white/40">
-              Press Esc to close
-            </div>
+                <NavLink
+                  key={link.to}
+                  to={link.to}
+                  end={link.end}
+                  className={({ isActive }) =>
+                    `rounded-lg px-3 py-3 text-base font-medium transition hover:bg-white/5 ${
+                      isActive ? 'text-amber-brand' : 'text-masa-100/90 hover:text-amber-brand'
+                    }`
+                  }
+                >
+                  {link.label}
+                </NavLink>
+              )
+            )}
+            <a
+              href={`tel:${SITE.tel}`}
+              className="mt-4 rounded-full bg-amber-brand px-4 py-3 text-center font-semibold text-charcoal-900"
+            >
+              Call {SITE.phone}
+            </a>
           </div>
         </div>
       )}

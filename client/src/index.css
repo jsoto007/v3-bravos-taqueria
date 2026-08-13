@@ -1,24 +1,100 @@
-@import "tailwindcss";
+@import 'tailwindcss';
 
-/* Global theme vars (light/dark) */
-:root {
-  color-scheme: light dark;
-  color: rgba(255, 255, 255, 0.87);
-  background-color: #121827; /* slate-900-ish */
-}
+/*
+  Design tokens (Tailwind v4 CSS-first config).
+  There is no tailwind.config.js any more — the old one was unused dead code
+  with a syntax error and a `require()` in an ESM file. Everything lives here.
 
-@media (prefers-color-scheme: light) {
-  :root {
-    color: #121827;            /* slate-900 */
-    background-color: #F1F5F9; /* slate-100 */
+  Palette rationale: "masa" is a warm off-white that reads as corn/paper rather
+  than the cold slate-50 the site used before; "chile" is the deep red already
+  present in the hero glow, promoted to a real secondary; amber stays as the
+  brand accent it always was.
+*/
+@theme {
+  --color-masa-50: #fffcf7;
+  --color-masa-100: #fdf6ec;
+  --color-masa-200: #f6ead7;
+  --color-masa-300: #ead9bd;
+
+  --color-charcoal-700: #35302a;
+  --color-charcoal-800: #221f1a;
+  --color-charcoal-900: #14120f;
+  --color-charcoal-950: #0b0a08;
+
+  --color-amber-brand: #f5a524;
+  --color-chile-600: #b3123c;
+  --color-chile-700: #8f0f31;
+
+  --font-display: 'Fraunces', ui-serif, Georgia, serif;
+  --font-sans: 'Inter', ui-sans-serif, system-ui, -apple-system, 'Segoe UI', sans-serif;
+
+  --radius-card: 1.25rem;
+
+  --animate-fade-up: fade-up 0.6s ease both;
+
+  @keyframes fade-up {
+    from {
+      opacity: 0;
+      transform: translateY(12px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
   }
 }
 
-/* Optional: smooth fade-in on page mount */
-html, body, #root {
-  height: 100%;
+@layer base {
+  html {
+    scroll-behavior: smooth;
+    /* Keeps anchor targets clear of the fixed header + sticky category bar. */
+    scroll-padding-top: 9rem;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    html {
+      scroll-behavior: auto;
+    }
+    *,
+    *::before,
+    *::after {
+      animation-duration: 0.01ms !important;
+      animation-iteration-count: 1 !important;
+      transition-duration: 0.01ms !important;
+    }
+  }
+
+  body {
+    @apply bg-masa-50 text-charcoal-900 font-sans antialiased;
+  }
+
+  h1,
+  h2,
+  h3 {
+    @apply font-display tracking-tight;
+    /* Fraunces reads best a touch tighter and heavier as display type. */
+    font-optical-sizing: auto;
+  }
+
+  /* Visible, brand-consistent focus ring for keyboard users everywhere. */
+  :focus-visible {
+    @apply outline-2 outline-offset-2 outline-amber-brand;
+  }
 }
 
-body {
-  @apply antialiased;
+@utility container-page {
+  @apply mx-auto w-full max-w-6xl px-4 sm:px-6 lg:px-8;
+}
+
+/* Scroll-reveal, driven by src/utils/Reveal.jsx. Both classes are added by
+   JS, so without JS the element keeps its normal visible styling. */
+@layer components {
+  .reveal {
+    opacity: 0;
+  }
+
+  .reveal-in {
+    animation: var(--animate-fade-up);
+    animation-delay: var(--reveal-delay, 0ms);
+  }
 }
