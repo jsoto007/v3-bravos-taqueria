@@ -1,0 +1,55 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 500" role="img" aria-label="The order counter illustration">
+  <rect width="400" height="500" fill="#F7EAD3"/>
+  <circle cx="200" cy="245" r="150" fill="#E9B44C"/>
+  <circle cx="200" cy="245" r="150" fill="none" stroke="#2B1B10" stroke-width="7"/>
+
+  <!-- awning -->
+  <g stroke="#2B1B10" stroke-width="7" stroke-linejoin="round">
+    <path d="M84 150 L316 150 L332 190 L68 190 Z" fill="#C8401F"/>
+    <path d="M68 190 q16 22 33 0 q16 22 33 0 q16 22 33 0 q16 22 33 0 q16 22 33 0 q16 22 33 0 q16 22 33 0 q16 22 33 0" fill="#FFF6E6"/>
+  </g>
+  <path d="M122 154 l-12 32 M198 154 l-6 32 M274 154 l8 32" stroke="#FFF6E6" stroke-width="10" stroke-linecap="round"/>
+
+  <!-- window with warm glow -->
+  <g stroke="#2B1B10" stroke-width="7" stroke-linejoin="round">
+    <rect x="104" y="216" width="192" height="118" rx="8" fill="#F6D96B"/>
+    <rect x="104" y="216" width="192" height="118" rx="8" fill="none"/>
+  </g>
+  <!-- cook silhouette + steam -->
+  <g fill="#6E2B21">
+    <circle cx="230" cy="258" r="17"/>
+    <path d="M204 334 q2 -44 26 -44 q24 0 26 44 Z"/>
+  </g>
+  <path d="M232 246 q-20 -6 -20 8" stroke="#2B1B10" stroke-width="5" fill="none" stroke-linecap="round"/>
+  <g stroke="#B5872B" stroke-width="5" stroke-linecap="round" fill="none">
+    <path d="M136 300 q6 -14 0 -24 M156 306 q6 -14 0 -24"/>
+  </g>
+  <!-- hanging TACOS sign -->
+  <path d="M128 216 v18 M188 216 v18" stroke="#2B1B10" stroke-width="5"/>
+  <g stroke="#2B1B10" stroke-width="6" stroke-linejoin="round">
+    <rect x="112" y="234" width="92" height="34" rx="6" fill="#FFF6E6"/>
+  </g>
+  <text x="158" y="258" text-anchor="middle" font-family="Georgia, serif" font-weight="700" font-size="21" fill="#A93016" letter-spacing="2">TACOS</text>
+
+  <!-- counter ledge -->
+  <g stroke="#2B1B10" stroke-width="7" stroke-linejoin="round">
+    <path d="M84 334 h232 l10 22 h-252 Z" fill="#6E2B21"/>
+    <rect x="96" y="356" width="208" height="34" fill="#5A2119"/>
+  </g>
+  <!-- salsa caddy on the ledge -->
+  <g stroke="#2B1B10" stroke-width="5" stroke-linejoin="round">
+    <path d="M116 318 h24 l-3 16 h-18 Z" fill="#C8401F"/>
+    <path d="M146 318 h24 l-3 16 h-18 Z" fill="#6FA04C"/>
+  </g>
+  <!-- napkin holder -->
+  <g stroke="#2B1B10" stroke-width="5" stroke-linejoin="round">
+    <rect x="252" y="314" width="36" height="20" rx="4" fill="#8A8A8A"/>
+    <path d="M258 314 q12 -10 24 0" fill="#FFF6E6"/>
+  </g>
+
+  <!-- string lights -->
+  <path d="M74 128 q126 30 252 0" stroke="#2B1B10" stroke-width="4" fill="none"/>
+  <g fill="#F6D96B" stroke="#2B1B10" stroke-width="4">
+    <circle cx="120" cy="139" r="7"/><circle cx="200" cy="146" r="7"/><circle cx="280" cy="139" r="7"/>
+  </g>
+</svg>

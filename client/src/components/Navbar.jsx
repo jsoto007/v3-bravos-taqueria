@@ -28,11 +28,11 @@ export default function Navbar() {
           aria-label={`${SITE.name} — home`}
         >
           <img
-            src="/bravos-logo.jpg"
+            src="/logo.svg"
             alt=""
-            width="40"
-            height="40"
-            className="size-10 shrink-0 rounded-full object-cover"
+            width="44"
+            height="46"
+            className="h-11 w-auto shrink-0"
             decoding="async"
           />
           <span className="hidden truncate font-display text-lg font-bold sm:block">

@@ -14,7 +14,7 @@ export default function PhotoSlot({ photo, aspect, className = '', loading = 'la
           loading={loading}
           decoding="async"
           className="h-full w-full object-cover"
-          style={{ aspectRatio: aspect }}
+          style={{ aspectRatio: aspect, objectPosition: photo.position }}
         />
       ) : (
         <div
