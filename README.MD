@@ -1,7 +1,12 @@
 # Bravo's Taqueria
 
 Static marketing site for Bravo's Taqueria — Bronx, NY. React + Vite + Tailwind v4,
-deployed on Netlify. **No backend, no database, no online ordering.**
+deployed on Netlify. Four pages — Home, Menu, About, Visit — in the 2026 redesign
+(Bricolage Grotesque / Public Sans, terracotta on cream). **No backend and no
+database.** The menu page includes a build-your-pickup-order flow, but it is
+**front-end only**: it totals the order and shows a pickup estimate without
+transmitting anything, so the phone number is still the only real ordering channel.
+Wire it to a backend or ordering service before presenting it as live ordering.
 
 ## Before you go live
 
@@ -33,12 +38,21 @@ npm run preview  # serve the production build
 ## Editing the menu
 
 All menu content lives in [`client/src/data/menu.js`](client/src/data/menu.js).
-Edit it and redeploy — prices, descriptions, categories and the meat/add-on
-pricing all come from there, and the structured data regenerates from it
-automatically at build time.
+Edit it and redeploy — prices, descriptions, categories, the meat/add-on
+pricing and the order-builder options all come from there, and the structured
+data regenerates from it automatically at build time. The sales-tax rate and
+pickup estimate used by the order builder are in `ORDERING` in the same file.
 
 Category `slug` values are used as URL anchors (`/menu#tacos`). Changing one
 breaks any existing inbound link to that section.
+
+## Photos
+
+Every photo placement (home kitchen shot, About gallery, Visit storefront)
+reads from [`client/src/data/photos.js`](client/src/data/photos.js). Slots with
+`src: null` render as intentional empty mats with a caption. To add real
+photography: drop the file in `client/public/photos/` and set that slot's
+`src: '/photos/<file>.jpg'`.
 
 ## How SEO is wired up
 

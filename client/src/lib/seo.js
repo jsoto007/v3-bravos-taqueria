@@ -45,10 +45,3 @@ export function useSeo(pageKey) {
     canonical.setAttribute('href', url)
   }, [pageKey])
 }
-
-export function fmtCurrency(value) {
-  return new Intl.NumberFormat('en-US', {
-    style: 'currency',
-    currency: 'USD',
-  }).format(Number.isFinite(value) ? value : 0)
-}

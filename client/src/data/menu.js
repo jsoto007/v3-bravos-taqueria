@@ -7,6 +7,10 @@
  *
  * `slug` is used for anchor links (#tacos) and must stay stable: changing one
  * breaks any inbound link or bookmark pointing at that section.
+ *
+ * `meatEligible` marks categories where an item is built with a choice of meat
+ * and add-ons — those get the build-it dialog in the menu's order flow, while
+ * sides and drinks add to the order directly.
  */
 
 export const CATEGORIES = [
@@ -14,6 +18,7 @@ export const CATEGORIES = [
     slug: 'tacos',
     name: 'Tacos',
     blurb: 'Pressed-to-order tortillas, your choice of meat.',
+    meatEligible: true,
     items: [
       {
         name: 'Tacos',
@@ -33,6 +38,7 @@ export const CATEGORIES = [
   },
   {
     slug: 'tortas',
+    meatEligible: true,
     name: 'Tortas',
     items: [
       {
@@ -44,6 +50,7 @@ export const CATEGORIES = [
   },
   {
     slug: 'quesadillas',
+    meatEligible: true,
     name: 'Quesadillas',
     items: [
       {
@@ -55,6 +62,7 @@ export const CATEGORIES = [
   },
   {
     slug: 'burritos',
+    meatEligible: true,
     name: 'Burritos',
     items: [
       {
@@ -66,6 +74,7 @@ export const CATEGORIES = [
   },
   {
     slug: 'flautas',
+    meatEligible: true,
     name: 'Flautas',
     items: [
       {
@@ -78,6 +87,7 @@ export const CATEGORIES = [
   },
   {
     slug: 'tostadas',
+    meatEligible: true,
     name: 'Tostadas',
     items: [
       {
@@ -89,6 +99,7 @@ export const CATEGORIES = [
   },
   {
     slug: 'sopes',
+    meatEligible: true,
     name: 'Sopes',
     items: [
       {
@@ -100,6 +111,7 @@ export const CATEGORIES = [
   },
   {
     slug: 'nachos',
+    meatEligible: true,
     name: 'Nachos',
     items: [
       {
@@ -112,6 +124,7 @@ export const CATEGORIES = [
   },
   {
     slug: 'gorditas',
+    meatEligible: true,
     name: 'Gorditas',
     items: [
       {
@@ -123,6 +136,7 @@ export const CATEGORIES = [
   },
   {
     slug: 'picaditas',
+    meatEligible: true,
     name: 'Picaditas',
     items: [
       {
@@ -161,9 +175,9 @@ export const CATEGORIES = [
 ]
 
 /**
- * Meat and add-on pricing. On the old site these were checkboxes in the
- * add-to-cart modal; with ordering removed they become printed menu
- * information, which is what a customer reading the menu actually needs.
+ * Meat and add-on pricing. Shown as printed menu information in the
+ * "Make it yours" panel, and as the pickable options inside the menu page's
+ * build-your-order dialog — both read from this one list.
  */
 export const CHOICES = [
   {
@@ -188,6 +202,24 @@ export const CHOICES = [
     ],
   },
 ]
+
+/**
+ * Options for the order-builder dialog. "No meat" leads so a dish can be
+ * ordered plain; the rest mirror the printed CHOICES pricing exactly.
+ */
+export const MEAT_OPTIONS = [{ name: 'No meat', nameEs: 'Sin carne', price: 0 }, ...CHOICES[0].options]
+
+export const ADDON_OPTIONS = CHOICES[1].options
+
+/**
+ * Order-builder settings. The order flow is front-end only — it composes the
+ * order and shows a pickup estimate, but nothing is transmitted anywhere, so
+ * the phone number remains the real ordering channel.
+ */
+export const ORDERING = {
+  taxRate: 0.08875, // NYC sales tax on prepared food
+  pickupMinutes: 15,
+}
 
 /** Shown in the "Best Sellers" strip on the home page. */
 export const FEATURED_SLUGS = ['tacos', 'tortas', 'quesadillas', 'burritos', 'nachos', 'sides']
