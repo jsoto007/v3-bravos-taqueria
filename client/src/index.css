@@ -1,54 +1,54 @@
 @import 'tailwindcss';
 
 /*
-  Design tokens (Tailwind v4 CSS-first config).
-  There is no tailwind.config.js any more — the old one was unused dead code
-  with a syntax error and a `require()` in an ESM file. Everything lives here.
+  Design tokens (Tailwind v4 CSS-first config), ported from the 2026 redesign
+  handoff. The palette is a warm terracotta ("accent") on cream, with a deep
+  espresso brown for full-bleed dark bands. Hairline dividers do the work
+  shadows used to do — the look is editorial, not card-based.
 
-  Palette rationale: "masa" is a warm off-white that reads as corn/paper rather
-  than the cold slate-50 the site used before; "chile" is the deep red already
-  present in the hero glow, promoted to a real secondary; amber stays as the
-  brand accent it always was.
+  Accent steps were generated together in the handoff and must move together;
+  700 is the darkest step that still reads as "terracotta text" on cream.
 */
 @theme {
-  --color-masa-50: #fffcf7;
-  --color-masa-100: #fdf6ec;
-  --color-masa-200: #f6ead7;
-  --color-masa-300: #ead9bd;
+  --color-cream: #faf3e7;
+  --color-ink: #201f1d;
+  --color-espresso: #24160d;
+  /* Photo-mat tone: a step darker than the cream ground, same warmth. */
+  --color-matte: #f2e8d8;
 
-  --color-charcoal-700: #35302a;
-  --color-charcoal-800: #221f1a;
-  --color-charcoal-900: #14120f;
-  --color-charcoal-950: #0b0a08;
+  --color-accent-100: #fbe4d6;
+  --color-accent-200: #f6c7a8;
+  --color-accent-300: #efa378;
+  --color-accent-400: #e37e4c;
+  --color-accent-500: #d2531f;
+  --color-accent-600: #b4431a;
+  --color-accent-700: #963616;
+  --color-accent-800: #782a12;
+  --color-accent-900: #591e0d;
+  --color-accent: #d2531f;
 
-  --color-amber-brand: #f5a524;
-  --color-chile-600: #b3123c;
-  --color-chile-700: #8f0f31;
+  --color-divider: color-mix(in srgb, #201f1d 16%, transparent);
 
-  --font-display: 'Fraunces', ui-serif, Georgia, serif;
-  --font-sans: 'Inter', ui-sans-serif, system-ui, -apple-system, 'Segoe UI', sans-serif;
+  --font-display: 'Bricolage Grotesque', ui-sans-serif, system-ui, sans-serif;
+  --font-sans: 'Public Sans', ui-sans-serif, system-ui, -apple-system, 'Segoe UI', sans-serif;
 
-  --radius-card: 1.25rem;
+  /* Body copy runs 15.5/26 in the handoff; intro paragraphs 17/28. */
+  --text-base: 15.5px;
+  --text-base--line-height: 26px;
+  --text-lg: 17px;
+  --text-lg--line-height: 28px;
+  --text-xs: 13px;
+  --text-xs--line-height: 22px;
 
-  --animate-fade-up: fade-up 0.6s ease both;
-
-  @keyframes fade-up {
-    from {
-      opacity: 0;
-      transform: translateY(12px);
-    }
-    to {
-      opacity: 1;
-      transform: translateY(0);
-    }
-  }
+  --shadow-bar: 0 -3px 10px color-mix(in srgb, #2d2b2b 10%, transparent);
+  --shadow-dialog: 0 12px 32px color-mix(in srgb, #2d2b2b 22%, transparent);
 }
 
 @layer base {
   html {
     scroll-behavior: smooth;
-    /* Keeps anchor targets clear of the fixed header + sticky category bar. */
-    scroll-padding-top: 9rem;
+    /* Keeps anchor targets clear of the menu page's sticky category rail. */
+    scroll-padding-top: 4rem;
   }
 
   @media (prefers-reduced-motion: reduce) {
@@ -65,36 +65,121 @@
   }
 
   body {
-    @apply bg-masa-50 text-charcoal-900 font-sans antialiased;
+    @apply bg-cream text-ink font-sans antialiased;
+    text-wrap: pretty;
   }
 
   h1,
   h2,
   h3 {
-    @apply font-display tracking-tight;
-    /* Fraunces reads best a touch tighter and heavier as display type. */
+    @apply font-display;
     font-optical-sizing: auto;
   }
 
-  /* Visible, brand-consistent focus ring for keyboard users everywhere. */
+  ::selection {
+    background: color-mix(in srgb, var(--color-accent) 30%, transparent);
+  }
+
   :focus-visible {
-    @apply outline-2 outline-offset-2 outline-amber-brand;
+    @apply outline-2 outline-offset-2 outline-accent;
   }
 }
 
+/* Content column from the handoff: 1200px max, fluid gutter. */
 @utility container-page {
-  @apply mx-auto w-full max-w-6xl px-4 sm:px-6 lg:px-8;
+  margin-inline: auto;
+  width: 100%;
+  max-width: 1200px;
+  padding-inline: clamp(20px, 5vw, 72px);
 }
 
-/* Scroll-reveal, driven by src/utils/Reveal.jsx. Both classes are added by
-   JS, so without JS the element keeps its normal visible styling. */
+/* Eyebrow label above headings — always uppercase terracotta. */
+@utility kicker {
+  display: block;
+  font-size: 13px;
+  line-height: 14px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--color-accent-700);
+}
+
 @layer components {
-  .reveal {
-    opacity: 0;
+  /* Buttons. Primary is filled terracotta; ghost keeps an accent outline and
+     picks up a 6% accent wash on hover — same wash used on link rows. */
+  .btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    cursor: pointer;
+    text-decoration: none;
+    font-family: var(--font-display);
+    font-weight: 600;
+    font-size: 14px;
+    line-height: 1.2;
+    border: 1px solid transparent;
+    border-radius: 4px;
+    padding: 10px 18px;
+    transition:
+      background-color 0.15s ease,
+      border-color 0.15s ease,
+      color 0.15s ease;
   }
 
-  .reveal-in {
-    animation: var(--animate-fade-up);
-    animation-delay: var(--reveal-delay, 0ms);
+  .btn-primary {
+    background: var(--color-accent);
+    border-color: var(--color-accent);
+    color: #fff;
+  }
+  .btn-primary:hover,
+  .btn-primary:focus-visible {
+    background: var(--color-accent-700);
+    border-color: var(--color-accent-700);
+    color: #fff;
+  }
+
+  .btn-ghost {
+    border-color: var(--color-accent);
+    color: var(--color-accent-700);
+  }
+  .btn-ghost:hover,
+  .btn-ghost:focus-visible {
+    background: color-mix(in srgb, var(--color-accent) 6%, transparent);
+  }
+
+  /* Ghost variant for the dark espresso band — cream outline, cream text. */
+  .btn-ghost-dark {
+    border-color: var(--color-cream);
+    color: var(--color-cream);
+  }
+  .btn-ghost-dark:hover,
+  .btn-ghost-dark:focus-visible {
+    background: color-mix(in srgb, #faf3e7 12%, transparent);
+  }
+
+  .btn-icon {
+    width: 34px;
+    height: 34px;
+    padding: 0;
+    font-size: 17px;
+  }
+
+  /* Matted-photo treatment from the handoff: warm mat, hairline outline, and
+     a gentle sepia grade so mixed photography reads as one set. */
+  .plate {
+    box-sizing: border-box;
+    border: 6px solid var(--color-matte);
+    outline: 1px solid var(--color-divider);
+  }
+  .plate img {
+    filter: sepia(0.22) saturate(0.82) contrast(1.05);
+  }
+
+  /* Row hover wash shared by best-seller links and dialog option rows. */
+  .row-hover {
+    transition: background-color 0.15s ease;
+  }
+  .row-hover:hover {
+    background: color-mix(in srgb, var(--color-accent) 6%, transparent);
   }
 }

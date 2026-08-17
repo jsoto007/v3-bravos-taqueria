@@ -3,67 +3,62 @@ import { SITE, formattedAddress, mapsUrl } from '../data/site'
 
 export default function Footer() {
   return (
-    <footer className="border-t border-charcoal-900/10 bg-masa-100">
-      <div className="container-page py-12">
-        <div className="flex flex-col gap-8 sm:flex-row sm:items-start sm:justify-between">
+    <footer className="border-t border-divider">
+      <div className="container-page py-14">
+        <div className="grid grid-cols-[repeat(auto-fit,minmax(220px,1fr))] gap-x-[clamp(24px,4vw,84px)] gap-y-10">
           <div>
-            <span className="font-display text-lg font-bold text-charcoal-900">
-              Bravo&rsquo;s <span className="text-chile-600">Taqueria</span>
+            <span className="font-display text-[22px] font-bold leading-7">
+              Bravo&rsquo;s Taqueria
             </span>
-            <p className="mt-2 max-w-xs text-sm leading-relaxed text-charcoal-700/80">
-              {SITE.tagline}
-            </p>
+            <p className="mt-2.5 max-w-[32ch] text-xs text-ink/70">{SITE.tagline}</p>
           </div>
 
-          <div className="text-sm">
-            <h2 className="mb-2 font-semibold text-charcoal-900">Visit</h2>
+          <div className="text-xs leading-6">
+            <span className="kicker mb-2">Visit</span>
             <a
               href={mapsUrl}
               target="_blank"
               rel="noopener noreferrer"
-              className="block text-charcoal-700/80 hover:text-chile-600"
+              className="block text-accent-700 hover:text-accent"
             >
               {formattedAddress}
             </a>
-            <a
-              href={`tel:${SITE.tel}`}
-              className="mt-1 block text-charcoal-700/80 hover:text-chile-600"
-            >
+            <a href={`tel:${SITE.tel}`} className="block text-accent-700 hover:text-accent">
               {SITE.phone}
             </a>
             {SITE.email && (
               <a
                 href={`mailto:${SITE.email}`}
-                className="mt-1 block text-charcoal-700/80 hover:text-chile-600"
+                className="block text-accent-700 hover:text-accent"
               >
                 {SITE.email}
               </a>
             )}
           </div>
 
-          <nav className="text-sm" aria-label="Footer">
-            <h2 className="mb-2 font-semibold text-charcoal-900">Explore</h2>
-            <Link to="/" className="block text-charcoal-700/80 hover:text-chile-600">
-              Home
-            </Link>
-            <Link to="/menu" className="mt-1 block text-charcoal-700/80 hover:text-chile-600">
+          <nav className="text-xs leading-6" aria-label="Footer">
+            <span className="kicker mb-2">Explore</span>
+            <Link to="/menu" className="block text-accent-700 hover:text-accent">
               Menu
             </Link>
-            <a href="/#visit" className="mt-1 block text-charcoal-700/80 hover:text-chile-600">
+            <Link to="/about" className="block text-accent-700 hover:text-accent">
+              About
+            </Link>
+            <Link to="/visit" className="block text-accent-700 hover:text-accent">
               Hours &amp; location
-            </a>
+            </Link>
           </nav>
 
           {SITE.social.length > 0 && (
-            <div className="text-sm">
-              <h2 className="mb-2 font-semibold text-charcoal-900">Follow</h2>
+            <div className="text-xs leading-6">
+              <span className="kicker mb-2">Follow</span>
               {SITE.social.map((s) => (
                 <a
                   key={s.url}
                   href={s.url}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="mt-1 block text-charcoal-700/80 hover:text-chile-600"
+                  className="block text-accent-700 hover:text-accent"
                 >
                   {s.name}
                 </a>
@@ -72,21 +67,21 @@ export default function Footer() {
           )}
         </div>
 
-        <div className="mt-10 flex flex-col gap-1 border-t border-charcoal-900/10 pt-6 text-xs text-charcoal-700/60 sm:flex-row sm:justify-between">
-          <p>
+        <div className="mt-10 flex flex-wrap justify-between gap-4 border-t border-divider pt-5 text-xs text-ink/70">
+          <span>
             &copy; {new Date().getFullYear()} {SITE.legalName}. All rights reserved.
-          </p>
-          <p>
+          </span>
+          <span>
             Developed by{' '}
             <a
               href="https://sotodev.com/"
               target="_blank"
               rel="noopener noreferrer"
-              className="font-medium text-chile-600 hover:underline"
+              className="text-accent-700 hover:text-accent hover:underline"
             >
               Soto Dev, LLC
             </a>
-          </p>
+          </span>
         </div>
       </div>
     </footer>
