@@ -7,6 +7,15 @@ export default function Footer() {
       <div className="container-page py-14">
         <div className="grid grid-cols-[repeat(auto-fit,minmax(220px,1fr))] gap-x-[clamp(24px,4vw,84px)] gap-y-10">
           <div>
+            <img
+              src="/logo.svg"
+              alt=""
+              width="72"
+              height="76"
+              loading="lazy"
+              decoding="async"
+              className="mb-3 h-[76px] w-auto"
+            />
             <span className="font-display text-[22px] font-bold leading-7">
               Bravo&rsquo;s Taqueria
             </span>

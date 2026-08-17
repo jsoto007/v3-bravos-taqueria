@@ -1,0 +1,48 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 500" role="img" aria-label="Aguas frescas illustration">
+  <rect width="400" height="500" fill="#F7EAD3"/>
+  <circle cx="200" cy="245" r="150" fill="#E9B44C"/>
+  <circle cx="200" cy="245" r="150" fill="none" stroke="#2B1B10" stroke-width="7"/>
+  <ellipse cx="200" cy="420" rx="128" ry="16" fill="#2B1B10" opacity="0.12"/>
+
+  <!-- jamaica (center, tall vitrolero) -->
+  <g stroke="#2B1B10" stroke-width="7" stroke-linejoin="round">
+    <path d="M162 208 q-14 46 0 96 q4 26 38 26 q34 0 38 -26 q14 -50 0 -96 q-2 -22 -38 -22 q-36 0 -38 22 Z" fill="#FFF6E6"/>
+    <path d="M166 232 q-10 34 0 74 q4 18 34 18 q30 0 34 -18 q10 -40 0 -74 q-28 -10 -68 0 Z" fill="#A93016"/>
+    <ellipse cx="200" cy="196" rx="30" ry="10" fill="#F0C64F"/>
+    <path d="M232 168 q20 6 18 30" fill="none" stroke-width="9" stroke-linecap="round"/>
+    <circle cx="252" cy="202" r="8" fill="#6E2B21"/>
+  </g>
+  <circle cx="184" cy="266" r="6" fill="#7A2412"/>
+  <circle cx="212" cy="292" r="5" fill="#7A2412"/>
+  <path d="M176 246 q4 -10 14 -12" stroke="#D96C4A" stroke-width="5" stroke-linecap="round" fill="none"/>
+
+  <!-- horchata (left) -->
+  <g stroke="#2B1B10" stroke-width="6" stroke-linejoin="round">
+    <path d="M84 268 q-8 34 0 70 q3 18 30 18 q27 0 30 -18 q8 -36 0 -70 q-2 -16 -30 -16 q-28 0 -30 16 Z" fill="#FFF6E6"/>
+    <path d="M88 286 q-5 24 0 48 q3 12 26 12 q23 0 26 -12 q5 -24 0 -48 q-24 -8 -52 0 Z" fill="#F3E3C3"/>
+    <line x1="128" y1="252" x2="112" y2="304" stroke-width="8" stroke-linecap="round"/>
+  </g>
+  <path d="M96 300 h10 M116 316 h12" stroke="#C9A96A" stroke-width="4" stroke-linecap="round"/>
+
+  <!-- limon (right) -->
+  <g stroke="#2B1B10" stroke-width="6" stroke-linejoin="round">
+    <path d="M256 268 q-8 34 0 70 q3 18 30 18 q27 0 30 -18 q8 -36 0 -70 q-2 -16 -30 -16 q-28 0 -30 16 Z" fill="#FFF6E6"/>
+    <path d="M260 286 q-5 24 0 48 q3 12 26 12 q23 0 26 -12 q5 -24 0 -48 q-24 -8 -52 0 Z" fill="#9DBE6B"/>
+    <circle cx="312" cy="270" r="15" fill="#D6E3B8"/>
+  </g>
+  <g stroke="#8FB768" stroke-width="4" stroke-linecap="round">
+    <path d="M304 262 l16 16 M304 278 l16 -16 M312 258 v24"/>
+  </g>
+  <circle cx="276" cy="304" r="5" fill="#6FA04C"/>
+
+  <!-- fruit garnish on ground -->
+  <g stroke="#2B1B10" stroke-width="5" stroke-linejoin="round">
+    <path d="M118 380 a16 16 0 0 1 32 0 Z" fill="#C8401F"/>
+    <circle cx="262" cy="382" r="12" fill="#6FA04C"/>
+  </g>
+
+  <!-- sparkle marks -->
+  <g stroke="#C8401F" stroke-width="5" stroke-linecap="round">
+    <path d="M116 172 l10 -10 M290 160 l-10 -10 M92 218 h14"/>
+  </g>
+</svg>

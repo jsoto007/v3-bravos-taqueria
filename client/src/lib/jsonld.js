@@ -24,7 +24,7 @@ export function buildJsonLd() {
     priceRange: SITE.priceRange,
     servesCuisine: SITE.cuisine,
     image: `${SITE.url}${SITE.ogImage}`,
-    logo: `${SITE.url}/bravos-logo.jpg`,
+    logo: `${SITE.url}/logo-512.png`,
     address: {
       '@type': 'PostalAddress',
       streetAddress: SITE.address.street,

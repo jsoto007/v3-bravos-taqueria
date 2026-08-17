@@ -1,0 +1,36 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 500" role="img" aria-label="Torta illustration">
+  <rect width="400" height="500" fill="#F7EAD3"/>
+  <circle cx="200" cy="245" r="150" fill="#E9B44C"/>
+  <circle cx="200" cy="245" r="150" fill="none" stroke="#2B1B10" stroke-width="7"/>
+  <ellipse cx="200" cy="392" rx="140" ry="16" fill="#2B1B10" opacity="0.12"/>
+
+  <!-- torta on a telera roll: long, low, cut face forward -->
+  <g stroke="#2B1B10" stroke-width="7" stroke-linejoin="round">
+    <!-- bottom bread: long and flat with tapered ends -->
+    <path d="M62 344 q138 26 276 0 q-4 30 -26 32 q-112 14 -224 0 q-22 -2 -26 -32 Z" fill="#D89A4A"/>
+    <!-- milanesa overhanging -->
+    <path d="M58 330 q142 -22 284 0 l6 20 q-148 22 -296 0 Z" fill="#8C5A33"/>
+    <path d="M84 334 h12 M136 330 h12 M196 328 h12 M256 330 h12 M304 336 h10" stroke="#5F3A1E" stroke-width="4" stroke-linecap="round"/>
+    <!-- cheese droops along the cut -->
+    <path d="M66 330 q9 14 20 0 q9 13 20 0 q9 13 20 0 q9 13 20 0 q9 13 20 0 q9 13 20 0 q9 13 20 0 q9 13 20 0 q9 13 20 0 q9 13 20 0 q9 13 20 0 q9 13 20 0 l4 -16 q-124 -18 -248 0 Z" fill="#F6D96B"/>
+    <!-- tomato + avocado peeking -->
+    <circle cx="118" cy="312" r="13" fill="#C8401F"/>
+    <circle cx="200" cy="308" r="14" fill="#C8401F"/>
+    <circle cx="282" cy="312" r="13" fill="#C8401F"/>
+    <path d="M146 306 q18 -12 36 0 q-18 10 -36 0 Z" fill="#6FA04C"/>
+    <path d="M228 304 q18 -12 36 0 q-18 10 -36 0 Z" fill="#6FA04C"/>
+    <!-- lettuce ruffle -->
+    <path d="M60 306 q12 -14 26 -4 q10 -14 26 -6 q10 -14 26 -4 q10 -13 26 -4 q10 -13 26 -4 q10 -12 26 -3 q10 -12 26 -2 q12 -10 26 2 q14 -8 24 6 l6 20 q-124 -18 -244 2 Z" fill="#4E7A35"/>
+    <!-- top bread: long low telera loaf with soft pointed ends -->
+    <path d="M58 306 q-6 -54 70 -60 q36 -3 72 -3 q36 0 72 3 q76 6 70 60 q-142 -20 -284 0 Z" fill="#E9A852"/>
+    <!-- telera's two lengthwise grooves -->
+    <path d="M148 250 q-6 26 -4 50 M252 250 q6 26 4 50" fill="none" stroke-width="5" stroke-linecap="round"/>
+  </g>
+  <!-- crust shine -->
+  <path d="M92 280 q10 -22 40 -28 M310 282 q-6 -18 -26 -26" stroke="#FFF6E6" stroke-width="6" stroke-linecap="round" fill="none" opacity="0.7"/>
+
+  <!-- steam -->
+  <g stroke="#C8401F" stroke-width="5" stroke-linecap="round" fill="none">
+    <path d="M160 190 q6 -14 0 -26 M200 196 q6 -14 0 -26 M240 190 q6 -14 0 -26"/>
+  </g>
+</svg>

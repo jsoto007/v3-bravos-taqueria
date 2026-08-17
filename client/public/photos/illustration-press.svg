@@ -1,0 +1,49 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 500" role="img" aria-label="Tortilla press illustration">
+  <rect width="400" height="500" fill="#F7EAD3"/>
+  <circle cx="200" cy="245" r="150" fill="#E9B44C"/>
+  <circle cx="200" cy="245" r="150" fill="none" stroke="#2B1B10" stroke-width="7"/>
+  <ellipse cx="200" cy="420" rx="124" ry="16" fill="#2B1B10" opacity="0.12"/>
+
+  <!-- tortilla stack, right -->
+  <g stroke="#2B1B10" stroke-width="6" stroke-linejoin="round">
+    <ellipse cx="296" cy="394" rx="48" ry="12" fill="#F0C64F"/>
+    <ellipse cx="296" cy="383" rx="48" ry="12" fill="#F6D96B"/>
+    <ellipse cx="296" cy="372" rx="48" ry="12" fill="#F0C64F"/>
+  </g>
+  <path d="M274 370 h10 M300 375 h12 M282 386 h10" stroke="#B5872B" stroke-width="4" stroke-linecap="round"/>
+
+  <!-- press: bottom slab with feet -->
+  <g stroke="#2B1B10" stroke-width="7" stroke-linejoin="round">
+    <rect x="76" y="366" width="176" height="26" rx="10" fill="#4A423C"/>
+    <path d="M96 392 v14 M232 392 v14" stroke-width="12" stroke-linecap="round"/>
+    <!-- masa ball on the plate -->
+    <circle cx="176" cy="348" r="19" fill="#FFF6E6"/>
+    <!-- top slab, hinged open at the left -->
+    <g transform="rotate(-27 88 366)">
+      <rect x="76" y="336" width="176" height="24" rx="10" fill="#6B6058"/>
+      <rect x="76" y="336" width="176" height="12" rx="6" fill="#8A7F76" stroke="none"/>
+      <rect x="76" y="336" width="176" height="24" rx="10" fill="none"/>
+    </g>
+    <!-- hinge bolt -->
+    <circle cx="88" cy="366" r="12" fill="#6E2B21"/>
+    <!-- clamp lever resting back over the top slab -->
+    <path d="M252 380 q66 -18 82 -84" fill="none" stroke-width="12" stroke-linecap="round"/>
+    <circle cx="336" cy="292" r="11" fill="#6E2B21"/>
+  </g>
+  <path d="M168 342 q4 -7 12 -7" stroke="#D8CBB6" stroke-width="4" stroke-linecap="round" fill="none"/>
+
+  <!-- fresh tortilla mid-air -->
+  <g stroke="#2B1B10" stroke-width="6" stroke-linejoin="round">
+    <ellipse cx="150" cy="216" rx="46" ry="15" fill="#F6D96B" transform="rotate(-10 150 216)"/>
+  </g>
+  <path d="M128 212 h12 M152 218 h12" stroke="#B5872B" stroke-width="4" stroke-linecap="round"/>
+
+  <!-- motion + flour marks, kept off-center -->
+  <g stroke="#C8401F" stroke-width="5" stroke-linecap="round">
+    <path d="M104 176 l10 -10 M226 158 l-10 -10"/>
+  </g>
+  <g fill="#FFF6E6" stroke="#2B1B10" stroke-width="4">
+    <circle cx="94" cy="292" r="6"/>
+    <circle cx="112" cy="308" r="4"/>
+  </g>
+</svg>
